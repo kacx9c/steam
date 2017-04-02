@@ -1,0 +1,22 @@
+{
+    "steam": {
+        "manage": {
+            "tab": "community",
+            "controller": "manage",
+            "do": "",
+            "restriction": "steam_manage"
+        },
+        "settings": {
+            "tab": "community",
+            "controller": "settings",
+            "do": "",
+            "restriction": "steam_settings"
+        },
+        "view": {
+            "tab": "community",
+            "controller": "view",
+            "do": "",
+            "restriction": "steam_view"
+        }
+    }
+}

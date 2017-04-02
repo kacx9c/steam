@@ -1,0 +1,10 @@
+{
+    "app=steam&module=steam&controller=settings&searchResult=form_steam_api_key": {
+        "lang_key": "steam_api_key",
+        "restriction": null,
+        "keywords": [
+            "steam",
+            "api"
+        ]
+    }
+}

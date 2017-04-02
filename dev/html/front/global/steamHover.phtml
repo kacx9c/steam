@@ -1,0 +1,22 @@
+<ips:template parameters="$member" />
+{{ $steam = \IPS\steam\Profile::load($member->member_id); }}
+{{if $steam->member_id == $member->member_id && $steam->steamid && $member->group['steam_pull']}}
+
+	<li class='ipsDataItem'>
+		<span class='ipsDataItem_generic ipsDataItem_size3'>
+			<strong>
+				{lang="steam_status"}
+			</strong>
+		</span>
+		<span class='ipsDataItem_main'>
+			{{if $steam->gameextrainfo }}
+				<span class='ipsBadge ipsBadge_positive' title='{lang="steam_playing"}: {$steam->gameextrainfo}' data-ipsTooltip>{lang="steam_ingame"}</span>
+			{{elseif !$steam->personastate }}
+				<span class='ipsBadge ipsBadge_neutral'>{lang="steam_status_{$steam->personastate}"}</span>
+			{{else}}
+				<span class='ipsBadge' style="background: #86b5d9;">{lang="steam_status_{$steam->personastate}"}</span>
+			{{endif}}
+		</span>
+	</li>
+
+{{endif}}

@@ -1,0 +1,14 @@
+{
+    "admin": {
+        "steam": {
+            "default_controller": "settings",
+            "protected": false
+        }
+    },
+    "front": {
+        "steam": {
+            "default_controller": "",
+            "protected": 1
+        }
+    }
+}

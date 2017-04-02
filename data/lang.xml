@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<language>
+ <app key="steam" version="20012">
+  <word key="__app_steam" js="0">Steam Integration</word>
+  <word key="module__steam_steam" js="0">Steam</word>
+  <word key="menu__steam_steam" js="0">Steam</word>
+  <word key="menu__steam_steam_settings" js="0">Settings</word>
+  <word key="menu__steam_steam_settings_title" js="0">Steam Profile Integration Settings</word>
+  <word key="menu__steam_steam_manage" js="0">Manage</word>
+  <word key="menu__steam_steam_view" js="0">View Profiles</word>
+  <word key="menu__steam_steam_view_title" js="0">View Profiles</word>
+  <word key="task__steamProfile" js="0">Update Profile information / online status</word>
+  <word key="task__steamCleanup" js="0">Check for missing profiles, remove profiles where Steam ID has been removed.</word>
+  <word key="task__steamGames" js="0"><![CDATA[Update local cache of recently played & owned games]]></word>
+  <word key="acp_search_title_steam_Steam" js="0">Steam</word>
+  <word key="group__steam_Steam" js="0">Steam Profile</word>
+  <word key="pf_type_steamid" js="0">Steam ID</word>
+  <word key="profile_steam_steamprofile" js="0"><![CDATA[<i class='fa fa-steam'></i> Steam Profile]]></word>
+  <word key="block_steamPlayerWidget" js="0">Random Steam Profiles</word>
+  <word key="block_steamPlayerWidget_desc" js="0">Show X Random Steam Profiles.</word>
+  <word key="steamIndexCount" js="0">Show how many profiles?</word>
+  <word key="steamIndex2weeks" js="0">Show games played in the last 2 weeks?</word>
+  <word key="steam_settings" js="0">Settings</word>
+  <word key="steam_gen_settings" js="0">General Settings</word>
+  <word key="steam__gen_settings" js="0">General Settings</word>
+  <word key="steam__index_settings" js="0">Board Index</word>
+  <word key="steam__mem_profiles" js="0">Member Profiles</word>
+  <word key="steam_instructions" js="0">Instructions to show on Empty Profiles</word>
+  <word key="steam_api_key" js="0">Steam API Key</word>
+  <word key="steam_custom_field_key" js="0">Custom Profile Field Key</word>
+  <word key="steam_pull_groups" js="0">Get data from members in which groups?</word>
+  <word key="steam_batch_count" js="0">Update Game data X members at a time</word>
+  <word key="steam_batch_count_desc" js="0"><![CDATA[Increase if your server can handle it, recommend to stay < 50]]></word>
+  <word key="steam_profile_count" js="0">Update Online data X members at a time</word>
+  <word key="steam_profile_count_desc" js="0">Enter a multiple of 100</word>
+  <word key="steam_showintopic" js="0">Show in Topics</word>
+  <word key="steam_showonhover" js="0">Show Online status on Hovercard</word>
+  <word key="steam_index_count" js="0">Number of users to show on Board Index</word>
+  <word key="steam_showlastplayed" js="0">Show games played in last 2 weeks on Board Index</word>
+  <word key="steam_pull_groups_index" js="0">Groups to pull for Board Index and Pages</word>
+  <word key="steam_showinprofile" js="0">Show in User Profile</word>
+  <word key="steam_profile_style" js="0">Display style for game list</word>
+  <word key="steam_profile_style_image" js="0">Image Grid</word>
+  <word key="steam_profile_style_list" js="0">List</word>
+  <word key="steam_get_owned" js="0">Display owned games</word>
+  <word key="steam_link_stats" js="0">Link to user stats from Game Icon / Logo?</word>
+  <word key="steam_can_clear" js="0">Users can delete their local cache data?</word>
+  <word key="steam_diagnostics" js="0">Enable DIAGNOSTICS mode?</word>
+  <word key="steam_diagnostics_desc" js="0">Leave OFF for normal operation</word>
+  <word key="steam_pull" js="0">Show Steam Profile</word>
+  <word key="steam_index" js="0">Show on Board Index</word>
+  <word key="steam_status_0" js="0">Offline</word>
+  <word key="steam_status_1" js="0">Online</word>
+  <word key="steam_status_2" js="0">Busy</word>
+  <word key="steam_status_3" js="0">Away</word>
+  <word key="steam_status_4" js="0">Snooze</word>
+  <word key="steam_status_5" js="0">Looking for Trade</word>
+  <word key="steam_status_6" js="0">Looking to Play</word>
+  <word key="task_steam_profile" js="0">Update Failed for ID(s): </word>
+  <word key="task_steam_profile_done" js="0">Update Complete, No Errors</word>
+  <word key="steam_ingame" js="0">In Game</word>
+  <word key="steam_playing" js="0">Playing</word>
+  <word key="steam_since" js="0">Since</word>
+  <word key="steam_header" js="0">Steam Profile</word>
+  <word key="steam_2weeks" js="0">hrs in the last 2 weeks</word>
+  <word key="steam_noplaytime" js="0">0</word>
+  <word key="steam_private" js="0">Private</word>
+  <word key="steam_forever" js="0">hrs on record</word>
+  <word key="steam_level" js="0">Level</word>
+  <word key="steam_addfriend" js="0">Add Friend</word>
+  <word key="steam_created" js="0">Created</word>
+  <word key="steam_title" js="0">Steam Users Online</word>
+  <word key="steam_owned_games" js="0">Owned Steam Games</word>
+  <word key="steam_status" js="0">Steam Status</word>
+  <word key="steam_id_invalid" js="0">Steam Name / ID Invalid, cannot find player</word>
+  <word key="steam_last_update" js="0">Last Update</word>
+  <word key="steam_err_getlevel" js="0">Error: Failed response from Steam Servers, GetLevel</word>
+  <word key="steam_err_getvanity" js="0">Error: Failed response from Steam Servers, ResolveVanity</word>
+  <word key="steam_err_getplayer" js="0">Error: Failed response from Steam Servers, GetPlayer</word>
+  <word key="steam_err_getrecent" js="0">Error: Failed response from Steam Servers, GetRecentGames</word>
+  <word key="steam_err_getowned" js="0">Error: Failed response from Steam Servers, GetOwnedGames</word>
+  <word key="steam_err_getbadges" js="0">Error: Failed response from Steam Servers, GetBadges</word>
+  <word key="steam_err_noapi" js="0">Error: API Key Missing</word>
+  <word key="steam_err" js="0">Error</word>
+  <word key="steam_remove" js="0">Clear Cache</word>
+  <word key="steam_update" js="0">Update</word>
+  <word key="steam_disable" js="0">Disable</word>
+  <word key="steam_enable" js="0">Enable</word>
+  <word key="steam_menu" js="0">Options</word>
+  <word key="steam_validate" js="0">Validate SteamID</word>
+  <word key="steam_disabled" js="0">Account Disabled</word>
+  <word key="steam_err_disabled" js="0">Error: Failed to disable account</word>
+  <word key="steam_enabled" js="0">Account Enabled</word>
+  <word key="steam_err_enabled" js="0">Error: Failed to enable account</word>
+  <word key="steam_validated" js="0">SteamID Valid</word>
+  <word key="steam_err_validated" js="0">Steam ID Invalid</word>
+  <word key="steam_removed" js="0">Profile Cache cleared</word>
+  <word key="steam_err_removed" js="0">Error: Failed to clear local cache</word>
+  <word key="steam_updated" js="0">Steam Profile cache updated</word>
+  <word key="steam_err_updated" js="0">Error: Cache update failed</word>
+  <word key="steam_wait" js="0">Profile has been updated in last 5 minutes, please wait</word>
+  <word key="steam_member_updated" js="0">Profile Updated</word>
+  <word key="steam_member_removed" js="0">Profile Data Removed</word>
+  <word key="steam_member_restricted" js="0">Steam Profile data removed, account restricted</word>
+  <word key="steam_member_unrestricted" js="0">Steam Profile data updated, account unrestricted</word>
+  <word key="steam_field_invalid" js="0">No Custom Field or Steam Login available</word>
+  <word key="steam_general" js="0">Steam Profile Error</word>
+  <word key="steam_input_bad" js="0">Invalid count value</word>
+  <word key="steam_admin_batch" js="0">How many users to process at a time</word>
+  <word key="steam_multi_update" js="0">Update</word>
+  <word key="steam_multi_cleanup" js="0">Cleanup</word>
+  <word key="steam_admin_batch_type" js="0">Update or Cleanup local cache</word>
+  <word key="steam_update_running" js="0">Building Local Steam Cache... Please wait</word>
+  <word key="steam_cleanup_running" js="0">Cleaning Local Steam Cache... Please wait</word>
+  <word key="steam_update_complete" js="0">Local Steam Cache update Complete</word>
+  <word key="steam_cleanup_complete" js="0">Local Steam Cache cleanup Complete</word>
+  <word key="steam_title_update" js="0">Updating</word>
+  <word key="steam_title_cleanup" js="0">Cleaning up</word>
+  <word key="steam_recent" js="0">Recently Played Games</word>
+  <word key="steam_of" js="0">of</word>
+  <word key="steam_exp_update_profile" js="0">Update Profile Data Failed</word>
+  <word key="steam_empty" js="0">Steam Profile Empty</word>
+  <word key="st_member_id" js="0">Member ID</word>
+  <word key="st_members_seo_name" js="0">Member Name</word>
+  <word key="st_steamid" js="0">Steam ID</word>
+  <word key="st_personaname" js="0">Steam Name</word>
+  <word key="st_last_update" js="0">Last Update</word>
+  <word key="st_timecreated" js="0">Time Created</word>
+  <word key="st_lastlogoff" js="0">Last Logoff</word>
+  <word key="st_vac_status" js="0">VAC Ban?</word>
+  <word key="st_communityvisibilitystate" js="0">Profile</word>
+  <word key="st_game_count" js="0">Games Owned</word>
+  <word key="st_personastate" js="0">Status</word>
+  <word key="st_playtime_2weeks" js="0">Playtime 2 weeks (hrs)</word>
+  <word key="st_restricted" js="0">Disabled?</word>
+  <word key="st_error" js="0">Error</word>
+  <word key="steam_no" js="0">No</word>
+  <word key="steam_yes" js="0">Yes</word>
+  <word key="steam_banned" js="0">Banned</word>
+  <word key="steam_public" js="0">Public</word>
+  <word key="steam_default_tab" js="0">Make Steam the default Profile Tab?</word>
+  <word key="r__manage" js="0">Manage</word>
+  <word key="r__settings" js="0">Settings</word>
+  <word key="r__view" js="0">View Profiles</word>
+  <word key="r__steam_manage" js="0">Can manually Update / Cleanup</word>
+  <word key="r__steam_settings" js="0">Can Edit Steam Settings</word>
+  <word key="r__steam_view" js="0">Can View Profile Table</word>
+  <word key="steam_filters_vacban" js="0">VAC Banned</word>
+  <word key="steam_filters_error" js="0">Errors</word>
+  <word key="steam_filters_disabled" js="0">Disabled</word>
+ </app>
+</language>

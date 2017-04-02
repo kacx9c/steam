@@ -1,0 +1,44 @@
+<ips:template parameters="$members, $config" />
+{{if is_array($members) && count($members)}}
+
+<h3 class='ipsWidget_title'>{lang="steam_title"}</h3>
+<div class='ipsPad'>
+
+		{{foreach $members as $id => $m}}
+			<div class='ipsColumns'>
+				<div class='ipsColumn ipsColumn_veryNarrow'>
+				    <a href='{$m->profileurl}' class='ipsUserPhoto_small' target='_blank'><img src='{$m->avatarmedium}' class='ipsSpacer_bottom'/></a>
+				</div>
+				<div class='ipsColumn ipsColumn_fluid'>
+				    <span class='ipsTruncate ipsTruncate_line'>
+						{{if $m->gameextrainfo }}
+							<strong class='ipsOnlineStatus ipsOnlineStatus_online' data-ipsToolTip title='{lang="steam_playing"}: {$m->gameextrainfo}'> <i class='fa fa-circle'></i></strong>
+						{{else}}
+							<strong class='ipsOnlineStatus' style="color: #86b5d9;" data-ipsToolTip title="{lang="steam_status_{$m->personastate}"}"> <i class='fa fa-circle'></i></strong>
+						{{endif}}
+				    	<a href='{url="app=core&module=members&controller=profile&id={$m->member_id}&tab=node_steam_steamprofile"}' target='_blank'>{$m->personaname}</a>
+				    </span><br/>
+
+				    {{if isset($m->games) && ($m->total_count > 0) && $config['steamIndex2weeks']}}
+					    <div class='ipsSpacer_top ipsSpacer_half'>
+					    	<ul class='ipsGrid'>
+							    {{foreach $m->getRecent(6) as $_id => $g }}
+							        <li class='ipsGrid_span2'>
+							        	<img src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/{$g['appid']}/{$g['img_icon_url']}.jpg" data-ipsToolTip title="{$g['name']}: {expression="round($g['playtime_2weeks'] / 60, 1)"} {lang="steam_2weeks"}" height='28px' width='28px'/>
+							        </li>
+								{{endforeach}}
+						     </ul>
+						</div>
+					{{else}}
+						{{if $m->playtime_2weeks}}
+							<span class='ipsType_light'>{expression="round(($m->playtime_2weeks / 60), 1)"} {lang="steam_2weeks"}</span><br />
+						{{else}}
+							<span class='ipsType_light'>{lang="steam_noplaytime"} {lang="steam_2weeks"}</span><br />
+						{{endif}}
+					{{endif}}
+				</div>
+			</div>
+	  	{{endforeach}}
+
+</div>
+{{endif}}

@@ -1,0 +1,37 @@
+.steamInGame {
+	border: 5px solid #8bc53f;
+}
+
+.steamInGame img {
+	width: 179px;
+	height: 59px;
+}
+
+.steamInGameData {
+	margin-left: 195px;
+	margin-top: 12px;
+}
+
+.steamGameData {
+	margin-left: 200px;
+	margin-top: 12px;
+}
+
+.steamLevel {
+	display: inline-block;
+	font-size: 16px;
+	border-radius: 16px;
+	border: solid white 2px;
+	height: 28px;
+	width: 28px;
+	line-height: 28px;
+	text-align: center;
+	cursor: default;
+	border-color: #4e8ddb;
+}
+
+.steamLevelNumber {
+	line-height: 24px;
+	text-align: center;
+	cursor: default;
+}

@@ -1,0 +1,105 @@
+<ips:template parameters="$steam, $commentKey, $author" />
+
+{{if isset($steam->steamid) && isset($steam->personaname) && $author->group['steam_pull']}}
+{{if $steam->steamid > 0 && $steam->personaname}}
+<!--
+<li class='ipsResponsive_hidePhone ipsTruncate ipsTruncate_line ipsType_noBreak'><i class='fa fa-steam'></i>
+	{{if $steam->gameextrainfo }}
+		<strong class='ipsOnlineStatus ipsOnlineStatus_online' data-ipsToolTip title="{lang="steam_ingame"}"> <i class='fa fa-circle'></i></strong>
+	{{else}}
+		{{if !$steam->personastate }}
+			<strong class='ipsOnlineStatus ipsOnlineStatus_offline' data-ipsToolTip data-ipsToolTip-safe=TRUE title="{lang="steam_since"}: {datetime="$steam->lastlogoff"}> <i class='fa fa-circle'></i></strong>
+		{{else}}
+			<strong class='ipsOnlineStatus' style="color: #86b5d9;" data-ipsToolTip title="{lang="steam_status_{$steam->personastate}"}"> <i class='fa fa-circle'></i></strong>
+		{{endif}}
+	{{endif}}
+	<a href='{url="app=core&module=members&controller=profile&id={$steam->member_id}&tab=node_steam_steamprofile"}' target="_blank" data-ipsHover data-ipsHover-content="#steamTopicHover_{$commentKey}"> {$steam->personaname}</a>
+</li>
+-->
+
+<ul class='ipsGrid ipsGrid_collapsePhone ipsResponsive_hidePhone'>
+	<li class='ipsGrid_span4'>
+		<img src='{$steam->avatarmedium}' class='ipsUserPhoto ipsUserPhoto_mini ipsPos_right' />
+	</li>
+	<li class='ipsGrid_span8'>
+		<div class='ipsSpacer_top ipsSpacer_half'>
+		<a class='ipsPos_left ipsTruncate ipsTruncate_line' style="text-align:left;" href='{url="app=core&module=members&controller=profile&id={$steam->member_id}&tab=node_steam_steamprofile"}' target="_blank" data-ipsHover data-ipsHover-content="#steamTopicHover_{$commentKey}"> {$steam->personaname}</a>
+		<br/>
+		{{if $steam->gameextrainfo }}
+			<span class='ipsBadge ipsBadge_positive ipsPos_left'>{lang="steam_ingame"}</span>
+		{{else}}
+			{{if !$steam->personastate }}
+				<span class='ipsBadge ipsBadge_neutral ipsPos_left' data-ipsToolTip data-ipsToolTip-safe=TRUE title="{lang="steam_since"}: {datetime="$steam->lastlogoff" short="true"}">{lang="steam_status_{$steam->personastate}"}</span>
+			{{else}}
+				<span class='ipsBadge ipsPos_left' style="background: #86b5d9;">{lang="steam_status_{$steam->personastate}"}</span>
+			{{endif}}
+		{{endif}}
+		</div>
+	</li>
+</ul>
+
+<!-- Hovercard -->
+<div id="steamTopicHover_{$commentKey}" class='ipsBox ipsHide'>
+
+<h3 class='ipsType_sectionTitle'>{$steam->personaname}<span class='ipsPos_right'>{lang="profile_steam_steamprofile"}</span></h3>
+	<div class='ipsColumns ipsSpacer_bottom ipsSpacer_half'>
+		<div class='ipsColumn ipsColumn_narrow ipsPos_center'>
+    		<a href='{$steam->profileurl}' class='ipsPos_center' target='_blank'><img src='{$steam->avatarfull}' class='ipsUserPhoto ipsUserPhoto_xlarge ipsPos_center ipsSpacer_top' /></a><br />
+		</div>
+		<div class='ipsColumn ipsColumn_fluid'>
+			<div class='ipsSpacer_top'>
+				<div class='ipsSpacer_bottom ipsSpacer_half ipsTruncate ipsTruncate_line ipsType_noBreak'>
+					{{if $steam->gameextrainfo }}
+						<span class='ipsBadge ipsBadge_positive'>{lang="steam_ingame"}</span><span>  <strong>{$steam->gameextrainfo}</strong></span>
+					{{else}}
+						{{if !$steam->personastate }}
+							<span class='ipsBadge ipsBadge_neutral' data-ipsToolTip data-ipsToolTip-safe=TRUE title="{lang="steam_since"}: {datetime="$steam->lastlogoff" short="true"}">{lang="steam_status_{$steam->personastate}"}</span>
+						{{else}}
+							<span class='ipsBadge' style="background: #86b5d9;">{lang="steam_status_{$steam->personastate}"}</span>
+						{{endif}}
+					{{endif}}
+				</div>
+				{{if isset($steam->player_level)}}
+
+					{{if is_array($steam->getLevel()) && count($steam->getLevel()) }}
+						<div class=''>
+							<span class='ipsType_large'>{lang="steam_level"} {$steam->getLevel()['player_level']}</span>
+						</div>
+						<div class=''>
+							<progress value="{expression="round(((($steam->getLevel()['player_xp'] - $steam->getLevel()['player_xp_needed_current_level']) / ($steam->getLevel()['player_xp'] + $steam->getLevel()['player_xp_needed_to_level_up'] - $steam->getLevel()['player_xp_needed_current_level'])) * 100 ), 0)"}" max="{expression="($steam->getLevel()['player_xp'] + $steam->getLevel()['player_xp_needed_to_level_up'] - $steam->getLevel()['player_xp_needed_current_level'])"}" data-ipsTooltip title="{number="$steam->getLevel()['player_xp']"} {lang="steam_of"} {number="$steam->getLevel()['player_xp'] + $steam->getLevel()['player_xp_needed_to_level_up']"}"></progress>
+						</div>
+					{{endif}}
+				{{endif}}
+				{{if $steam->playtime_2weeks }}
+					<span class='ipsType_light'>{expression="round(($steam->playtime_2weeks / 60), 1)"} {lang="steam_2weeks"}</span><br />
+				{{elseif $steam->communityvisibilitystate == 1 }}
+					<span class='ipsType_warning ipsType_large'><strong>{lang="steam_private"}</strong></span><br />
+				{{else}}
+					<span class='ipsType_light'>{lang="steam_noplaytime"} {lang="steam_2weeks"}</span><br />
+				{{endif}}
+			</div>
+	{{if isset($steam->games)}}
+
+	  	{{if is_array($steam->getRecent()) && count($steam->getRecent()) && ($steam->total_count > 0) }}
+	 		<div class='ipsSpacer_both ipsSpacer_half'>
+	    	{{foreach $steam->getRecent(8) as $_id => $g }}
+	    		<div class='ipsPos_left' style="margin-right: 5px;">
+		    		<div  class=' {{if $steam->gameextrainfo === $g['name'] }}steamInGame{{endif}}'>
+						<div class=''>
+								<img src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/{$g['appid']}/{$g['img_icon_url']}.jpg" title="{$g['name']}: {expression="round(($g['playtime_2weeks'] / 60), 1)"} {lang='steam_2weeks'}" data-ipsTooltip />
+						</div>
+					</div>
+				</div>
+	     	{{endforeach}}
+	     	</div>
+	    {{endif}}
+	{{endif}}
+
+		</div>
+	</div>
+
+
+</div>
+
+{{endif}}
+{{endif}}
