@@ -74,16 +74,16 @@ class _view extends \IPS\Dispatcher\Controller
 				'where' => 'm.member_id=steam_profiles.st_member_id' )
 			);
 
-		// $this->table->rowButtons = function($row)
-		// {
-		// 	return array(
-		// 			'delete'	=> array(
-		// 				'icon'		=> 'trash',
-		// 				'title'		=> 'delete',
-		// 				'link'		=> \IPS\Http\Url::internal( 'app=steam&module=steam&controller=view&do=delete&id=' ) . $row['st_member_id'],
-		// 			),
-		// 		);
-		// };
+		$this->table->rowButtons = function($row)
+		{
+			return array(
+					'delete'	=> array(
+						'icon'		=> 'trash',
+						'title'		=> 'delete',
+						'link'		=> \IPS\Http\Url::internal( 'app=steam&module=steam&controller=view&do=delete&id=' ) . $row['st_member_id'],
+					),
+				);
+		};
 
 		/* Quick Filters */
 		$this->table->filters = array(
