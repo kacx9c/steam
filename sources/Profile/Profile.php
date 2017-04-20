@@ -167,4 +167,15 @@ class _Profile extends \IPS\Patterns\ActiveRecord
 
 	}
 
+	public function set_personaname( $value )
+	{
+		require( ROOT_PATH . '/conf_global.php' );
+		if(!$INFO['sql_utf8mb4']);
+		{
+			$value = preg_replace('/[\x{10000}-\x{10FFFF}]/u', "\xEF\xBF\xBD", $value);
+		}
+
+		$this->_data['personaname'] = $value;
+	}
+
 }
