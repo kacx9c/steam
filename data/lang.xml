@@ -148,5 +148,6 @@
   <word key="steam_filters_vacban" js="0">VAC Banned</word>
   <word key="steam_filters_error" js="0">Errors</word>
   <word key="steam_filters_disabled" js="0">Disabled</word>
+  <word key="name" js="0">User Name</word>
  </app>
 </language>

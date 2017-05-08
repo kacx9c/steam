@@ -161,7 +161,6 @@ class _Update
 
 	public function update($single = 0)
 	{
-
 		if($single)
 		{
 			$members[] = \IPS\steam\Profile::load($single);
@@ -842,7 +841,8 @@ class _Update
 		}
 		else
 		{
-			$this->failed( $m, 'steam_no_steamid');
+			// If they don't have a steamID, don't create an entry. AIWA-4
+			// $this->failed( $m, 'steam_no_steamid');
 			return FALSE;
 		}
 		return $steamid;
