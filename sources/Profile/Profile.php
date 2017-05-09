@@ -167,4 +167,14 @@ class _Profile extends \IPS\Patterns\ActiveRecord
 
 	}
 
+	public function set_personaname( $value )
+	{
+		// If their database isn't set up for mb4, strip 4 byte characters and replace with Diamond ?.
+		if ( \IPS\Settings::i()->getFromConfGlobal('sql_utf8mb4') !== TRUE)
+		{
+			$value = preg_replace('/[\x{10000}-\x{10FFFF}]/u', "\xEF\xBF\xBD", $value);
+		}
+		$this->_data['personaname'] = $value;
+	}
+
 }

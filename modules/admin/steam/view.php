@@ -87,8 +87,9 @@ class _view extends \IPS\Dispatcher\Controller
 
 		/* Quick Filters */
 		$this->table->filters = array(
+			'steam_filters_active'			=> "st_steamid NOT IN ('','0')",
 			'steam_filters_disabled'		=> 'st_restricted<>0',
-			'steam_filters_error'			=> 'st_error != NULL',
+			'steam_filters_error'			=> "st_error<>''",
 			'steam_filters_vacban'			=> 'st_vac_status<>0'
 		);
 

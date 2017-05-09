@@ -161,7 +161,6 @@ class _Update
 
 	public function update($single = 0)
 	{
-
 		if($single)
 		{
 			$members[] = \IPS\steam\Profile::load($single);
@@ -773,7 +772,8 @@ class _Update
 			//$m = \IPS\Member::load($m->member_id);
 			$m->profileFields = $m->profileFields('PROFILE');
 		}
-		if(isset($m->profileFields[$group][$field]))
+		// Don't just check if the var exists / isset.  Check if it has something in it.
+		if(!empty($m->profileFields[$group][$field]))
 		{
 			if(!$m->steamid && preg_match('/^\d{17}$/', $m->profileFields[$group][$field]))
 			{
@@ -842,7 +842,8 @@ class _Update
 		}
 		else
 		{
-			$this->failed( $m, 'steam_no_steamid');
+			// If they don't have a steamID, don't create an entry. AIWA-4
+			// $this->failed( $m, 'steam_no_steamid');
 			return FALSE;
 		}
 		return $steamid;

@@ -48,6 +48,15 @@ class _steamPlayerWidget extends \IPS\Widget\StaticCache
 	{
 		$this->template( array( \IPS\Theme::i()->getTemplate( 'widgets', $this->app, 'front' ), $this->key ) );
 
+		if(!isset($this->configuration['steamIndexCount']))
+		{
+			$this->configuration['steamIndexCount'] = 5;
+		}
+		if(!isset($this->configuration['steamIndex2weeks']))
+		{
+			$this->configuration['steamIndex2weeks'] = TRUE;
+		}
+
 		parent::init();
 	}
 

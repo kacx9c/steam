@@ -62,10 +62,15 @@ class _steamProfile extends \IPS\Dispatcher\Controller
 			{
 				$stUpdate = new \IPS\steam\Update;
 				$stUpdate->updateProfile($this->member_id);
-				$stUpdate->update($this->member_id);
-
-				$message = \IPS\Member::loggedIn()->language()->addToStack( 'steam_updated');
+				if($stUpdate->update($this->member_id))
+				{
+					$message = \IPS\Member::loggedIn()->language()->addToStack( 'steam_updated');
+				}else
+				{
+					$message = \IPS\Member::loggedIn()->language()->addToStack( 'steam_err_updated');
+				}
 			}
+
 		}catch (\Exception $e)
 		{
 			//$message = \IPS\Member::loggedIn()->language()->addToStack( 'steam_err_updated');

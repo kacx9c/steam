@@ -195,6 +195,10 @@ class _Steam
 			/* Unrestrict steam account */
 			$steam = new \IPS\steam\Update;
 			$steam->unrestrict($member->member_id);
+			/* Try to update the profile */
+			$steam->updateProfile($member->member_id);
+			$steam->update($member->member_id);
+
 		}catch(\OutOfRangeException $e)
 		{
 			throw new \OutOfRangeException;
