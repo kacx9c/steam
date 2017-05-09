@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <language>
- <app key="steam" version="20012">
+ <app key="steam" version="20013">
   <word key="__app_steam" js="0">Steam Integration</word>
   <word key="module__steam_steam" js="0">Steam</word>
   <word key="menu__steam_steam" js="0">Steam</word>
@@ -148,6 +148,7 @@
   <word key="steam_filters_vacban" js="0">VAC Banned</word>
   <word key="steam_filters_error" js="0">Errors</word>
   <word key="steam_filters_disabled" js="0">Disabled</word>
+  <word key="steam_filters_active" js="0">Active Users</word>
   <word key="name" js="0">User Name</word>
  </app>
 </language>

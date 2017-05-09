@@ -1,7 +1,7 @@
 <?php
 
 
-namespace IPS\steam\setup\upg_working;
+namespace IPS\steam\setup\upg_20013;
 
 /* To prevent PHP errors (extending class does not exist) revealing path */
 if ( !defined( '\IPS\SUITE_UNIQUE_KEY' ) )
@@ -11,7 +11,7 @@ if ( !defined( '\IPS\SUITE_UNIQUE_KEY' ) )
 }
 
 /**
- * {version_human} Upgrade Code
+ * 2.0.13 Upgrade Code
  */
 class _Upgrade
 {
