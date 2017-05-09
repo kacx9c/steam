@@ -149,5 +149,6 @@ $lang = array(
 		'steam_filters_vacban'			=> "VAC Banned",
 		'steam_filters_error'			=> "Errors",
 		'steam_filters_disabled'		=> "Disabled",
+		'steam_filters_active'			=> "Active Users",
 		'name'							=> "User Name"
 );
