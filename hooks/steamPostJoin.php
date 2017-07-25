@@ -19,7 +19,7 @@ class steam_hook_steamPostJoin extends _HOOK_CLASS_
 			{
 			    if(isset($return['author']))
 			    {
-				    $return[]	=	array(	'select' 	=> 'steam.*',
+				    $return['steam']	=	array(	'select' 	=> 'steam.*',
 				    						'from'		=> array( 'steam_profiles', 'steam'),
 				    						'where'		=> array( 'steam.st_member_id = author.member_id' )
 													);
@@ -63,6 +63,7 @@ class steam_hook_steamPostJoin extends _HOOK_CLASS_
 		        $obj->steam = $steam;
 		    }
 		    return $obj;
+
 		}
 		catch ( \RuntimeException $e )
 		{
