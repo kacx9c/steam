@@ -17,7 +17,9 @@
 				<i class="fa fa-bars"></i> {lang="steam_menu"}</a><br/>
 			{{endif}}
 			{{if $steam->last_update }}
-				<span class='ipsPos_center ipsType_small ipsType_light'>{lang="steam_last_update"}: {datetime="$steam->last_update" short="TRUE"}</span>
+				<span class='ipsPos_center ipsType_small ipsType_light'>
+					{lang="steam_last_update"}: {datetime="$steam->last_update" short="TRUE"}
+				</span>
 			{{endif}}
 			</div>
 		</div>

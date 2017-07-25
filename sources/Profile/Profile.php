@@ -81,6 +81,7 @@ class _Profile extends \IPS\Patterns\ActiveRecord
 		return parent::constructFromData($data, $updateMultitonStoreIfExists);
 
 	}
+
 	public function setDefaultValues()
 	{
 		$this->error 		= '';

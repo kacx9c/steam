@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<theme name="Default" author_name="Invision Power Services, Inc" author_url="http://www.invisionpower.com">
+<theme name="Default" author_name="Invision Power Services, Inc" author_url="https://www.invisioncommunity.com">
  <template template_group="global" template_name="steamHover" template_data="$member" template_location="front" template_app="steam"><![CDATA[{{ $steam = \IPS\steam\Profile::load($member->member_id); }}
 {{if $steam->member_id == $member->member_id && $steam->steamid && $member->group['steam_pull']}}
 
@@ -39,7 +39,9 @@
 				<i class="fa fa-bars"></i> {lang="steam_menu"}</a><br/>
 			{{endif}}
 			{{if $steam->last_update }}
-				<span class='ipsPos_center ipsType_small ipsType_light'>{lang="steam_last_update"}: {datetime="$steam->last_update" short="TRUE"}</span>
+				<span class='ipsPos_center ipsType_small ipsType_light'>
+					{lang="steam_last_update"}: {datetime="$steam->last_update" short="TRUE"}
+				</span>
 			{{endif}}
 			</div>
 		</div>
