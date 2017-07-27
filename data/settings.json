@@ -12,6 +12,10 @@
         "default": "0"
     },
     {
+        "key": "steam_comm_groups",
+        "default": ""
+    },
+    {
         "key": "steam_default_tab",
         "default": "0"
     },

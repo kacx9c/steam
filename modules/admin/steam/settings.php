@@ -66,10 +66,14 @@ class _settings extends \IPS\Dispatcher\Controller
 
 		$form->add( new \IPS\Helpers\Form\Editor( 'steam_instructions', \IPS\Settings::i()->steam_instructions, FALSE, array( 'app' => 'core', 'key' => 'Admin', 'autoSaveKey' => "steam_instructions", 'attachIds' => array( 'steam_inst_' ) ), NULL, NULL, NULL, 'steam_instructions' ) );
 
+		$form->addHeader('steam__mem_groups');
+
+		$form->add( new \IPS\Helpers\Form\Stack('steam_comm_groups', json_decode(\IPS\Settings::i()->steam_comm_groups), FALSE, array(), NULL, NULL, NULL, 'steam_comm_group'));
 
 
 		if( $values = $form->values() )
 		{
+			$values['steam_comm_groups'] = json_encode($values['steam_comm_groups']);
 			$form->saveAsSettings( $values );
 		}
 

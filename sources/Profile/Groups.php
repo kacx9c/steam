@@ -33,7 +33,7 @@ class _Groups extends \IPS\Patterns\ActiveRecord
 	/**
 	 * @brief	[ActiveRecord] Database ID Fields
 	 */
-	protected static $databaseIdFields = array( 'stg_id');
+	protected static $databaseIdFields = array( 'stg_id, stg_name');
 
 	/**
 	 * @brief	Bitwise keys
@@ -84,7 +84,22 @@ class _Groups extends \IPS\Patterns\ActiveRecord
 
 	public function setDefaultValues()
 	{
-
+		$this->name = '';
+		$this->summary = '';
+		$this->members = array();
+		$this->avatarIcon = '';
+		$this->avatarMedium = '';
+		$this->avatarFull = '';
+		$this->memberCount = 0;
+		$this->membersInGame = 0;
+		$this->membersOnline = 0;
+		$this->membersInChat = 0;
+		$this->headline = '';
+		$this->url = '';
 	}
 
+	public function set_members($values = array())
+	{
+		$this->_data['members'] = json_encode($values);
+	}
 }

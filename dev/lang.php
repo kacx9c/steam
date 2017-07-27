@@ -150,5 +150,8 @@ $lang = array(
 		'steam_filters_error'			=> "Errors",
 		'steam_filters_disabled'		=> "Disabled",
 		'steam_filters_active'			=> "Active Users",
-		'name'							=> "User Name"
+		'name'							=> "User Name",
+		'steam_comm_groups'             => "Steam Groups",
+		'steam_comm_groups_desc'        => "64 Bit ID or steamcommunity.com/groups/{name}",
+		'steam__mem_groups'             => "Steam Community Group Settings",
 );
