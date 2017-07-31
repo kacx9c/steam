@@ -73,6 +73,11 @@ class _settings extends \IPS\Dispatcher\Controller
 
 		if( $values = $form->values() )
 		{
+			if(is_array($values['steam_comm_groups']) && count($values['steam_comm_groups']))
+			{
+				// Add any new entries to the database.  
+				\IPS\steam\Update\Groups::sync($values['steam_comm_groups']);
+			}
 			$values['steam_comm_groups'] = json_encode($values['steam_comm_groups']);
 			$form->saveAsSettings( $values );
 		}

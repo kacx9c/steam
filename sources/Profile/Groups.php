@@ -98,8 +98,29 @@ class _Groups extends \IPS\Patterns\ActiveRecord
 		$this->url = '';
 	}
 
+	public function storeXML($data)
+	{
+		$this->id = (string) $data->groupID64;
+		$this->name = (string) $data->groupDetails->groupName;
+		$this->summary = (string) $data->groupDetails->summary;
+		$this->members = $data->members->steamID64;
+		$this->avatarIcon = (string) $data->groupDetails->avatarIcon;
+		$this->avatarMedium = (string) $data->groupDetails->avatarMedium;
+		$this->avatarFull = (string) $data->groupDetails->avatarFull;
+		$this->memberCount = (int) $data->memberCount;
+		$this->membersInGame = (int) $data->groupDetails->membersInGame;
+		$this->membersOnline = (int) $data->groupDetails->membersOnline;
+		$this->membersInChat = (int) $data->groupDetails->membersInChat;
+		$this->headline = (string) $data->groupDetails->headline;
+		$this->url = (string) $data->groupDetails->groupURL;
+		$this->last_update = time();
+		$this->error = '';
+	}
+
 	public function set_members($values = array())
 	{
 		$this->_data['members'] = json_encode($values);
 	}
+
+
 }
