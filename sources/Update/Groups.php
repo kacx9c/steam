@@ -3,9 +3,8 @@
 namespace IPS\steam\Update;
 
 /* To prevent PHP errors (extending class does not exist) revealing path */
-if ( !defined( '\IPS\SUITE_UNIQUE_KEY' ) )
-{
-	header( ( isset( $_SERVER['SERVER_PROTOCOL'] ) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0' ) . ' 403 Forbidden' );
+if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
+	header((isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0') . ' 403 Forbidden');
 	exit;
 }
 
@@ -15,33 +14,30 @@ if ( !defined( '\IPS\SUITE_UNIQUE_KEY' ) )
 class _Groups
 {
 	/**
-	 * @brief	[IPS\Member]	Member object
+	 * @brief    [IPS\Member]    Member object
 	 */
-	public $groups 		= array();
-	public $api 		= '';
-	public $fail		= array();
-	public $extras		= array();
-	public $stError 	= '';
-	public $cacheData 	= array();
-	public $query 		= '';
-	public $cache 		= array();
-	public $count 		= 0;
+	public $groups = array();
+	public $api = '';
+	public $fail = array();
+	public $extras = array();
+	public $stError = '';
+	public $cacheData = array();
+	public $query = '';
+	public $cache = array();
+	public $count = 0;
 
 
 	public function __construct()
 	{
 		/* Load the cache  data */
-		if(isset(\IPS\Data\Store::i()->steamGroupData))
-		{
+		if (isset(\IPS\Data\Store::i()->steamGroupData)) {
 			$this->extras = \IPS\Data\Store::i()->steamGroupData;
-		}else
-		{
-			$this->extras = array('offset'       => 0,
-			                      'count'        => 0,
+		} else {
+			$this->extras = array('offset' => 0,
+			                      'count'  => 0,
 			);
 		}
-		if(!isset($this->extras['offset']))
-		{
+		if (!isset($this->extras['offset'])) {
 			$this->extras['offset'] = 0;
 		}
 
@@ -49,79 +45,193 @@ class _Groups
 	}
 
 	// enhance to accept single groups to update.
+
+	public static function sync($data = array())
+	{
+		$groups = array();
+		$_delete = array();
+		$_data = array();
+		try {
+			$select = 'g.*';
+			$where = '';
+			$query = \IPS\Db::i()->select($select, array('steam_groups', 'g'), $where);
+
+			foreach ($query as $row) {
+				$groups[$row['stg_id']] = \IPS\steam\Profile\Groups::constructFromData($row);
+			}
+		} catch (\UnderflowException $e) {
+
+		}
+
+		if (is_array($data) && count($data)) {
+
+			// Add groups that are missing
+			foreach ($data as $d) {
+				// If we have an ID, search for ID's.
+				if (preg_match('/^\d{18}$/', $d)) {
+					if (!array_key_exists($d, $groups)) {
+						$_data[] = $d;
+						continue;
+					}
+				} else {
+					$found = NULL;
+					if (is_array($groups) && count($groups)) {
+						foreach ($groups as $g) {
+							if (!strcasecmp($g->url, $d)) {
+								$found = $g->name;
+								break;
+							}
+						}
+					}
+					if (!$found) {
+						$_data[] = $d;
+						$found = NULL;
+					}
+				}
+			}
+			// Check and see if groups were removed from the Setting
+			if (is_array($groups) && count($groups)) {
+				foreach ($groups as $g) {
+					$found = FALSE;
+					if (in_array($g->id, $data)) {
+						$found = TRUE;
+					} else {
+						foreach ($data as $d) {
+							if (!strcasecmp($g->url, $d)) {
+								$found = TRUE;
+								break;
+							}
+						}
+					}
+					if (!$found) {
+						$_delete[] = $g;
+					}
+				}
+			}
+			// If we don't have anything in the setting, empty the table
+		} elseif (!count($data)) {
+			foreach ($groups as $g) {
+				$_delete[] = $g;
+			}
+		}
+
+		// Delete removed entries
+		if (is_array($_delete) && count($_delete)) {
+			foreach ($_delete as $d) {
+				$d->delete();
+			}
+		}
+
+		// Create new entries
+		if (is_array($_data) && count($_data)) {
+			foreach ($_data as $g) {
+				$new = new \IPS\steam\Profile\Groups;
+
+				if (preg_match('/^\d{18}$/', $g)) {
+					$url = "https://steamcommunity.com/gid/" . $g . "/memberslistxml/?xml=1";
+				} else {
+					$url = "https://steamcommunity.com/groups/" . $g . "/memberslistxml/?xml=1";
+				}
+
+				$req = static::request($url);
+
+				if ($req->httpResponseCode != 200) {
+
+					if (\IPS\Settings::i()->steam_diagnostics) {
+						throw new \Exception($req->httpResponseCode . ": getGroup");
+					}
+				}
+				try {
+					$values = $req->decodeXml();
+					$new->storeXML($values);
+				} catch (\RuntimeException $e) {
+					$err = 1;
+					if (\IPS\Settings::i()->steam_diagnostics) {
+						throw new \Exception($e->getMessage());
+					}
+					continue;
+				}
+				if (!array_key_exists($new->id, $groups)) {
+					$new->save();
+				}
+			}
+		}
+		return;
+	}
+
+	public static function request($url)
+	{
+		if ($url) {
+			return \IPS\Http\Url::external($url)->request(30)->get();
+		} else {
+			return;
+		}
+	}
+
 	public function update()
 	{
 
 		$select = "g.*";
-		$query = \IPS\Db::i()->select( $select, array('steam_groups', 'g'), $where, 'g.stg_id ASC', array( $this->extras['offset'], 5), NULL, NULL, '011');
+		$where = '';
+		$query = \IPS\Db::i()->select($select, array('steam_groups', 'g'), $where, 'g.stg_id ASC', array($this->extras['offset'], 5), NULL, NULL, '011');
 
-		foreach($query as $row)
-		{
+		foreach ($query as $row) {
 			$groups[] = \IPS\steam\Profile\Groups::constructFromData($row);
 		}
 
 		$this->extras['count'] = $query->count(TRUE);
 
-		foreach($groups as $g)
-		{
+		foreach ($groups as $g) {
 			$err = 0;
 
 			// Get Group Data
-			if($g->name) {
-				$url = "http://steamcommunity.com/groups/" . $g->name . "/memberslistxml/?xml=1";
-			}elseif($g->id){
-				$url = "http://steamcommunity.com/gid/" . $g->id . "/memberslistxml/?xml=1";
-			}else{
+			if ($g->name) {
+				$url = "https://steamcommunity.com/groups/" . $g->name . "/memberslistxml/?xml=1";
+			} elseif ($g->id) {
+				$url = "https://steamcommunity.com/gid/" . $g->id . "/memberslistxml/?xml=1";
+			} else {
 				$err = '1';
 				continue;
 			}
-			try
-			{
-				$req = $this->request( $url );
-				if($req->httpResponseCode != 200)
-				{
+			try {
+				$req = $this->request($url);
+				if ($req->httpResponseCode != 200) {
 					$this->failed($g, 'group_err_request');
 					$err = 1;
 
-					if(\IPS\Settings::i()->steam_diagnostics)
-					{
-						throw new \Exception( $req->httpResponseCode . ": getGroup" );
+					if (\IPS\Settings::i()->steam_diagnostics) {
+						throw new \Exception($req->httpResponseCode . ": getGroup");
 					}
 				}
-				try
-				{
+				try {
 					$data = $req->decodeXml();
 					$this->storeXML($data);
-				}catch(\RuntimeException $e)
-				{
-					$this->failed($m, 'steam_err_getlevel');
+				} catch (\RuntimeException $e) {
+					$this->failed($g, 'steam_err_getGroup');
 					$err = 1;
-					if(\IPS\Settings::i()->steam_diagnostics)
-					{
-						throw new \Exception( $e->getMessage() );
+					if (\IPS\Settings::i()->steam_diagnostics) {
+						throw new \Exception($e->getMessage());
 					}
 					continue;
 				}
 
 				unset($data);
 
-			}catch(\OutOfRangeException $e)
-			{
-				$this->failed($m, 'steam_err_getlevel');
-				$p->error = 1;
+			} catch (\OutOfRangeException $e) {
+				$this->failed($g, 'steam_err_getGroup');
+				$g->error = 1;
 
-				if(\IPS\Settings::i()->steam_diagnostics)
-				{
-					throw new \Exception( $e->getMessage() );
+				if (\IPS\Settings::i()->steam_diagnostics) {
+					throw new \Exception($e->getMessage());
 				}
 			}
 
 
 			// Store general information that doesn't rely on an API.
-			$g->last_update			= time();
+			$g->last_update = time();
 
 			// Store the data
-			$p->save();
+			$g->save();
 
 			$err = 0;
 		}
@@ -129,170 +239,61 @@ class _Groups
 		$this->extras['offset'] = $this->extras['offset'] + 5;
 
 		// If offset is greater than count we've hit the end.  Reset Offset for the next query.
-		if($this->extras['offset'] >= $this->extras['count'])
-		{
+		if ($this->extras['offset'] >= $this->extras['count']) {
 			$this->extras['offset'] = 0;
 		}
 		\IPS\Data\Store::i()->steamGroupData = $this->extras;
 	}
 
-	public static function sync($data = array())
-	{
-		$groups = array();
-		try {
-			$select = 'g.*';
-			$where = '';
-			$query = \IPS\Db::i()->select($select, array('steam_groups', 'g'), $where);
-
-			foreach($query as $row)
-			{
-				$groups[$row['stg_id']] = \IPS\steam\Profile\Groups::constructFromData($row);
-			}
-		}catch(\UnderflowException $e)
-		{
-
-		}
-
-		if(is_array($data) && count($data))
-		{
-			$_data = array();
-			// Add groups that are missing
-			foreach($data as $d)
-			{
-				// If we have an ID, search for ID's.
-				if(preg_match( '/^\d{18}$/', $d))
-				{
-					if(!in_array($d, $groups))
-					{
-						$_data[] = $d;
-					}
-				}else
-				{
-					$found = NULL;
-					if(is_array($groups) && count($groups))
-					{
-						foreach($groups as $g)
-						{
-							if(!strcasecmp($g->name, $d))
-							{
-								$found = $g->name;
-							}
-						}
-					}
-					if(!$found)
-					{
-						$_data[] = $d;
-						$found = NULL;
-					}
-				}
-			}
-
-			foreach($_data as $g)
-			{
-				$new = new \IPS\steam\Profile\Groups;
-
-				if(preg_match('/^\d{18}$/', $g))
-				{
-					$url = "http://steamcommunity.com/gid/" . $g . "/memberslistxml/?xml=1";
-				}else
-				{
-					$url = "http://steamcommunity.com/groups/" . $g . "/memberslistxml/?xml=1";
-				}
-
-				$req = static::request($url);
-
-				if($req->httpResponseCode != 200)
-				{
-
-					if(\IPS\Settings::i()->steam_diagnostics)
-					{
-						throw new \Exception( $req->httpResponseCode . ": getGroup" );
-					}
-				}
-				try
-				{
-					$values = $req->decodeXml();
-					$new->storeXML($values);
-				}catch(\RuntimeException $e)
-				{
-					$err = 1;
-					if(\IPS\Settings::i()->steam_diagnostics)
-					{
-						throw new \Exception( $e->getMessage() );
-					}
-					continue;
-				}
-				$new->save();
-			}
-		}else
-		{
-			return FALSE;
-		}
-	}
-
-	public static function request( $url )
-	{
-		if( $url )
-		{
-			return \IPS\Http\Url::external( $url )->request( 30 )->get();
-		}else
-		{
-			return;
-		}
-	}
-
-	public function remove($group)
-	{
-		try
-		{
-			$r = \IPS\steam\Profile\Groups::load($group);
-			$r->setDefaultValues();
-			$r->save();
-
-		}catch( \Exception $e )
-		{
-			return;
-		}
-		return;
-	}
-
-	protected function failed( $g, $lang=NULL )
+	protected function failed($g, $lang = NULL)
 	{
 
-		if(isset($g->id) || isset($g->name))
-		{
+		if (isset($g->id) || isset($g->name)) {
 			$groupToLoad = isset($g->id) ? $g->id : $g->name;
 			$group = \IPS\steam\Profile\Groups::load($groupToLoad);
-		}else
-		{
+		} else {
 			return;
 		}
 
 		$group->error = ($lang ? $lang : '');
 		$group->last_update = time();
 		$group->save();
+
 		return;
 	}
 
-	public function error($raw = true)
+	public function remove($group)
 	{
-		if($raw)
-		{
+		try {
+			$r = \IPS\steam\Profile\Groups::load($group);
+			$r->setDefaultValues();
+			$r->save();
+
+		} catch (\Exception $e) {
+			return;
+		}
+
+		return;
+	}
+
+	public function error($raw = TRUE)
+	{
+		if ($raw) {
 			return $this->stError;
 		}
 
-		if($this->stError)
-		{
+		if ($this->stError) {
 			$return = $this->stError;
-		}elseif(is_array($this->failed) && count($this->failed))
-		{
-			$return = \IPS\Lang::load( \IPS\Lang::defaultLanguage() )->get('task_steam_profile')." - ".implode(',', $this->fail);
-		}else
-		{
+		} elseif (is_array($this->failed) && count($this->failed)) {
+			$return = \IPS\Lang::load(\IPS\Lang::defaultLanguage())->get('task_steam_profile') . " - " . implode(',', $this->fail);
+		} else {
 			$return = NULL;
 		}
+
 		return $return;
 	}
+
+
 
 
 }

@@ -33,7 +33,7 @@ class _Groups extends \IPS\Patterns\ActiveRecord
 	/**
 	 * @brief	[ActiveRecord] Database ID Fields
 	 */
-	protected static $databaseIdFields = array( 'stg_id, stg_name');
+	protected static $databaseIdFields = array( 'stg_id', 'stg_name', 'stg_url');
 
 	/**
 	 * @brief	Bitwise keys
@@ -122,5 +122,14 @@ class _Groups extends \IPS\Patterns\ActiveRecord
 		$this->_data['members'] = json_encode($values);
 	}
 
+	public function url()
+	{
+		return "https://steamcommunity.com/group/" . $this->url;
+	}
+
+	public function chat()
+	{
+		return "steam://friends/joinchat/" . $this->id;
+	}
 
 }

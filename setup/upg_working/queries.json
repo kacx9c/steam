@@ -89,48 +89,6 @@
                         "auto_increment": false,
                         "binary": false
                     },
-                    "stg_memberCount": {
-                        "name": "stg_memberCount",
-                        "type": "SMALLINT",
-                        "length": null,
-                        "decimals": null,
-                        "values": null,
-                        "allow_null": true,
-                        "default": null,
-                        "comment": "",
-                        "unsigned": false,
-                        "zerofill": false,
-                        "auto_increment": false,
-                        "binary": false
-                    },
-                    "stg_membersInGame": {
-                        "name": "stg_membersInGame",
-                        "type": "SMALLINT",
-                        "length": null,
-                        "decimals": null,
-                        "values": null,
-                        "allow_null": true,
-                        "default": null,
-                        "comment": "",
-                        "unsigned": false,
-                        "zerofill": false,
-                        "auto_increment": false,
-                        "binary": false
-                    },
-                    "stg_membersOnline": {
-                        "name": "stg_membersOnline",
-                        "type": "SMALLINT",
-                        "length": 6,
-                        "decimals": null,
-                        "values": null,
-                        "allow_null": true,
-                        "default": null,
-                        "comment": "",
-                        "unsigned": false,
-                        "zerofill": false,
-                        "auto_increment": false,
-                        "binary": false
-                    },
                     "stg_membersInChat": {
                         "name": "stg_membersInChat",
                         "type": "SMALLINT",
@@ -214,6 +172,48 @@
                         "zerofill": false,
                         "auto_increment": false,
                         "binary": false
+                    },
+                    "stg_memberCount": {
+                        "name": "stg_memberCount",
+                        "type": "INT",
+                        "length": null,
+                        "decimals": null,
+                        "values": [],
+                        "allow_null": true,
+                        "default": null,
+                        "comment": "",
+                        "unsigned": false,
+                        "zerofill": false,
+                        "auto_increment": false,
+                        "binary": false
+                    },
+                    "stg_membersOnline": {
+                        "name": "stg_membersOnline",
+                        "type": "INT",
+                        "length": null,
+                        "decimals": null,
+                        "values": [],
+                        "allow_null": true,
+                        "default": null,
+                        "comment": "",
+                        "unsigned": false,
+                        "zerofill": false,
+                        "auto_increment": false,
+                        "binary": false
+                    },
+                    "stg_membersInGame": {
+                        "name": "stg_membersInGame",
+                        "type": "INT",
+                        "length": null,
+                        "decimals": null,
+                        "values": [],
+                        "allow_null": true,
+                        "default": null,
+                        "comment": "",
+                        "unsigned": false,
+                        "zerofill": false,
+                        "auto_increment": false,
+                        "binary": false
                     }
                 },
                 "indexes": {
@@ -228,6 +228,26 @@
                         ]
                     }
                 }
+            }
+        ]
+    },
+    {
+        "method": "addColumn",
+        "params": [
+            "steam_profiles",
+            {
+                "name": "st_player_groups",
+                "type": "TEXT",
+                "length": null,
+                "decimals": null,
+                "values": null,
+                "allow_null": true,
+                "default": null,
+                "comment": "",
+                "unsigned": false,
+                "zerofill": false,
+                "auto_increment": false,
+                "binary": false
             }
         ]
     }

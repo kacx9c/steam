@@ -1,0 +1,40 @@
+<ips:template parameters="$group, $profiles, $config, $vert" />
+<h3 class='ipsWidget_title'>{$group->name}</h3>
+<div class="ipsWidget_inner ipsPad{{if $vert}} ipsPad_half{{endif}}">
+	{{if $vert}}
+	<div class="ipsType_center">
+		<a href="{$group->url()}" class="ipsUserPhoto ipsUserPhoto_medium">
+			<img src="{$group->avatarFull}" />
+		</a>
+	</div>
+	{{else}}
+	<div class="ipsPos_left ipsSpacer" style="padding-right: 8px;">
+		<a href="{$group->url()}" class="ipsUserPhoto ipsUserPhoto_large">
+			<img src="{$group->avatarFull}" />
+		</a>
+	</div>
+	{{endif}}
+	<div class="ipsSpacer_both">
+		<span class="ipsType_large">{$group->headline}</span>
+	</div>
+	<div class="ipsSpacer_bottom" data-ipsTruncate data-ipsTruncate-type='hide' data-ipsTruncate-size='10 lines'>
+		<span class="ipsType_medium">{$group->summary|raw}</span>
+	</div>
+	<div class="ipsType_center">
+		{{foreach $profiles as $p}}
+			<a href="{$p->author()->url()->setQueryString(array('tab' => 'node_steam_steamprofile'))}" class="ipsUserPhoto ipsUserPhoto_small"><img src="{$p->avatarmedium}" /></a>
+		{{endforeach}}
+
+	</div>
+	<div class="">
+		<!-- Members Counts, etc. -->
+	</div>
+	<div class="ipsType_center ipsPad">
+		<span style="padding-right: 10px;">
+			<a href="{$group->url()}" class="ipsButton ipsButton_alternate {{if $vert}}ipsButton_verySmall{{else}}ipsButton_small{{endif}}">Join Group</a>
+		</span>
+		<span>
+			<a href="{$group->chat()}" class="ipsButton ipsButton_alternate {{if $vert}}ipsButton_verySmall{{else}}ipsButton_small{{endif}}">Join Chat</a>
+		</span>
+	</div>
+</div>
