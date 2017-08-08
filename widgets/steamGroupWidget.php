@@ -53,6 +53,9 @@ class _steamGroupWidget extends \IPS\Widget\StaticCache
 		if (!isset($this->configuration['steamLimit'])) {
 		$this->configuration['steamLimit'] = 10;
 		}
+		if (!isset($this->configuration['steamUserCount'])) {
+			$this->configuration['steamUserCount'] = 10;
+		}
 		parent::init();
 	}
 
@@ -80,6 +83,7 @@ class _steamGroupWidget extends \IPS\Widget\StaticCache
 		);
 		$form->add(new \IPS\Helpers\Form\Select('steamGroup', isset( $this->configuration['steamGroup'] ) ? $this->configuration['steamGroup'] : NULL, FALSE, $defaults, NULL, NULL, NULL, 'steamGroup'));
 		$form->add(new \IPS\Helpers\Form\Text('steamLimit', isset( $this->configuration['steamLimit'] ) ? $this->configuration['steamLimit'] : '10', FALSE, array(), NULL, NULL, NULL, 'steamLimit'));
+		$form->add(new \IPS\Helpers\Form\Text('steamUserCount', isset( $this->configuration['steamUserCount'] ) ? $this->configuration['steamUserCount'] : '10', FALSE, array(), NULL, NULL, NULL, 'steamUserCount'));
 
 		return $form;
  	} 

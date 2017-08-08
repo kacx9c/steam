@@ -250,5 +250,26 @@
                 "binary": false
             }
         ]
+    },
+    {
+        "method": "changeColumn",
+        "params": [
+            "steam_profiles",
+            "st_gameid",
+            {
+                "name": "st_gameid",
+                "type": "VARCHAR",
+                "length": 255,
+                "decimals": null,
+                "values": [],
+                "allow_null": true,
+                "default": null,
+                "comment": "",
+                "unsigned": false,
+                "zerofill": false,
+                "auto_increment": false,
+                "binary": false
+            }
+        ]
     }
 ]

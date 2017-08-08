@@ -124,7 +124,7 @@ class _Groups extends \IPS\Patterns\ActiveRecord
 
 	public function url()
 	{
-		return "https://steamcommunity.com/group/" . $this->url;
+		return "https://steamcommunity.com/groups/" . $this->url;
 	}
 
 	public function chat()

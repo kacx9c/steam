@@ -497,14 +497,20 @@ class _Update
 				$req = $this->request( $url );
 				if($req->httpResponseCode != 200)
 				{
-					$this->failed($m, 'steam_err_getGroupList');
-					$err = 1;
-
-					if(\IPS\Settings::i()->steam_diagnostics)
+					$content = array();
+					if($req->httpResponseCode == 403)
 					{
-						throw new \Exception( $req->httpResponseCode . ": getGroupList" );
+						$content = $req->decodeJson();
 					}
+					if(!isset($content['response']['success']))
+					{
+						$this->failed($m, 'steam_err_getGroupList');
+						$err = 1;
 
+						if (\IPS\Settings::i()->steam_diagnostics) {
+							throw new \Exception($req->httpResponseCode . ": getGroupList");
+						}
+					}
 				}
 				try
 				{
@@ -520,7 +526,7 @@ class _Update
 				}
 
 				// Store the data and unset the variable to free up memory
-				if(isset($groupList))
+				if(isset($groupList) && $groupList['response']['success'] == true)
 				{
 					if(is_array($groupList['response']['groups']) && count($groupList['response']['groups']))
 					{

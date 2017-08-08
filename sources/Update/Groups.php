@@ -170,23 +170,25 @@ class _Groups
 
 	public function update()
 	{
+		try {
+			$select = "g.*";
+			$where = '';
+			$query = \IPS\Db::i()->select($select, array('steam_groups', 'g'), $where, 'g.stg_id ASC', array($this->extras['offset'], 5), NULL, NULL, '011');
 
-		$select = "g.*";
-		$where = '';
-		$query = \IPS\Db::i()->select($select, array('steam_groups', 'g'), $where, 'g.stg_id ASC', array($this->extras['offset'], 5), NULL, NULL, '011');
+			foreach ($query as $row) {
+				$groups[] = \IPS\steam\Profile\Groups::constructFromData($row);
+			}
+		}catch( \UnderflowException $e)
+		{
 
-		foreach ($query as $row) {
-			$groups[] = \IPS\steam\Profile\Groups::constructFromData($row);
 		}
-
 		$this->extras['count'] = $query->count(TRUE);
 
 		foreach ($groups as $g) {
 			$err = 0;
 
-			// Get Group Data
 			if ($g->name) {
-				$url = "https://steamcommunity.com/groups/" . $g->name . "/memberslistxml/?xml=1";
+				$url = "https://steamcommunity.com/groups/" . $g->url . "/memberslistxml/?xml=1";
 			} elseif ($g->id) {
 				$url = "https://steamcommunity.com/gid/" . $g->id . "/memberslistxml/?xml=1";
 			} else {
@@ -202,10 +204,11 @@ class _Groups
 					if (\IPS\Settings::i()->steam_diagnostics) {
 						throw new \Exception($req->httpResponseCode . ": getGroup");
 					}
+					continue;
 				}
 				try {
 					$data = $req->decodeXml();
-					$this->storeXML($data);
+					$g->storeXML($data);
 				} catch (\RuntimeException $e) {
 					$this->failed($g, 'steam_err_getGroup');
 					$err = 1;
@@ -219,15 +222,20 @@ class _Groups
 
 			} catch (\OutOfRangeException $e) {
 				$this->failed($g, 'steam_err_getGroup');
-				$g->error = 1;
+				$err = 1;
 
 				if (\IPS\Settings::i()->steam_diagnostics) {
 					throw new \Exception($e->getMessage());
 				}
+				continue;
 			}
 
-
 			// Store general information that doesn't rely on an API.
+			if(!$err)
+			{
+				$g->error = '';
+			}
+
 			$g->last_update = time();
 
 			// Store the data

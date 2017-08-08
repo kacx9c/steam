@@ -1,6 +1,6 @@
 <ips:template parameters="$group, $profiles, $config, $vert" />
 <h3 class='ipsWidget_title'>{$group->name}</h3>
-<div class="ipsWidget_inner ipsPad{{if $vert}} ipsPad_half{{endif}}">
+<div class="ipsWidget_inner ipsPad{{if $vert}} ipsPad_half{{endif}}" style="min-height: 200px;">
 	{{if $vert}}
 	<div class="ipsType_center">
 		<a href="{$group->url()}" class="ipsUserPhoto ipsUserPhoto_medium">
@@ -8,33 +8,92 @@
 		</a>
 	</div>
 	{{else}}
-	<div class="ipsPos_left ipsSpacer" style="padding-right: 8px;">
+	<div class="ipsPos_left ipsSpacer" style="height: 176px;">
 		<a href="{$group->url()}" class="ipsUserPhoto ipsUserPhoto_large">
 			<img src="{$group->avatarFull}" />
 		</a>
+		<div class="ipsType_center ipsSpacer_top ipsSpacer_half">
+			<div class="">
+				<a href="{$group->url()}" class="ipsButton ipsButton_alternate ipsButton_veryVerySmall ipsSpacer_bottom ipsSpacer_half"  style="width: 90px;">Join Group</a>
+			</div>
+			<div class="">
+				<a href="{$group->chat()}" class="ipsButton ipsButton_alternate ipsButton_veryVerySmall" style="width: 90px;">Join Chat</a>
+			</div>
+		</div>
+	</div>
+	<div class="ipsPos_right ipsType_center" style="width: 94px;">
+		<div class="">
+			<span class="ipsType_minorHeading">Members</span>
+			<br />
+			<span class="ipsType_small ipsType_neutral">{number="$group->memberCount"}</span>
+		</div>
+		<div class="ipsSpacer_both ipsSpacer_half" style="color: #8bc53f;">
+			<span class="ipsType_minorHeading" style="color: #8bc53f;">In-Game</span>
+			<br />
+			<span class="ipsType_small">{number="$group->membersInGame"}</span>
+		</div>
+		<div class="ipsSpacer_both ipsSpacer_half" style="color: #62a7e3;">
+			<span class="ipsType_minorHeading" style="color: #62a7e3;">Online</span>
+			<br />
+			<span class="ipsType_small">{number="$group->membersOnline"}</span>
+		</div>
+		<div class="ipsSpacer_bottom ipsSpacer_half">
+			<span class="ipsType_minorHeading">In-Chat</span>
+			<br />
+			<span class="ipsType_small ipsType_neutral">{number="$group->membersInChat"}</span>
+		</div>
 	</div>
 	{{endif}}
-	<div class="ipsSpacer_both">
-		<span class="ipsType_large">{$group->headline}</span>
+	<div class="ipsSpacer_both ipsType_center">
+		<span class="ipsType_large ipsType_reset">{$group->headline}</span>
 	</div>
-	<div class="ipsSpacer_bottom" data-ipsTruncate data-ipsTruncate-type='hide' data-ipsTruncate-size='10 lines'>
+	<div class="ipsSpacer_bottom ipsType_center" data-ipsTruncate data-ipsTruncate-type='hide' data-ipsTruncate-size="{$config['steamLimit']} lines">
 		<span class="ipsType_medium">{$group->summary|raw}</span>
 	</div>
 	<div class="ipsType_center">
-		{{foreach $profiles as $p}}
-			<a href="{$p->author()->url()->setQueryString(array('tab' => 'node_steam_steamprofile'))}" class="ipsUserPhoto ipsUserPhoto_small"><img src="{$p->avatarmedium}" /></a>
+		{{foreach $profiles as $id => $p}}
+			{{if $id >= $config['steamUserCount']}}
+				{{break;}}
+			{{endif}}
+
+			<a href="{$p->author()->url()->setQueryString(array('tab' => 'node_steam_steamprofile'))}" class="ipsUserPhoto ipsUserPhoto_mini" target="_blank">
+				<img src="{$p->avatarmedium}" title="{$p->personaname}" data-ipsToolTip />
+			</a>
+
 		{{endforeach}}
 
 	</div>
-	<div class="">
-		<!-- Members Counts, etc. -->
+	{{if $vert}}
+	<hr class="ipsHr">
+	<div class="ipsGrid ipsType_center">
+		<div class="ipsGrid_span3">
+			<span class="ipsType_minorHeading">Members</span>
+			<br />
+			<span class="ipsType_small ipsType_neutral">{number="$group->memberCount"}</span>
+		</div>
+		<div class="ipsGrid_span3" style="color: #8bc53f;">
+			<span class="ipsType_minorHeading" style="color: #8bc53f;">In-Game</span>
+			<br />
+			<span class="ipsType_small">{number="$group->membersInGame"}</span>
+		</div>
+		<div class="ipsGrid_span3" style="color: #62a7e3;">
+			<span class="ipsType_minorHeading" style="color: #62a7e3;">Online</span>
+			<br />
+			<span class="ipsType_small">{number="$group->membersOnline"}</span>
+		</div>
+		<div class="ipsGrid_span3">
+			<span class="ipsType_minorHeading">In-Chat</span>
+			<br />
+			<span class="ipsType_small ipsType_neutral">{number="$group->membersInChat"}</span>
+		</div>
 	</div>
-	<div class="ipsType_center ipsPad">
+	<div class="ipsType_center ipsPad ipsPad_half">
 		<span style="padding-right: 10px;">
-			<a href="{$group->url()}" class="ipsButton ipsButton_alternate {{if $vert}}ipsButton_verySmall{{else}}ipsButton_small{{endif}}">Join Group</a>
+			<a href="{$group->url()}" class="ipsButton ipsButton_alternate ipsButton_veryVerySmall">Join Group</a>
 		</span>
 		<span>
-			<a href="{$group->chat()}" class="ipsButton ipsButton_alternate {{if $vert}}ipsButton_verySmall{{else}}ipsButton_small{{endif}}">Join Chat</a>
+			<a href="{$group->chat()}" class="ipsButton ipsButton_alternate ipsButton_veryVerySmall">Join Chat</a>
 		</span>
 	</div>
+	{{endif}}
 </div>
