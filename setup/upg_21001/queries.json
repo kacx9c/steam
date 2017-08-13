@@ -1,0 +1,275 @@
+{
+    "1": {
+        "method": "createTable",
+        "params": [
+            {
+                "name": "steam_groups",
+                "columns": {
+                    "stg_name": {
+                        "name": "stg_name",
+                        "type": "VARCHAR",
+                        "length": 255,
+                        "decimals": null,
+                        "values": null,
+                        "allow_null": true,
+                        "default": null,
+                        "comment": "",
+                        "unsigned": false,
+                        "zerofill": false,
+                        "auto_increment": false,
+                        "binary": false
+                    },
+                    "stg_summary": {
+                        "name": "stg_summary",
+                        "type": "TEXT",
+                        "length": null,
+                        "decimals": null,
+                        "values": null,
+                        "allow_null": true,
+                        "default": null,
+                        "comment": "",
+                        "unsigned": false,
+                        "zerofill": false,
+                        "auto_increment": false,
+                        "binary": false
+                    },
+                    "stg_members": {
+                        "name": "stg_members",
+                        "type": "TEXT",
+                        "length": null,
+                        "decimals": null,
+                        "values": null,
+                        "allow_null": true,
+                        "default": null,
+                        "comment": "",
+                        "unsigned": false,
+                        "zerofill": false,
+                        "auto_increment": false,
+                        "binary": false
+                    },
+                    "stg_avatarIcon": {
+                        "name": "stg_avatarIcon",
+                        "type": "VARCHAR",
+                        "length": 255,
+                        "decimals": null,
+                        "values": null,
+                        "allow_null": true,
+                        "default": null,
+                        "comment": "",
+                        "unsigned": false,
+                        "zerofill": false,
+                        "auto_increment": false,
+                        "binary": false
+                    },
+                    "stg_avatarMedium": {
+                        "name": "stg_avatarMedium",
+                        "type": "VARCHAR",
+                        "length": 255,
+                        "decimals": null,
+                        "values": null,
+                        "allow_null": true,
+                        "default": null,
+                        "comment": "",
+                        "unsigned": false,
+                        "zerofill": false,
+                        "auto_increment": false,
+                        "binary": false
+                    },
+                    "stg_avatarFull": {
+                        "name": "stg_avatarFull",
+                        "type": "VARCHAR",
+                        "length": 255,
+                        "decimals": null,
+                        "values": null,
+                        "allow_null": true,
+                        "default": null,
+                        "comment": "",
+                        "unsigned": false,
+                        "zerofill": false,
+                        "auto_increment": false,
+                        "binary": false
+                    },
+                    "stg_membersInChat": {
+                        "name": "stg_membersInChat",
+                        "type": "SMALLINT",
+                        "length": 6,
+                        "decimals": null,
+                        "values": null,
+                        "allow_null": true,
+                        "default": null,
+                        "comment": "",
+                        "unsigned": false,
+                        "zerofill": false,
+                        "auto_increment": false,
+                        "binary": false
+                    },
+                    "stg_headline": {
+                        "name": "stg_headline",
+                        "type": "VARCHAR",
+                        "length": 255,
+                        "decimals": null,
+                        "values": null,
+                        "allow_null": true,
+                        "default": null,
+                        "comment": "",
+                        "unsigned": false,
+                        "zerofill": false,
+                        "auto_increment": false,
+                        "binary": false
+                    },
+                    "stg_url": {
+                        "name": "stg_url",
+                        "type": "VARCHAR",
+                        "length": 255,
+                        "decimals": null,
+                        "values": null,
+                        "allow_null": true,
+                        "default": null,
+                        "comment": "",
+                        "unsigned": false,
+                        "zerofill": false,
+                        "auto_increment": false,
+                        "binary": false
+                    },
+                    "stg_id": {
+                        "name": "stg_id",
+                        "type": "VARCHAR",
+                        "length": 20,
+                        "decimals": null,
+                        "values": [],
+                        "allow_null": false,
+                        "default": "",
+                        "comment": "ID Number",
+                        "unsigned": false,
+                        "zerofill": false,
+                        "auto_increment": false,
+                        "binary": false
+                    },
+                    "stg_error": {
+                        "name": "stg_error",
+                        "type": "VARCHAR",
+                        "length": 255,
+                        "decimals": null,
+                        "values": null,
+                        "allow_null": true,
+                        "default": null,
+                        "comment": "",
+                        "unsigned": false,
+                        "zerofill": false,
+                        "auto_increment": false,
+                        "binary": false
+                    },
+                    "stg_last_update": {
+                        "name": "stg_last_update",
+                        "type": "INT",
+                        "length": 10,
+                        "decimals": null,
+                        "values": null,
+                        "allow_null": true,
+                        "default": null,
+                        "comment": "",
+                        "unsigned": false,
+                        "zerofill": false,
+                        "auto_increment": false,
+                        "binary": false
+                    },
+                    "stg_memberCount": {
+                        "name": "stg_memberCount",
+                        "type": "INT",
+                        "length": null,
+                        "decimals": null,
+                        "values": [],
+                        "allow_null": true,
+                        "default": null,
+                        "comment": "",
+                        "unsigned": false,
+                        "zerofill": false,
+                        "auto_increment": false,
+                        "binary": false
+                    },
+                    "stg_membersOnline": {
+                        "name": "stg_membersOnline",
+                        "type": "INT",
+                        "length": null,
+                        "decimals": null,
+                        "values": [],
+                        "allow_null": true,
+                        "default": null,
+                        "comment": "",
+                        "unsigned": false,
+                        "zerofill": false,
+                        "auto_increment": false,
+                        "binary": false
+                    },
+                    "stg_membersInGame": {
+                        "name": "stg_membersInGame",
+                        "type": "INT",
+                        "length": null,
+                        "decimals": null,
+                        "values": [],
+                        "allow_null": true,
+                        "default": null,
+                        "comment": "",
+                        "unsigned": false,
+                        "zerofill": false,
+                        "auto_increment": false,
+                        "binary": false
+                    }
+                },
+                "indexes": {
+                    "PRIMARY": {
+                        "type": "primary",
+                        "name": "PRIMARY",
+                        "columns": [
+                            "id"
+                        ],
+                        "length": [
+                            null
+                        ]
+                    }
+                }
+            }
+        ]
+    },
+    "2": {
+        "method": "addColumn",
+        "params": [
+            "steam_profiles",
+            {
+                "name": "st_player_groups",
+                "type": "TEXT",
+                "length": null,
+                "decimals": null,
+                "values": null,
+                "allow_null": true,
+                "default": null,
+                "comment": "",
+                "unsigned": false,
+                "zerofill": false,
+                "auto_increment": false,
+                "binary": false
+            }
+        ]
+    },
+    "3": {
+        "method": "changeColumn",
+        "params": [
+            "steam_profiles",
+            "st_gameid",
+            {
+                "name": "st_gameid",
+                "type": "VARCHAR",
+                "length": 255,
+                "decimals": null,
+                "values": [],
+                "allow_null": true,
+                "default": null,
+                "comment": "",
+                "unsigned": false,
+                "zerofill": false,
+                "auto_increment": false,
+                "binary": false
+            }
+        ]
+    }
+}

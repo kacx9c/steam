@@ -1,0 +1,27 @@
+.st_hPhoto{
+	height: 176px;
+}
+
+.st_hJoin{
+	width: 90px;
+}
+
+.st_hCounts{
+	width: 94px;
+}
+
+.st_inGame{
+	color: #8bc53f;
+}
+
+.st_online {
+	color: #62a7e3;
+}
+
+.st_vButton {
+	padding-right: 10px;
+}
+
+.st_minHeight {
+	min-height: 200px;
+}

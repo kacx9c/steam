@@ -79,7 +79,6 @@ class _Profile extends \IPS\Patterns\ActiveRecord
 	public static function constructFromData( $data, $updateMultitonStoreIfExists = TRUE )
 	{
 		return parent::constructFromData($data, $updateMultitonStoreIfExists);
-
 	}
 
 	public function setDefaultValues()
@@ -176,6 +175,11 @@ class _Profile extends \IPS\Patterns\ActiveRecord
 			$value = preg_replace('/[\x{10000}-\x{10FFFF}]/u', "\xEF\xBF\xBD", $value);
 		}
 		$this->_data['personaname'] = $value;
+	}
+
+	public function author()
+	{
+		return \IPS\Member::load($this->member_id);
 	}
 
 }
