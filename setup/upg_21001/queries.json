@@ -221,7 +221,7 @@
                         "type": "primary",
                         "name": "PRIMARY",
                         "columns": [
-                            "id"
+                            "stg_id"
                         ],
                         "length": [
                             null
