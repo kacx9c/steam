@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <language>
- <app key="steam" version="21000">
+ <app key="steam" version="21001">
   <word key="__app_steam" js="0">Steam Integration</word>
   <word key="module__steam_steam" js="0">Steam</word>
   <word key="menu__steam_steam" js="0">Steam</word>
@@ -150,5 +150,13 @@
   <word key="steam_filters_disabled" js="0">Disabled</word>
   <word key="steam_filters_active" js="0">Active Users</word>
   <word key="name" js="0">User Name</word>
+  <word key="steam_comm_groups" js="0">Steam Groups</word>
+  <word key="steam_comm_groups_desc" js="0">64 Bit ID or steamcommunity.com/groups/{name}</word>
+  <word key="steam__mem_groups" js="0">Steam Community Group Settings</word>
+  <word key="block_steamGroupWidget" js="0">Steam Group</word>
+  <word key="block_steamGroupWidget_desc" js="0">Show basic Steam Group information</word>
+  <word key="steamLimit" js="0">Number of Lines in Description</word>
+  <word key="steamUserCount" js="0">Number of users to display</word>
+  <word key="steamGroup" js="0">Group to display</word>
  </app>
 </language>

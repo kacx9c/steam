@@ -3,6 +3,6 @@
     "app_author": "Aiwa",
     "app_directory": "steam",
     "app_protected": 0,
-    "app_website": "http:\/\/aiwa.me",
-    "app_update_check": ""
+    "app_website": "https:\/\/aiwa.me",
+    "app_update_check": "https:\/\/aiwa.me\/updatecheck\/steam"
 }

@@ -1,5 +1,5 @@
-[
-    {
+{
+    "1": {
         "method": "createTable",
         "params": [
             {
@@ -231,7 +231,7 @@
             }
         ]
     },
-    {
+    "2": {
         "method": "addColumn",
         "params": [
             "steam_profiles",
@@ -251,7 +251,7 @@
             }
         ]
     },
-    {
+    "3": {
         "method": "changeColumn",
         "params": [
             "steam_profiles",
@@ -272,4 +272,4 @@
             }
         ]
     }
-]
+}
