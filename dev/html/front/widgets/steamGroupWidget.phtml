@@ -1,6 +1,6 @@
 <ips:template parameters="$group, $profiles, $config, $vert" />
 <h3 class='ipsWidget_title'>{$group->name}</h3>
-<div class="ipsWidget_inner ipsPad{{if $vert}} ipsPad_half{{endif}}" style="min-height: 200px;">
+<div class="ipsWidget_inner st_minHeight ipsPad{{if $vert}} ipsPad_half{{endif}}">
 	{{if $vert}}
 	<div class="ipsType_center">
 		<a href="{$group->url()}" class="ipsUserPhoto ipsUserPhoto_medium">
@@ -8,32 +8,32 @@
 		</a>
 	</div>
 	{{else}}
-	<div class="ipsPos_left ipsSpacer" style="height: 176px;">
+	<div class="ipsPos_left ipsSpacer st_hPhoto">
 		<a href="{$group->url()}" class="ipsUserPhoto ipsUserPhoto_large">
 			<img src="{$group->avatarFull}" />
 		</a>
 		<div class="ipsType_center ipsSpacer_top ipsSpacer_half">
 			<div class="">
-				<a href="{$group->url()}" class="ipsButton ipsButton_alternate ipsButton_veryVerySmall ipsSpacer_bottom ipsSpacer_half"  style="width: 90px;">Join Group</a>
+				<a href="{$group->url()}" class="ipsButton ipsButton_alternate ipsButton_veryVerySmall ipsSpacer_bottom ipsSpacer_half st_hJoin">Join Group</a>
 			</div>
 			<div class="">
-				<a href="{$group->chat()}" class="ipsButton ipsButton_alternate ipsButton_veryVerySmall" style="width: 90px;">Join Chat</a>
+				<a href="{$group->chat()}" class="ipsButton ipsButton_alternate ipsButton_veryVerySmall st_hJoin">Join Chat</a>
 			</div>
 		</div>
 	</div>
-	<div class="ipsPos_right ipsType_center" style="width: 94px;">
+	<div class="ipsPos_right ipsType_center st_hCounts">
 		<div class="">
 			<span class="ipsType_minorHeading">Members</span>
 			<br />
 			<span class="ipsType_small ipsType_neutral">{number="$group->memberCount"}</span>
 		</div>
-		<div class="ipsSpacer_both ipsSpacer_half" style="color: #8bc53f;">
-			<span class="ipsType_minorHeading" style="color: #8bc53f;">In-Game</span>
+		<div class="ipsSpacer_both ipsSpacer_half st_inGame">
+			<span class="ipsType_minorHeading st_inGame">In-Game</span>
 			<br />
 			<span class="ipsType_small">{number="$group->membersInGame"}</span>
 		</div>
-		<div class="ipsSpacer_both ipsSpacer_half" style="color: #62a7e3;">
-			<span class="ipsType_minorHeading" style="color: #62a7e3;">Online</span>
+		<div class="ipsSpacer_both ipsSpacer_half st_online">
+			<span class="ipsType_minorHeading st_online">Online</span>
 			<br />
 			<span class="ipsType_small">{number="$group->membersOnline"}</span>
 		</div>
@@ -59,7 +59,6 @@
 			<a href="{$p->author()->url()->setQueryString(array('tab' => 'node_steam_steamprofile'))}" class="ipsUserPhoto ipsUserPhoto_mini" target="_blank">
 				<img src="{$p->avatarmedium}" title="{$p->personaname}" data-ipsToolTip />
 			</a>
-
 		{{endforeach}}
 
 	</div>
@@ -71,13 +70,13 @@
 			<br />
 			<span class="ipsType_small ipsType_neutral">{number="$group->memberCount"}</span>
 		</div>
-		<div class="ipsGrid_span3" style="color: #8bc53f;">
-			<span class="ipsType_minorHeading" style="color: #8bc53f;">In-Game</span>
+		<div class="ipsGrid_span3 st_inGame">
+			<span class="ipsType_minorHeading st_inGame">In-Game</span>
 			<br />
 			<span class="ipsType_small">{number="$group->membersInGame"}</span>
 		</div>
-		<div class="ipsGrid_span3" style="color: #62a7e3;">
-			<span class="ipsType_minorHeading" style="color: #62a7e3;">Online</span>
+		<div class="ipsGrid_span3 st_online">
+			<span class="ipsType_minorHeading st_online">Online</span>
 			<br />
 			<span class="ipsType_small">{number="$group->membersOnline"}</span>
 		</div>
@@ -88,11 +87,11 @@
 		</div>
 	</div>
 	<div class="ipsType_center ipsPad ipsPad_half">
-		<span style="padding-right: 10px;">
-			<a href="{$group->url()}" class="ipsButton ipsButton_alternate ipsButton_veryVerySmall">Join Group</a>
+		<span class="st_vButton">
+			<a href="{$group->url()}" class="ipsButton ipsButton_alternate ipsButton_veryVerySmall st_hJoin">Join Group</a>
 		</span>
 		<span>
-			<a href="{$group->chat()}" class="ipsButton ipsButton_alternate ipsButton_veryVerySmall">Join Chat</a>
+			<a href="{$group->chat()}" class="ipsButton ipsButton_alternate ipsButton_veryVerySmall st_hJoin">Join Chat</a>
 		</span>
 	</div>
 	{{endif}}

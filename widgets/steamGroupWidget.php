@@ -56,6 +56,8 @@ class _steamGroupWidget extends \IPS\Widget\StaticCache
 		if (!isset($this->configuration['steamUserCount'])) {
 			$this->configuration['steamUserCount'] = 10;
 		}
+		\IPS\Output::i()->cssFiles = array_merge(\IPS\Output::i()->cssFiles, \IPS\Theme::i()->css('widget.css', 'steam', 'front'));
+
 		parent::init();
 	}
 

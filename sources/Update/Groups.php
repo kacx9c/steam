@@ -185,63 +185,41 @@ class _Groups
 		$this->extras['count'] = $query->count(TRUE);
 
 		foreach ($groups as $g) {
-			$err = 0;
 
-			if ($g->name) {
-				$url = "https://steamcommunity.com/groups/" . $g->url . "/memberslistxml/?xml=1";
-			} elseif ($g->id) {
+			if (preg_match('/^\d{18}$/', $g->id)) {
 				$url = "https://steamcommunity.com/gid/" . $g->id . "/memberslistxml/?xml=1";
 			} else {
-				$err = '1';
+				$url = "https://steamcommunity.com/groups/" . $g->url . "/memberslistxml/?xml=1";
+			}
+
+			$req = static::request($url);
+
+			if ($req->httpResponseCode != 200) {
+				$this->failed($g, 'group_err_request');
+				if (\IPS\Settings::i()->steam_diagnostics) {
+					throw new \Exception($req->httpResponseCode . ": getGroup");
+				}
 				continue;
 			}
 			try {
-				$req = $this->request($url);
-				if ($req->httpResponseCode != 200) {
-					$this->failed($g, 'group_err_request');
-					$err = 1;
-
-					if (\IPS\Settings::i()->steam_diagnostics) {
-						throw new \Exception($req->httpResponseCode . ": getGroup");
-					}
-					continue;
-				}
-				try {
-					$data = $req->decodeXml();
-					$g->storeXML($data);
-				} catch (\RuntimeException $e) {
-					$this->failed($g, 'steam_err_getGroup');
-					$err = 1;
-					if (\IPS\Settings::i()->steam_diagnostics) {
-						throw new \Exception($e->getMessage());
-					}
-					continue;
-				}
-
-				unset($data);
-
-			} catch (\OutOfRangeException $e) {
+				$values = $req->decodeXml();
+				$g->storeXML($values);
+			} catch (\RuntimeException $e) {
 				$this->failed($g, 'steam_err_getGroup');
-				$err = 1;
-
 				if (\IPS\Settings::i()->steam_diagnostics) {
 					throw new \Exception($e->getMessage());
 				}
 				continue;
 			}
 
-			// Store general information that doesn't rely on an API.
-			if(!$err)
-			{
-				$g->error = '';
-			}
+			unset($data);
 
+			// If we got this far, there was no error.
+			$g->error = '';
 			$g->last_update = time();
 
 			// Store the data
 			$g->save();
-
-			$err = 0;
 		}
 
 		$this->extras['offset'] = $this->extras['offset'] + 5;
