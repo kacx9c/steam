@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <language>
- <app key="steam" version="21001">
+ <app key="steam" version="21002">
   <word key="__app_steam" js="0">Steam Integration</word>
   <word key="module__steam_steam" js="0">Steam</word>
   <word key="menu__steam_steam" js="0">Steam</word>
@@ -158,5 +158,11 @@
   <word key="steamLimit" js="0">Number of Lines in Description</word>
   <word key="steamUserCount" js="0">Number of users to display</word>
   <word key="steamGroup" js="0">Group to display</word>
+  <word key="st_joinGroup" js="0">Join Group</word>
+  <word key="st_joinChat" js="0">Join Chat</word>
+  <word key="st_online" js="0">Online</word>
+  <word key="st_inChat" js="0">In-Chat</word>
+  <word key="st_inGame" js="0">In-Game</word>
+  <word key="st_members" js="0">Members</word>
  </app>
 </language>

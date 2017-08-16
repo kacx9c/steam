@@ -159,4 +159,11 @@ $lang = array(
 		'steamLimit'                    => "Number of Lines in Description",
 		'steamUserCount'                => "Number of users to display",
 		'steamGroup'                    => "Group to display",
+		'st_joinGroup'                  => "Join Group",
+		'st_joinChat'                   => "Join Chat",
+		'st_online'                     => "Online",
+		'st_inChat'                     => "In-Chat",
+		'st_inGame'                     => "In-Game",
+		'st_members'                    => "Members",
+
 );

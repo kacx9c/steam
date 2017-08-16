@@ -14,31 +14,31 @@
 		</a>
 		<div class="ipsType_center ipsSpacer_top ipsSpacer_half">
 			<div class="">
-				<a href="{$group->url()}" class="ipsButton ipsButton_alternate ipsButton_veryVerySmall ipsSpacer_bottom ipsSpacer_half st_hJoin">Join Group</a>
+				<a href="{$group->url()}" class="ipsButton ipsButton_alternate ipsButton_veryVerySmall ipsSpacer_bottom ipsSpacer_half st_hJoin">{lang="st_joinGroup"}</a>
 			</div>
 			<div class="">
-				<a href="{$group->chat()}" class="ipsButton ipsButton_alternate ipsButton_veryVerySmall st_hJoin">Join Chat</a>
+				<a href="{$group->chat()}" class="ipsButton ipsButton_alternate ipsButton_veryVerySmall st_hJoin">{lang="st_joinChat"}</a>
 			</div>
 		</div>
 	</div>
 	<div class="ipsPos_right ipsType_center st_hCounts">
 		<div class="">
-			<span class="ipsType_minorHeading">Members</span>
+			<span class="ipsType_minorHeading">{lang="st_members"}</span>
 			<br />
 			<span class="ipsType_small ipsType_neutral">{number="$group->memberCount"}</span>
 		</div>
 		<div class="ipsSpacer_both ipsSpacer_half st_inGame">
-			<span class="ipsType_minorHeading st_inGame">In-Game</span>
+			<span class="ipsType_minorHeading st_inGame">{lang="st_inGame"}</span>
 			<br />
 			<span class="ipsType_small">{number="$group->membersInGame"}</span>
 		</div>
 		<div class="ipsSpacer_both ipsSpacer_half st_online">
-			<span class="ipsType_minorHeading st_online">Online</span>
+			<span class="ipsType_minorHeading st_online">{lang="st_online"}</span>
 			<br />
 			<span class="ipsType_small">{number="$group->membersOnline"}</span>
 		</div>
 		<div class="ipsSpacer_bottom ipsSpacer_half">
-			<span class="ipsType_minorHeading">In-Chat</span>
+			<span class="ipsType_minorHeading">{lang="st_inChat"}</span>
 			<br />
 			<span class="ipsType_small ipsType_neutral">{number="$group->membersInChat"}</span>
 		</div>
@@ -66,32 +66,32 @@
 	<hr class="ipsHr">
 	<div class="ipsGrid ipsType_center">
 		<div class="ipsGrid_span3">
-			<span class="ipsType_minorHeading">Members</span>
+			<span class="ipsType_minorHeading">{lang="st_members"}</span>
 			<br />
 			<span class="ipsType_small ipsType_neutral">{number="$group->memberCount"}</span>
 		</div>
 		<div class="ipsGrid_span3 st_inGame">
-			<span class="ipsType_minorHeading st_inGame">In-Game</span>
+			<span class="ipsType_minorHeading st_inGame">{lang="st_inGame"}</span>
 			<br />
 			<span class="ipsType_small">{number="$group->membersInGame"}</span>
 		</div>
 		<div class="ipsGrid_span3 st_online">
-			<span class="ipsType_minorHeading st_online">Online</span>
+			<span class="ipsType_minorHeading st_online">{lang="st_online"}</span>
 			<br />
 			<span class="ipsType_small">{number="$group->membersOnline"}</span>
 		</div>
 		<div class="ipsGrid_span3">
-			<span class="ipsType_minorHeading">In-Chat</span>
+			<span class="ipsType_minorHeading">{lang="st_inChat"}</span>
 			<br />
 			<span class="ipsType_small ipsType_neutral">{number="$group->membersInChat"}</span>
 		</div>
 	</div>
 	<div class="ipsType_center ipsPad ipsPad_half">
 		<span class="st_vButton">
-			<a href="{$group->url()}" class="ipsButton ipsButton_alternate ipsButton_veryVerySmall st_hJoin">Join Group</a>
+			<a href="{$group->url()}" class="ipsButton ipsButton_alternate ipsButton_veryVerySmall st_hJoin">{lang="st_joinGroup"}</a>
 		</span>
 		<span>
-			<a href="{$group->chat()}" class="ipsButton ipsButton_alternate ipsButton_veryVerySmall st_hJoin">Join Chat</a>
+			<a href="{$group->chat()}" class="ipsButton ipsButton_alternate ipsButton_veryVerySmall st_hJoin">{lang="st_joinChat"}</a>
 		</span>
 	</div>
 	{{endif}}
