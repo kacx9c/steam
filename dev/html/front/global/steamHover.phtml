@@ -9,8 +9,8 @@
 			</strong>
 		</span>
 		<span class='ipsDataItem_main'>
-			{{if $steam->gameextrainfo }}
-				<span class='ipsBadge ipsBadge_positive' title='{lang="steam_playing"}: {$steam->gameextrainfo}' data-ipsTooltip>{lang="steam_ingame"}</span>
+			{{if $steam->gameextrainfo || $steam->gameid }}
+				<span class='ipsBadge ipsBadge_positive' {{if $steam->gameextrainfo }}title='{lang="steam_playing"}: {$steam->gameextrainfo}'{{endif}} data-ipsTooltip>{lang="steam_ingame"}</span>
 			{{elseif !$steam->personastate }}
 				<span class='ipsBadge ipsBadge_neutral'>{lang="steam_status_{$steam->personastate}"}</span>
 			{{else}}

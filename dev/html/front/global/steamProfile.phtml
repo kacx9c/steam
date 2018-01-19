@@ -79,8 +79,8 @@
 		<div class='ipsColumn ipsColumn_fluid'>
 				<div class='ipsPad'>
 					<div class='ipsSpacer_bottom ipsSpacer_half ipsTruncate ipsTruncate_line ipsType_noBreak'>
-					{{if $steam->gameextrainfo }}
-						<span class='ipsBadge ipsBadge_positive'>{lang="steam_ingame"}</span><span>  <strong>{$steam->gameextrainfo}</strong></span>
+					{{if $steam->gameextrainfo || $steam->gameid }}
+						<span class='ipsBadge ipsBadge_positive'>{lang="steam_ingame"}</span>{{if $steam->gameextrainfo}}<span>  <strong>{$steam->gameextrainfo}</strong></span>{{endif}}
 						{{else}}
 							{{if !$steam->personastate }}
 								<span class='ipsBadge ipsBadge_neutral'>{lang="steam_status_{$steam->personastate}"}</span>
