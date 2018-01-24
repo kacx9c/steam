@@ -179,7 +179,7 @@ class _Profile extends \IPS\Patterns\ActiveRecord
 
 	public function set_gameextrainfo( $value )
 	{
-		$name = '';
+		$name = NULL;
 		if($value) {
 			$this->ownedGames = $this->getOwned();
 			// If we're playing the game, we own it. Check the cache for the game name.

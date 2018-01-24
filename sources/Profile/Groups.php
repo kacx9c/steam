@@ -122,6 +122,51 @@ class _Groups extends \IPS\Patterns\ActiveRecord
 		$this->_data['members'] = json_encode($values);
 	}
 
+	public function set_avatarIcon( $value )
+	{
+		if( $value && \IPS\Settings::i()->remote_image_proxy) {
+			$proxyUrl = \IPS\Http\Url::createFromString(\IPS\Settings::i()->base_url . "applications/core/interface/imageproxy/imageproxy.php");
+			$proxyUrl = $proxyUrl->setQueryString(array('img' => $value,
+			                                            'key' => hash_hmac('sha256', $value, \IPS\Settings::i()->site_secret_key)
+			));
+
+			$this->_data['avatarIcon'] = (string) $proxyUrl;
+		}else
+		{
+			$this->_data['avatarIcon'] = $value;
+		}
+	}
+
+	public function set_avatarMedium( $value )
+	{
+		if( $value && \IPS\Settings::i()->remote_image_proxy) {
+			$proxyUrl = \IPS\Http\Url::createFromString(\IPS\Settings::i()->base_url . "applications/core/interface/imageproxy/imageproxy.php");
+			$proxyUrl = $proxyUrl->setQueryString(array('img' => $value,
+			                                            'key' => hash_hmac('sha256', $value, \IPS\Settings::i()->site_secret_key)
+			));
+
+			$this->_data['avatarMedium'] = (string) $proxyUrl;
+		}else
+		{
+			$this->_data['avatarMedium'] = $value;
+		}
+	}
+
+	public function set_avatarFull( $value )
+	{
+		if( $value && \IPS\Settings::i()->remote_image_proxy) {
+			$proxyUrl = \IPS\Http\Url::createFromString(\IPS\Settings::i()->base_url . "applications/core/interface/imageproxy/imageproxy.php");
+			$proxyUrl = $proxyUrl->setQueryString(array('img' => $value,
+			                                            'key' => hash_hmac('sha256', $value, \IPS\Settings::i()->site_secret_key)
+			));
+
+			$this->_data['avatarFull'] = (string) $proxyUrl;
+		}else
+		{
+			$this->_data['avatarFull'] = $value;
+		}
+	}
+
 	public function url()
 	{
 		return "https://steamcommunity.com/groups/" . $this->url;
