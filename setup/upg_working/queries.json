@@ -1,0 +1,65 @@
+[
+    {
+        "method": "changeColumn",
+        "params": [
+            "steam_groups",
+            "stg_avatarIcon",
+            {
+                "name": "stg_avatarIcon",
+                "type": "TEXT",
+                "length": 0,
+                "decimals": null,
+                "values": [],
+                "allow_null": true,
+                "default": null,
+                "comment": "",
+                "unsigned": false,
+                "zerofill": false,
+                "auto_increment": false,
+                "binary": false
+            }
+        ]
+    },
+    {
+        "method": "changeColumn",
+        "params": [
+            "steam_groups",
+            "stg_avatarMedium",
+            {
+                "name": "stg_avatarMedium",
+                "type": "TEXT",
+                "length": 0,
+                "decimals": null,
+                "values": [],
+                "allow_null": true,
+                "default": null,
+                "comment": "",
+                "unsigned": false,
+                "zerofill": false,
+                "auto_increment": false,
+                "binary": false
+            }
+        ]
+    },
+    {
+        "method": "changeColumn",
+        "params": [
+            "steam_groups",
+            "stg_avatarFull",
+            {
+                "name": "stg_avatarFull",
+                "type": "TEXT",
+                "length": 0,
+                "decimals": null,
+                "values": [],
+                "allow_null": true,
+                "default": null,
+                "comment": "",
+                "unsigned": false,
+                "zerofill": false,
+                "auto_increment": false,
+                "binary": false
+            }
+        ]
+    }
+]
