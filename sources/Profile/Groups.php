@@ -122,49 +122,35 @@ class _Groups extends \IPS\Patterns\ActiveRecord
 		$this->_data['members'] = json_encode($values);
 	}
 
-	public function set_avatarIcon( $value )
+	protected function avatarProxy( $key, $val )
 	{
-		if( $value && \IPS\Settings::i()->remote_image_proxy) {
+		$proxyUrl = NULL;
+		if( $val && !\IPS\Settings::i()->remote_image_proxy) {
 			$proxyUrl = \IPS\Http\Url::createFromString(\IPS\Settings::i()->base_url . "applications/core/interface/imageproxy/imageproxy.php");
-			$proxyUrl = $proxyUrl->setQueryString(array('img' => $value,
-			                                            'key' => hash_hmac('sha256', $value, \IPS\Settings::i()->site_secret_key)
+			$proxyUrl = $proxyUrl->setQueryString(array('img' => $val,
+			                                            'key' => hash_hmac('sha256', $val, \IPS\Settings::i()->site_secret_key)
 			));
 
-			$this->_data['avatarIcon'] = (string) $proxyUrl;
+			$this->_data[$key] = (string) $proxyUrl;
 		}else
 		{
-			$this->_data['avatarIcon'] = $value;
+			$this->_data[$key] = $val;
 		}
+	}
+
+	public function set_avatarIcon( $value )
+	{
+		$this->avatarProxy( 'avatarIcon', $value);
 	}
 
 	public function set_avatarMedium( $value )
 	{
-		if( $value && \IPS\Settings::i()->remote_image_proxy) {
-			$proxyUrl = \IPS\Http\Url::createFromString(\IPS\Settings::i()->base_url . "applications/core/interface/imageproxy/imageproxy.php");
-			$proxyUrl = $proxyUrl->setQueryString(array('img' => $value,
-			                                            'key' => hash_hmac('sha256', $value, \IPS\Settings::i()->site_secret_key)
-			));
-
-			$this->_data['avatarMedium'] = (string) $proxyUrl;
-		}else
-		{
-			$this->_data['avatarMedium'] = $value;
-		}
+		$this->avatarProxy( 'avatarMedium', $value);
 	}
 
 	public function set_avatarFull( $value )
 	{
-		if( $value && \IPS\Settings::i()->remote_image_proxy) {
-			$proxyUrl = \IPS\Http\Url::createFromString(\IPS\Settings::i()->base_url . "applications/core/interface/imageproxy/imageproxy.php");
-			$proxyUrl = $proxyUrl->setQueryString(array('img' => $value,
-			                                            'key' => hash_hmac('sha256', $value, \IPS\Settings::i()->site_secret_key)
-			));
-
-			$this->_data['avatarFull'] = (string) $proxyUrl;
-		}else
-		{
-			$this->_data['avatarFull'] = $value;
-		}
+		$this->avatarProxy( 'avatarFull', $value);
 	}
 
 	public function url()
