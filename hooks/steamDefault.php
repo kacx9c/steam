@@ -1,12 +1,18 @@
 //<?php
 
+/* To prevent PHP errors (extending class does not exist) revealing path */
+if ( !defined( '\IPS\SUITE_UNIQUE_KEY' ) )
+{
+	exit;
+}
+
 class steam_hook_steamDefault extends _HOOK_CLASS_
 {
 	protected function manage()
 	{
 		try
 		{
-			if(\IPS\Settings::i()->steam_default_tab && !isset(\IPS\Request::i()->tab))
+			if(\IPS\Settings::i()->steam_default_tab && !isset(\IPS\Request::i()->tab) && !\IPS\Request::i()->isAjax())
 			{
 				\IPS\Request::i()->tab = 'node_steam_steamprofile';
 			}
