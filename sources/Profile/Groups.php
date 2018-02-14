@@ -122,6 +122,37 @@ class _Groups extends \IPS\Patterns\ActiveRecord
 		$this->_data['members'] = json_encode($values);
 	}
 
+	protected function avatarProxy( $key, $val )
+	{
+		$proxyUrl = NULL;
+		if( $val && !\IPS\Settings::i()->remote_image_proxy) {
+			$proxyUrl = \IPS\Http\Url::createFromString(\IPS\Settings::i()->base_url . "applications/core/interface/imageproxy/imageproxy.php");
+			$proxyUrl = $proxyUrl->setQueryString(array('img' => $val,
+			                                            'key' => hash_hmac('sha256', $val, \IPS\Settings::i()->site_secret_key)
+			));
+
+			$this->_data[$key] = (string) $proxyUrl;
+		}else
+		{
+			$this->_data[$key] = $val;
+		}
+	}
+
+	public function set_avatarIcon( $value )
+	{
+		$this->avatarProxy( 'avatarIcon', $value);
+	}
+
+	public function set_avatarMedium( $value )
+	{
+		$this->avatarProxy( 'avatarMedium', $value);
+	}
+
+	public function set_avatarFull( $value )
+	{
+		$this->avatarProxy( 'avatarFull', $value);
+	}
+
 	public function url()
 	{
 		return "https://steamcommunity.com/groups/" . $this->url;

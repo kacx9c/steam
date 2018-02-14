@@ -177,6 +177,20 @@ class _Profile extends \IPS\Patterns\ActiveRecord
 		$this->_data['personaname'] = $value;
 	}
 
+	public function set_gameextrainfo( $value )
+	{
+		$name = NULL;
+		if($value) {
+			$this->ownedGames = $this->getOwned();
+			// If we're playing the game, we own it. Check the cache for the game name.
+			if (is_array($this->ownedGames[$value])) {
+				$name = $this->ownedGames[$value]['name'];
+			}
+		}
+
+		$this->_data['gameextrainfo'] = $name;
+	}
+
 	public function author()
 	{
 		return \IPS\Member::load($this->member_id);

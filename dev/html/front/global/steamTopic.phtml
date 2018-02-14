@@ -25,7 +25,7 @@
 		<div class='ipsSpacer_top ipsSpacer_half'>
 		<a class='ipsPos_left ipsTruncate ipsTruncate_line' style="text-align:left;" href='{url="app=core&module=members&controller=profile&id={$steam->member_id}&tab=node_steam_steamprofile"}' target="_blank" data-ipsHover data-ipsHover-content="#steamTopicHover_{$commentKey}"> {$steam->personaname}</a>
 		<br/>
-		{{if $steam->gameextrainfo }}
+		{{if $steam->gameextrainfo || $steam->gameid }}
 			<span class='ipsBadge ipsBadge_positive ipsPos_left'>{lang="steam_ingame"}</span>
 		{{else}}
 			{{if !$steam->personastate }}
@@ -49,8 +49,8 @@
 		<div class='ipsColumn ipsColumn_fluid'>
 			<div class='ipsSpacer_top'>
 				<div class='ipsSpacer_bottom ipsSpacer_half ipsTruncate ipsTruncate_line ipsType_noBreak'>
-					{{if $steam->gameextrainfo }}
-						<span class='ipsBadge ipsBadge_positive'>{lang="steam_ingame"}</span><span>  <strong>{$steam->gameextrainfo}</strong></span>
+					{{if $steam->gameextrainfo || $steam->gameid }}
+						<span class='ipsBadge ipsBadge_positive'>{lang="steam_ingame"}</span>{{if $steam->gameextrainfo}}<span>  <strong>{$steam->gameextrainfo}</strong></span>{{endif}}
 					{{else}}
 						{{if !$steam->personastate }}
 							<span class='ipsBadge ipsBadge_neutral' data-ipsToolTip data-ipsToolTip-safe=TRUE title="{lang="steam_since"}: {datetime="$steam->lastlogoff" short="true"}">{lang="steam_status_{$steam->personastate}"}</span>

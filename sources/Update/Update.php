@@ -737,7 +737,7 @@ class _Update
 						$s->avatarfull 					= $p['avatarfull'];
 						$s->personastate 				= $p['personastate'];
 						$s->lastlogoff 					= $p['lastlogoff'];
-						$s->gameextrainfo 				= (isset($p['gameextrainfo']) ? $p['gameextrainfo'] : '');
+						$s->gameextrainfo 				= (isset($p['gameid']) ? $p['gameid'] : 0);
 						$s->gameserverip 				= (isset($p['gameserverip']) ? $p['gameserverip'] : '');
 						$s->gameid						= (isset($p['gameid']) ? $p['gameid'] : 0);
 						$s->error 						= '';
