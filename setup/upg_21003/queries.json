@@ -1,5 +1,5 @@
-[
-    {
+{
+    "1": {
         "method": "changeColumn",
         "params": [
             "steam_groups",
@@ -20,7 +20,7 @@
             }
         ]
     },
-    {
+    "2": {
         "method": "changeColumn",
         "params": [
             "steam_groups",
@@ -41,7 +41,7 @@
             }
         ]
     },
-    {
+    "3": {
         "method": "changeColumn",
         "params": [
             "steam_groups",
@@ -62,4 +62,4 @@
             }
         ]
     }
-]
+}
