@@ -125,7 +125,7 @@ class _Groups extends \IPS\Patterns\ActiveRecord
 	protected function avatarProxy( $key, $val )
 	{
 		$proxyUrl = NULL;
-		if( $val && !\IPS\Settings::i()->remote_image_proxy) {
+		if( $val && \IPS\Settings::i()->remote_image_proxy) {
 			$proxyUrl = \IPS\Http\Url::createFromString(\IPS\Settings::i()->base_url . "applications/core/interface/imageproxy/imageproxy.php");
 			$proxyUrl = $proxyUrl->setQueryString(array('img' => $val,
 			                                            'key' => hash_hmac('sha256', $val, \IPS\Settings::i()->site_secret_key)
