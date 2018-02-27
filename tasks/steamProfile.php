@@ -39,6 +39,11 @@ class _steamProfile extends \IPS\Task
 	 */
 	public function execute()
 	{
+		if( !\IPS\Application::appIsEnabled('steam'))
+		{
+			return NULL;
+		}
+
 		if( !isset( $_SERVER[ 'REQUEST_METHOD' ] ) )
 		{
 		    $_SERVER[ 'REQUEST_METHOD' ] = "POST";

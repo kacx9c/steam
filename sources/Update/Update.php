@@ -821,7 +821,7 @@ class _Update
 	{
 		if( $url )
 		{
-			return \IPS\Http\Url::external( $url )->request( 30 )->get();
+			return \IPS\Http\Url::external( $url )->request( \IPS\LONG_REQUEST_TIMEOUT )->get();
 		}else
 		{
 			return;
