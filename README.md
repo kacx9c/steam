@@ -1,4 +1,4 @@
-# Steam Profile Integration
+# Steam Profile Integration - v 2.1.4
 
 This app will obtain data from Steam for your users, and groups, and place it in your IPS Community database for use anywhere on your site. Your board will re-load your members Steam Online information, in configurable batches, every 2 minutes, so you always have up to date information without impacting load times of your community pages.
 

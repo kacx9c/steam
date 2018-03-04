@@ -778,9 +778,16 @@ class _Update
 	*/
 	public function cleanup( $offset = -1 )
 	{
-		if($offset == -1)
-		{
-			$offset = $this->extras['cleanup_offset'];
+		// AIWA-101 If cache does not initialize properly, cleanup_offset may not exist.
+		if($offset == -1) {
+			if (isset($this->extras['cleanup_offset']))
+			{
+				$offset = $this->extras['cleanup_offset'];
+			}else
+			{
+				$offset = 0;
+				$this->extras['cleanup_offset'] = 0;
+			}
 		}
 		$cleanup = $this->load($offset);
 
@@ -792,7 +799,8 @@ class _Update
 
 				$s = \IPS\steam\Profile::load($m->member_id);
 
-				/* If they don't have an entry, create one... If their entry doesn't match, purge it and update the steamID */
+				/* If they don't have an entry, create one... If their entry doesn't match,
+				   purge it and update the steamID */
 				if(!$s->steamid || ($s->steamid != $steamid))
 				{
 					$s->setDefaultValues();
@@ -821,7 +829,7 @@ class _Update
 	{
 		if( $url )
 		{
-			return \IPS\Http\Url::external( $url )->request( 30 )->get();
+			return \IPS\Http\Url::external( $url )->request( \IPS\LONG_REQUEST_TIMEOUT )->get();
 		}else
 		{
 			return;
