@@ -488,7 +488,6 @@ class _Update
 				$p->owned = json_encode(array());
 			}
 
-// https://partner.steam-api.com/ISteamUser/GrantPackage/v1/?key=C32DD550FE59CED2A8C6A288796243DC&steamid=76561197964468370
 			// Get Player Groups
 			$url = "https://api.steampowered.com/ISteamUser/GetUserGroupList/v1/?key=" . $this->api . "&steamid=" .$p->steamid;
 			try
@@ -511,50 +510,40 @@ class _Update
 							throw new \Exception($req->httpResponseCode . ": getGroupList");
 						}
 					}
-				}
-				try
-				{
-					$groupList = $req->decodeJson();
-				}catch(\RuntimeException $e)
-				{
-					$this->failed($m, 'steam_err_getGroupList');
-					$err = 1;
-					if(\IPS\Settings::i()->steam_diagnostics)
-					{
-						throw new \Exception( $e->getMessage() );
-					}
-				}
-
-				// Store the data and unset the variable to free up memory
-				if(isset($groupList) && $groupList['response']['success'] == true)
-				{
-					if(is_array($groupList['response']['groups']) && count($groupList['response']['groups']))
-					{
-						$_groups = array();
-						foreach($groupList['response']['groups'] as $g)
-						{
-							if(PHP_INT_SIZE == 8)
-							{
-								$_groups[$g['gid']] = $base + $g['gid'];
-							}elseif(extension_loaded('bcmath') && function_exists('bcadd'))
-							{
-								$_groups[] = bcadd( $base, $g['gid'], 0 );
-							}else
-							{
-								/* If we've gotten here it's a 64 bit server with a limit on PHP_INT_SIZE or a 32 bit server w/o bcmath installed */
-								throw new \Exception( 'Missing extension: php-bcmath');
-							}
+				}else {
+					try {
+						$groupList = $req->decodeJson();
+					} catch (\RuntimeException $e) {
+						$this->failed($m, 'steam_err_getGroupList');
+						$err = 1;
+						if (\IPS\Settings::i()->steam_diagnostics) {
+							throw new \Exception($e->getMessage());
 						}
-
 					}
-					$p->player_groups	= json_encode($_groups);
-				}else
-				{
-					$p->player_groups	= json_encode(array());
-				}
-				unset($req);
-				unset($groupList);
 
+					// Store the data and unset the variable to free up memory
+					if (isset($groupList) && $groupList['response']['success'] == TRUE) {
+						if (is_array($groupList['response']['groups']) && count($groupList['response']['groups'])) {
+							$_groups = array();
+							foreach ($groupList['response']['groups'] as $g) {
+								if (PHP_INT_SIZE == 8) {
+									$_groups[$g['gid']] = $base + $g['gid'];
+								} elseif (extension_loaded('bcmath') && function_exists('bcadd')) {
+									$_groups[] = bcadd($base, $g['gid'], 0);
+								} else {
+									/* If we've gotten here it's a 64 bit server with a limit on PHP_INT_SIZE or a 32 bit server w/o bcmath installed */
+									throw new \Exception('Missing extension: php-bcmath');
+								}
+							}
+
+						}
+						$p->player_groups = json_encode($_groups);
+					} else {
+						$p->player_groups = json_encode(array());
+					}
+					unset($req);
+					unset($groupList);
+				}
 			}catch(\OutOfRangeException $e)
 			{
 				$this->failed($m, 'steam_err_getGroups');
@@ -737,9 +726,16 @@ class _Update
 						$s->avatarfull 					= $p['avatarfull'];
 						$s->personastate 				= $p['personastate'];
 						$s->lastlogoff 					= $p['lastlogoff'];
-						$s->gameextrainfo 				= (isset($p['gameid']) ? $p['gameid'] : 0);
 						$s->gameserverip 				= (isset($p['gameserverip']) ? $p['gameserverip'] : '');
 						$s->gameid						= (isset($p['gameid']) ? $p['gameid'] : 0);
+
+
+						if(isset($p['gameextrainfo']) || isset($p['gameid'])) {
+							$s->gameextrainfo   = (isset($p['gameextrainfo']) ? $p['gameextrainfo'] : $p['gameid']);
+						}else {
+							$s->gameextrainfo   = NULL;
+						}
+
 						$s->error 						= '';
 						$s->save();
 

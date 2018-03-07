@@ -179,16 +179,17 @@ class _Profile extends \IPS\Patterns\ActiveRecord
 
 	public function set_gameextrainfo( $value )
 	{
-		$name = NULL;
-		$val = (string) $value;
-		if($value) {
+		$name = $value;
+		if(is_int($value) && \IPS\Settings::i()->steam_get_owned) {
 			$this->ownedGames = $this->getOwned();
 			// If we're playing the game, we own it. Check the cache for the game name.
-			if (is_array($this->ownedGames[$val])) {
-				$name = $this->ownedGames[$val]['name'];
+			if (isset($this->ownedGames[$value])) {
+				$name = $this->ownedGames[$value]['name'];
 			}
+		}else
+		{
+			$name = $value;
 		}
-
 		$this->_data['gameextrainfo'] = $name;
 	}
 
