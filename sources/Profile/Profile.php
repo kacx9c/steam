@@ -179,16 +179,30 @@ class _Profile extends \IPS\Patterns\ActiveRecord
 
 	public function set_gameextrainfo( $value )
 	{
+		// If the value we're saving is NULL, save it and return.
+		if(!$value)
+		{
+			$this->_data['gameextrainfo'] = NULL;
+			return;
+		}
+		// Otherwise, let's see what we have... If we have a numeric value, it's a gameid, search owned / recent
+		// If it's not numeric, set the string passed and move on.
 		$name = NULL;
-		$val = (string) $value;
-		if($value) {
+		if(is_numeric($value) && \IPS\Settings::i()->steam_get_owned) {
 			$this->ownedGames = $this->getOwned();
 			// If we're playing the game, we own it. Check the cache for the game name.
-			if (is_array($this->ownedGames[$val])) {
-				$name = $this->ownedGames[$val]['name'];
+			if (isset($this->ownedGames[$value])) {
+				$name = $this->ownedGames[$value]['name'];
 			}
+		}elseif(is_numeric($value))
+		{
+			$this->recentGames = $this->getRecent();
+			if(isset($this->recentGames[$value])){
+				$name = $this->recentGames[$value]['name'];
+			}
+		}else{
+			$name = $value;
 		}
-
 		$this->_data['gameextrainfo'] = $name;
 	}
 

@@ -256,12 +256,17 @@ class _view extends \IPS\Dispatcher\Controller
 
 	protected function personaState($value, $row)
 	{
-		if(!$value)
-		{
-			return '<span class="ipsBadge ipsBadge_neutral">' . \IPS\Member::loggedIn()->language()->addToStack( 'steam_status_'.$value) . '</span>';
+		if($row['st_gameextrainfo'] || $row['st_gameid']) {
+			return '<span class="ipsBadge ipsBadge_positive" data-ipsToolTip title="' . $row['st_gameextrainfo'] . '">' . \IPS\Member::loggedIn()->language()->addToStack('steam_ingame') . '</span>';
 		}else
 		{
-			return '<span class="ipsBadge" style="background: #86b5d9;">' . \IPS\Member::loggedIn()->language()->addToStack( 'steam_status_'.$value) . '</span>';
+			if(!$value)
+			{
+				return '<span class="ipsBadge ipsBadge_neutral">' . \IPS\Member::loggedIn()->language()->addToStack( 'steam_status_'.$value) . '</span>';
+			}else
+			{
+				return '<span class="ipsBadge" style="background: #86b5d9;">' . \IPS\Member::loggedIn()->language()->addToStack( 'steam_status_'.$value) . '</span>';
+			}
 		}
 	}
 
