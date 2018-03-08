@@ -410,8 +410,8 @@
 				</div>
 				<div class='ipsColumn ipsColumn_fluid'>
 				    <span class='ipsTruncate ipsTruncate_line'>
-						{{if $m->gameextrainfo }}
-							<strong class='ipsOnlineStatus ipsOnlineStatus_online' data-ipsToolTip title='{lang="steam_playing"}: {$m->gameextrainfo}'> <i class='fa fa-circle'></i></strong>
+						{{if $m->gameextrainfo || $m->gameid }}
+							<strong class='ipsOnlineStatus ipsOnlineStatus_online' data-ipsToolTip {{if $m->gameextrainfo }}title='{lang="steam_playing"}: {$m->gameextrainfo}'{{endif}}> <i class='fa fa-circle'></i></strong>
 						{{else}}
 							<strong class='ipsOnlineStatus' style="color: #86b5d9;" data-ipsToolTip title="{lang="steam_status_{$m->personastate}"}"> <i class='fa fa-circle'></i></strong>
 						{{endif}}
