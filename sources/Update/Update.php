@@ -137,6 +137,10 @@ class _Update
 				{
 					$member = $m->constructFromData($row);
 				}
+				if(!$member->real_name || !$member->member_id)
+				{
+					break;
+				}
 				if(is_array($row['p']) && count($row['p']))
 				{
 					foreach ( \IPS\core\ProfileFields\Field::values( $row['p'], 'PROFILE' ) as $group => $fields )
@@ -178,7 +182,6 @@ class _Update
 					{
 						$m->member_id 			= $member->member_id;
 						$m->steamid  			= $steamid;
-						$m->members_seo_name	= $member->members_seo_name;
 						$m->setDefaultValues();
 						$m->save();
 
@@ -216,7 +219,6 @@ class _Update
 			$m = \IPS\Member::load($p->member_id);
 
 			// Store general information that doesn't rely on an API.
-			$p->members_seo_name 	= ($m->members_seo_name ? $m->members_seo_name : '');
 			$p->addfriend 			= "steam://friends/add/".$p->steamid;
 			$p->last_update			= time();
 
@@ -619,7 +621,6 @@ class _Update
 							{
 								$s->member_id 			= $m->member_id;
 								$s->steamid  			= $steamid;
-								$s->members_seo_name	= $m->members_seo_name;
 								$s->setDefaultValues();
 								$s->save();
 							}
@@ -714,7 +715,6 @@ class _Update
 						$m = \IPS\Member::load($s->member_id);
 
 						$s->member_id 					= $m->member_id;
-						$s->members_seo_name 			= $m->members_seo_name;
 						$s->steamid 					= $p['steamid'];
 						$s->last_update					= time();
 						$s->timecreated					= (isset($p['timecreated']) ? $p['timecreated'] : NULL);
@@ -802,7 +802,6 @@ class _Update
 					$s->setDefaultValues();
 					$s->steamid = $steamid;
 					$s->member_id = $m->member_id;
-					$s->members_seo_name = $m->members_seo_name;
 
 					$s->save();
 				}
@@ -1028,7 +1027,6 @@ class _Update
 		$mem->member_id = $m->member_id;
 		$mem->error = ($lang ? $lang : '');
 		$mem->last_update = time();
-		$mem->members_seo_name = $m->members_seo_name;
 		$mem->save();
 		$this->fail[] = $m->member_id;
 		return;

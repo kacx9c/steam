@@ -37,7 +37,15 @@ class _steamGroupWidget extends \IPS\Widget\StaticCache
 	 * @brief	Plugin
 	 */
 	public $plugin = '';
-	
+
+	public function __construct( $uniqueKey, array $configuration, $access=null, $orientation=null )
+	{
+		// Must overload __construct in order to get the orientation.  If I don't get it now
+		// I won't have it available when I need it late.
+		$this->orientation = $orientation;
+		parent::__construct( $uniqueKey, $configuration, $access, $orientation );
+	}
+
 	/**
 	 * Initialise this widget
 	 *
@@ -47,6 +55,12 @@ class _steamGroupWidget extends \IPS\Widget\StaticCache
 	{
 		$this->template(array(\IPS\Theme::i()->getTemplate('widgets', $this->app, 'front'), $this->key));
 
+		if (!isset($this->configuration['steamDescription'])) {
+			$this->configuration['steamDescription'] = TRUE;
+		}
+		if (!isset($this->configuration['steamShowMembers'])) {
+			$this->configuration['steamShowMembers'] = TRUE;
+		}
 		if (!isset($this->configuration['steamGroup'])) {
 			$this->configuration['steamGroup'] = NULL;
 		}
@@ -69,6 +83,7 @@ class _steamGroupWidget extends \IPS\Widget\StaticCache
 	 */
 	public function configuration(&$form = NULL)
 	{
+		// steamGroup $defaults
 		if ($form === NULL) {
 			$form = new \IPS\Helpers\Form;
 		}
@@ -83,7 +98,14 @@ class _steamGroupWidget extends \IPS\Widget\StaticCache
 		$defaults = array('options'  => $options,
 		                  'multiple' => FALSE,
 		);
+
+		// steamShowMembers $options
+		$options = array(   'togglesOn' => array('steamLimit', 'steamUserCount')
+							);
+
 		$form->add(new \IPS\Helpers\Form\Select('steamGroup', isset( $this->configuration['steamGroup'] ) ? $this->configuration['steamGroup'] : NULL, FALSE, $defaults, NULL, NULL, NULL, 'steamGroup'));
+		$form->add(new \IPS\Helpers\Form\YesNo('steamDescription', isset($this->configuration['steamDescription']) ? $this->configuration['steamDescription'] : TRUE, FALSE, array(), NULL, NULL, NULL, 'steamDescription'));
+		$form->add(new \IPS\Helpers\Form\YesNo('steamShowMembers', isset($this->configuration['steamShowMembers']) ? $this->configuration['steamShowMembers'] : NULL, FALSE, $options, NULL, NULL, NULL, 'steamShowMembers'));
 		$form->add(new \IPS\Helpers\Form\Text('steamLimit', isset( $this->configuration['steamLimit'] ) ? $this->configuration['steamLimit'] : '10', FALSE, array(), NULL, NULL, NULL, 'steamLimit'));
 		$form->add(new \IPS\Helpers\Form\Text('steamUserCount', isset( $this->configuration['steamUserCount'] ) ? $this->configuration['steamUserCount'] : '10', FALSE, array(), NULL, NULL, NULL, 'steamUserCount'));
 

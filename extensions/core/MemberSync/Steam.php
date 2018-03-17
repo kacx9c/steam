@@ -57,7 +57,6 @@ class _Steam
 			{
 				$m->member_id 			= $member->member_id;
 				$m->steamid  			= $steamid;
-				$m->members_seo_name	= $member->members_seo_name;
 				$m->setDefaultValues();
 
 				$m->save();
@@ -140,7 +139,6 @@ class _Steam
 				$s = \IPS\steam\Profile::load($member->member_id);
 				$s->setDefaultValues();
 				$s->member_id = $member->member_id;
-				$s->members_seo_name = (isset($changes['members_seo_name']) ? $changes['members_seo_name'] : $member->members_seo_name);
 
 				/* If we don't have a steamid, it's invalid.  Create the row, but leave the steamid empty. */
 				$s->steamid = ($steamid ? $steamid : '');
