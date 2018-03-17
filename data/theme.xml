@@ -349,9 +349,12 @@
 	<div class="ipsSpacer_both ipsType_center">
 		<span class="ipsType_large ipsType_reset">{$group->headline}</span>
 	</div>
+	{{if $config['steamDescription']}}
 	<div class="ipsSpacer_bottom ipsType_center" data-ipsTruncate data-ipsTruncate-type='hide' data-ipsTruncate-size="{$config['steamLimit']} lines">
 		<span class="ipsType_medium">{$group->summary|raw}</span>
 	</div>
+	{{endif}}
+	{{if $config['steamShowMembers']}}
 	<div class="ipsType_center">
 		{{foreach $profiles as $id => $p}}
 			{{if $id >= $config['steamUserCount']}}
@@ -364,6 +367,7 @@
 		{{endforeach}}
 
 	</div>
+	{{endif}}
 	{{if $vert}}
 	<hr class="ipsHr">
 	<div class="ipsGrid ipsType_center">

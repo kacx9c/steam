@@ -1,9 +1,9 @@
-[
-    {
+{
+    "1": {
         "method": "dropColumn",
         "params": [
             "steam_profiles",
             "st_members_seo_name"
         ]
     }
-]
+}
