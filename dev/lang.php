@@ -121,7 +121,6 @@ $lang = array(
 		'steam_exp_update_profile'		=> "Update Profile Data Failed",
 		'steam_empty'					=> "Steam Profile Empty",
 		'st_member_id'					=> "Member ID",
-		'st_members_seo_name'			=> "Member Name",
 		'st_steamid'					=> "Steam ID",
 		'st_personaname'				=> "Steam Name",
 		'st_last_update'				=> "Last Update",
