@@ -72,26 +72,6 @@ class _Steam
 	}
 
 	/**
-	 * Member has logged on
-	 *
-	 * @param	\IPS\Member	$member		Member that logged in
-	 * @param	\IPS\Http\Url	$redirectUrl	The URL to send the user back to
-	 * @return	void
-	 */
-	public function onLogin( $member, $returnUrl )
-	{		/* Nothing to do.... For now... */		}
-
-	/**
-	 * Member has logged out
-	 *
-	 * @param	\IPS\Member		$member			Member that logged out
-	 * @param	\IPS\Http\Url	$redirectUrl	The URL to send the user back to
-	 * @return	void
-	 */
-	public function onLogout( $member, $returnUrl )
-	{		/* Nothing to do */		}
-
-	/**
 	 * Member account has been updated
 	 *
 	 * @param	$member		\IPS\Member	Member updating profile
