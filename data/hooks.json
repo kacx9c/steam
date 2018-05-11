@@ -18,5 +18,13 @@
     "steamid": {
         "type": "C",
         "class": "\\IPS\\CustomField"
+    },
+    "SteamFurl": {
+        "type": "C",
+        "class": "\\IPS\\Http\\Url\\Friendly"
+    },
+    "SteamLoginHandler": {
+        "type": "C",
+        "class": "\\IPS\\Login\\Handler"
     }
 }
