@@ -52,15 +52,31 @@ class _Application extends \IPS\Application
             // Do nothing, we're creating a new login handler no matter what, and removing the old Sign in.
         }
 
-        $maxLoginOrder = \IPS\Db::i()->select('MAX(login_order)', 'core_login_methods')->first();
+        if(!\IPS\Login\Handler::findMethod('IPS\steam\Login\Steam'))
+        {
+            $maxLoginOrder = \IPS\Db::i()->select('MAX(login_order)', 'core_login_methods')->first();
 
-        \IPS\Db::i()->insert('core_login_methods', array(
-            'login_settings' => json_encode(array()),
-            'login_classname' => 'IPS\steam\Login\Steam',
-            'login_enabled' => 1,
-            'login_order' => $maxLoginOrder + 1,
-            'login_register' => 1,
-            'login_acp' => 0
-        ));
+            \IPS\Db::i()->insert('core_login_methods', array(
+                'login_settings'  => json_encode(array()),
+                'login_classname' => 'IPS\steam\Login\Steam',
+                'login_enabled'   => 1,
+                'login_order'     => $maxLoginOrder + 1,
+                'login_register'  => 1,
+                'login_acp'       => 0
+            ));
+        }else{
+            $method = \IPS\Login\Handler::findMethod('IPS\steam\Login\Steam');
+            $method->enabled = 1;
+            $method->save();
+        }
+        $select = 'm.*';
+        $where = 'm.steamid>0';
+
+        $query = \IPS\Db::i()->select( $select, array('core_members', 'm'), $where, 'm.member_id ASC', array( 0, 10), NULL, NULL, '111');
+
+        if($query->count(TRUE))
+        {
+            \IPS\Task::queue( 'steam', 'convert', array( 'total' => $query->count(TRUE) ),3, array( 'total' ) );
+        }
     }
 }

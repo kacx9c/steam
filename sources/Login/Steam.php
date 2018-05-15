@@ -133,25 +133,25 @@ class _Steam extends \IPS\Login\Handler
         }
 
         /* Find their local account if they have already logged in using this method in the past */
-        try
-        {
-            $link = \IPS\Db::i()->select( '*', 'core_login_links', array( 'token_login_method=? AND token_identifier=?', $this->id, $steamID ) )->first();
-            $member = \IPS\Member::load( $link['token_member'] );
+        try {
+            $link = \IPS\Db::i()->select('*', 'core_login_links',
+                array('token_login_method=? AND token_identifier=?', $this->id, $steamID))->first();
+            $member = \IPS\Member::load($link['token_member']);
 
 
             /* If the user never finished the linking process, or the account has been deleted, discard this access token */
-            if ( !$link['token_linked'] or !$member->member_id )
-            {
-                \IPS\Db::i()->delete( 'core_login_links', array( 'token_login_method=? AND token_member=?', $this->id, $link['token_member'] ) );
+            if (!$link['token_linked'] or !$member->member_id) {
+                \IPS\Db::i()->delete('core_login_links',
+                    array('token_login_method=? AND token_member=?', $this->id, $link['token_member']));
                 throw new \UnderflowException;
             }
 
             /* ... and return the member object */
             $member->steamid = $steamID;
             $member->save();
+
             return $member;
-        }
-        catch ( \UnderflowException $e ) { }
+        } catch (\UnderflowException $e) { }
 
         /* Otherwise, we need to either create one or link it to an existing one */
         try

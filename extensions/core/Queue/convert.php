@@ -1,0 +1,136 @@
+<?php
+/**
+ * @brief		Background Task
+ * @author		<a href='https://www.invisioncommunity.com'>Invision Power Services, Inc.</a>
+ * @copyright	(c) Invision Power Services, Inc.
+ * @license		https://www.invisioncommunity.com/legal/standards/
+ * @package		Invision Community
+ * @subpackage	Steam Integration
+ * @since		15 May 2018
+ */
+
+namespace IPS\steam\extensions\core\Queue;
+
+/* To prevent PHP errors (extending class does not exist) revealing path */
+if ( !defined( '\IPS\SUITE_UNIQUE_KEY' ) )
+{
+	header( ( isset( $_SERVER['SERVER_PROTOCOL'] ) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0' ) . ' 403 Forbidden' );
+	exit;
+}
+
+/**
+ * Background Task
+ */
+class _convert
+{
+	/**
+	 * Parse data before queuing
+	 *
+	 * @param	array	$data
+	 * @return	array
+	 */
+	public function preQueueData( $data )
+	{
+	    $duplicates = array();
+        try{
+            $query = \IPS\Db::i()->select( 'COUNT(member_id),steamid', 'core_members', NULL, 'member_id ASC', array( 0, 1), 'steamid', 'COUNT(member_id) > 1', NULL);
+            foreach($query as $row)
+            {
+                $duplicates[] = $row['steamid'];
+            }
+            if(\count($duplicates))
+            {
+                $toRemove = \IPS\Db::i()->select( '*', 'core_members', array('steamid IN(?)', implode(',', $duplicates)));
+                foreach($toRemove as $r)
+                {
+                    $remove = \IPS\Member::constructFromData($r);
+                    $remove->steamid = NULL;
+                    $remove->save();
+                }
+            }
+        }catch(\UnderflowException $e)
+        {
+            // No duplicates, your users are smarter than the average bear!
+        }
+
+		return $data;
+	}
+
+	/**
+	 * Run Background Task
+	 *
+	 * @param	mixed						$data	Data as it was passed to \IPS\Task::queue()
+	 * @param	int							$offset	Offset
+	 * @return	int							New offset
+	 * @throws	\IPS\Task\Queue\OutOfRangeException	Indicates offset doesn't exist and thus task is complete
+	 */
+	public function run( $data, $offset )
+	{
+	    if($data['total'] === 0)
+        {
+            // No conversion to be done
+            throw new \IPS\Task\Queue\OutOfRangeException;
+        }
+
+        $method = \IPS\Login\Handler::findMethod('IPS\steam\Login\Steam');
+
+        $select = 'm.*';
+        $where = 'm.steamid>0';
+
+        $query = \IPS\Db::i()->select( $select, array('core_members', 'm'), $where, 'm.member_id ASC', array( $offset, 100), NULL, NULL, '111');
+
+        $insert = array();
+        foreach($query as $row)
+        {
+            $member = \IPS\Member::constructFromData($row);
+            $insert[] = array(
+                'token_login_method'    => $method->id,
+                'token_member'          => $member->member_id,
+                'token_identifier'      => $member->steamid,
+                'token_linked'          => 1,
+            );
+            ++$offset;
+        }
+
+        \IPS\Db::i()->insert('core_login_links', $insert);
+
+        $count = $query->count(TRUE);
+        if($count <= $offset) {
+            // Conversion complete
+            throw new \IPS\Task\Queue\OutOfRangeException;
+        }
+
+        return $offset;
+	}
+	
+	/**
+	 * Get Progress
+	 *
+	 * @param	mixed					$data	Data as it was passed to \IPS\Task::queue()
+	 * @param	int						$offset	Offset
+	 * @return	array( 'text' => 'Doing something...', 'complete' => 50 )	Text explaining task and percentage complete
+	 * @throws	\OutOfRangeException	Indicates offset doesn't exist and thus task is complete
+	 */
+	public function getProgress( $data, $offset )
+	{
+	    $percent = 100;
+
+        if($data['total'] > 0)
+        {
+            $percent = $offset / $data['total'];
+        }
+
+		return array( 'text' => \IPS\Member::loggedIn()->language()->addToStack( 'steam_queue_convert', FALSE ), 'complete' => $percent );
+	}
+
+	/**
+	 * Perform post-completion processing
+	 *
+	 * @param	array	$data
+	 * @return	void
+	 */
+	public function postComplete( $data )
+	{
+
+	}
+}

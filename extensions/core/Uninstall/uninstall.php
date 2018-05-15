@@ -32,6 +32,12 @@ class _uninstall
 	 */
 	public function preUninstall( $application )
 	{
+	    $handler = \IPS\Login\Handler::findMethod('IPS\steam\Login\Steam');
+	    try{
+	        \IPS\Db::i()->update('core_login_methods', array('login_enabled=?',0), array('login_id=?',$handler->id));
+        }catch(\IPS\Db\Exception $e)
+        { }
+
 		try
 		{
 			\IPS\Db::i()->update('core_pfields_data', array( 'pf_type' => 'Text'), array('pf_type=?', 'Steamid'));

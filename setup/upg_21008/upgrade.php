@@ -66,40 +66,18 @@ class _Upgrade
      */
     public function step2()
     {
-        $done = \IPS\Request::i()->extra ?: 0;
-        $method = \IPS\Login\Handler::findMethod('IPS\steam\Login\Steam');
-
-        // Convert all uses of core_members->steamid and put them into core_login_links.
-        // Get the login_id from step1, and loop through core_members where steamid exists.
-        // Do NOT use steam_profiles as duplicate steamID's may exists when using the custom profile field.
-
         $select = 'm.*';
         $where = 'm.steamid>0';
 
-        $query = \IPS\Db::i()->select( $select, array('core_members', 'm'), $where, 'm.member_id ASC', array( $done, 10), NULL, NULL, '111');
-        $insert = array();
-        foreach($query as $row)
+        $query = \IPS\Db::i()->select( $select, array('core_members', 'm'), $where, 'm.member_id ASC', array( 0, 10), NULL, NULL, '111');
+
+        if($query->count(TRUE))
         {
-            $member = \IPS\Member::constructFromData($row);
-            $insert[] = array(
-                'token_login_method'    => $method->id,
-                'token_member'          => $member->member_id,
-                'token_identifier'      => $member->steamid,
-                'token_linked'          => 1,
-            );
-            ++$done;
+            \IPS\Task::queue( 'steam', 'convert', array( 'total' => $query->count(TRUE) ),3, array( 'total' ) );
         }
 
-        \IPS\Db::i()->insert('core_login_links', $insert);
-        $count = $query->count(TRUE);
-        if($count <= $done) {
-            $done = 0;
-        }
-        if(!$done) {
-            return TRUE;
-        }
+        return TRUE;
 
-        return $done;
     }
 	
 	// You can create as many additional methods (step2, step3, etc.) as is necessary.
