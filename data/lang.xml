@@ -166,5 +166,6 @@
   <word key="st_inGame" js="0">In-Game</word>
   <word key="st_members" js="0">Members</word>
   <word key="steam_sign_in" js="0">Sign In With Steam</word>
+  <word key="steam_queue_convert" js="0">Converting Steam Logins</word>
  </app>
 </language>
