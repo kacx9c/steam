@@ -48,7 +48,7 @@ class _Upgrade
 
         $maxLoginOrder = \IPS\Db::i()->select('MAX(login_order)', 'core_login_methods')->first();
 
-        \IPS\Db::i()->insert('core_login_methods', array(
+        $id = \IPS\Db::i()->insert('core_login_methods', array(
             'login_settings' => json_encode(array()),
             'login_classname' => 'IPS\steam\Login\Steam',
             'login_enabled' => 1,
@@ -56,6 +56,8 @@ class _Upgrade
             'login_register' => 1,
             'login_acp' => 0
         ));
+
+        \IPS\Lang::saveCustom( 'core', "login_method_{$id}", \IPS\Member::loggedIn()->language()->get( \IPS\steam\Login\Steam::getTitle() ) );
 
         return TRUE;
 	}

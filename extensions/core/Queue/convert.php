@@ -33,7 +33,7 @@ class _convert
 	{
 	    $duplicates = array();
         try{
-            $query = \IPS\Db::i()->select( 'COUNT(member_id),steamid', 'core_members', NULL, 'member_id ASC', array( 0, 1), 'steamid', 'COUNT(member_id) > 1', NULL);
+            $query = \IPS\Db::i()->select( 'COUNT(member_id),steamid', 'core_members', NULL, NULL, array( 0, 1), 'steamid', 'COUNT(member_id) > 1', NULL);
             foreach($query as $row)
             {
                 $duplicates[] = $row['steamid'];

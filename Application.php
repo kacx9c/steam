@@ -51,12 +51,11 @@ class _Application extends \IPS\Application
         } catch (\UnderflowException $e) {
             // Do nothing, we're creating a new login handler no matter what, and removing the old Sign in.
         }
-
         if(!\IPS\Login\Handler::findMethod('IPS\steam\Login\Steam'))
         {
             $maxLoginOrder = \IPS\Db::i()->select('MAX(login_order)', 'core_login_methods')->first();
 
-            \IPS\Db::i()->insert('core_login_methods', array(
+            $id = \IPS\Db::i()->insert('core_login_methods', array(
                 'login_settings'  => json_encode(array()),
                 'login_classname' => 'IPS\steam\Login\Steam',
                 'login_enabled'   => 1,
@@ -64,11 +63,14 @@ class _Application extends \IPS\Application
                 'login_register'  => 1,
                 'login_acp'       => 0
             ));
+
         }else{
-            $method = \IPS\Login\Handler::findMethod('IPS\steam\Login\Steam');
             $method->enabled = 1;
             $method->save();
         }
+
+        \IPS\Lang::saveCustom( 'core', "login_method_{$id}", \IPS\Member::loggedIn()->language()->get( \IPS\steam\Login\Steam::getTitle() ) );
+
         $select = 'm.*';
         $where = 'm.steamid>0';
 

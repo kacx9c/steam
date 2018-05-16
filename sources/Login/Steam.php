@@ -11,7 +11,6 @@ if ( !defined( '\IPS\SUITE_UNIQUE_KEY' ) )
 
 class _Steam extends \IPS\Login\Handler
 {
-    use \IPS\Login\Handler\ButtonHandler;
 
     /**
      * @brief	Can we have multiple instances of this handler?
@@ -49,8 +48,10 @@ class _Steam extends \IPS\Login\Handler
      */
     public static function getTitle()
     {
-        return '__app_steam'; // Create a langauge string for this
+        return 'login_handler_Steam'; // Create a langauge string for this
     }
+
+    use \IPS\Login\Handler\ButtonHandler;
 
     /**
      * Get logo to display in user cp sidebar
@@ -191,6 +192,7 @@ class _Steam extends \IPS\Login\Handler
             /* Try to create one. NOTE: Invision Community will automatically throw an exception which we catch below if $email matches an existing account, if registration is disabled, or if Spam Defense blocks the account creation */
             $member = $this->createAccount( $name, $email );
 
+
             /* If we're still here, a new account was created. Store something in core_login_links so that the next time this user logs in, we know they've used this method before */
             \IPS\Db::i()->insert( 'core_login_links', array(
                 'token_login_method'	=> $this->id,
@@ -218,8 +220,8 @@ class _Steam extends \IPS\Login\Handler
                     $profileSync[ $option ] = array( 'handler' => $this->id, 'ref' => NULL, 'error' => NULL );
                 }
                 $member->profilesync = $profileSync;
-
             }
+
             $member->steamid = $steamID;
             $member->save();
             return $member;
@@ -244,7 +246,6 @@ class _Steam extends \IPS\Login\Handler
 
             throw $exception;
         }
-        \IPS\Db::i()->addColumn('core_members', array('steamid' => NULL));
     }
 
     /**

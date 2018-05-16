@@ -168,4 +168,5 @@ $lang = array(
 		'st_members'                    => "Members",
         'steam_sign_in'                 => "Sign In With Steam",
         'steam_queue_convert'           => "Converting Steam Logins",
+        'login_handler_Steam'           => "Steam Integration",
 );
