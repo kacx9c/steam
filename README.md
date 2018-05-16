@@ -1,4 +1,6 @@
-# Steam Profile Integration - v 2.1.7
+# Steam Profile Integration - v 2.1.8
+
+### Now including Sign in With Steam! (IPS 4.3+ only)
 
 This app will obtain data from Steam for your users, and groups, and place it in your IPS Community database for use anywhere on your site. Your board will re-load your members Steam Online information, in configurable batches, every 2 minutes, so you always have up to date information without impacting load times of your community pages.
 
@@ -10,9 +12,7 @@ Out of the box, this app will display steam information in the following places
 * Widget: X Random Online Steam Members displayed anywhere you can place a Widget
 More detailed information about the members Steam profile is displayed on the Members Profile page.  Including an optional list of games the member owns.  Out of the box the list of games can be shown in either an image grid layout, or list view.
 
-This app integrates seamlessly with Lavo's Sign in through Steam.. It will automatically detect if it is installed and pull that users Steam information.
-
-Don't have Lavo's sign in installed? No problem, this app works with a Custom Profile field also. Want to use both a custom profile field AND Lavo's hook? Not a problem, this app seamlessly pulls information from both locations to create a single list of users to pull information.
+Don't want to use the Steam Sign In? No problem, this app works with a Custom Profile field also. Want to use both a custom profile field AND the Sign in With Steam? Not a problem, this app seamlessly pulls information from both locations to create a single list of users to cache.
 
 Valid Steam Input format for Custom Profile Field:
 
@@ -31,7 +31,8 @@ IP.Board 3.4.x version available [here](https://aiwa.me/files/file/7-steam-profi
 
 ```
 IPS 4.0.x & 4.1.x, use version 2.0.13
-IPS 4.2 and above, use version 2.1.x
+IPS 4.2 use version 2.1.7
+IPS 4.3 and above, use 2.1.8+
 ```
 ```
 *** Supported natively on 64 bit server configurations.  For 32 bit server configurations, php-bcmath is required to decode this format.
@@ -66,7 +67,7 @@ Note: If you have an existing custom profile field with this data, edit the exis
 
 * Go to ACP > Community > Steam > Manage.
 * Select 'Update' from the drop down and Start.
-Note: If starting with existing data in a Profile Field, or Lavo's Sign in through Steam, this process could take a while.
+Note: If starting with existing data in a Profile Field, or Sign in With Steam, this process could take a while.
 
 #### Step 6: Add the Widget to a page
 
@@ -82,5 +83,4 @@ Note: If starting with existing data in a Profile Field, or Lavo's Sign in throu
 
 ## Acknowledgments
 
-* [Lavo's Sign in through Steam](https://invisioncommunity.com/files/file/7555-sign-in-through-steam-ipb4/)
 * IPS Underground

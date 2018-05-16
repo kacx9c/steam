@@ -20,4 +20,65 @@ class _Application extends \IPS\Application
 			\IPS\Output::i()->error( 'node_error', '2B221/1', 404, '' );
 		}
 	}
+
+    /**
+     * Install 'other' items. Left blank here so that application classes can override for app
+     *  specific installation needs. Always run as the last step.
+     *
+     * @return void
+     */
+    public function installOther()
+    {
+        if (!\IPS\Db::i()->checkForColumn('core_members', 'steamid')) {
+            \IPS\Db::i()->addColumn('core_members', [
+                'name' => 'steamid',
+                'type' => 'VARCHAR',
+                'length' => 17
+            ]);
+        }
+
+        if (!\IPS\Db::i()->checkForIndex('core_members', 'steamid')) {
+            \IPS\Db::i()->addIndex('core_members', array(
+                'name' => 'steamid',
+                'type' => 'key',
+                'columns' => array('steamid')
+            ));
+        }
+
+        try {
+            \IPS\Db::i()->select('login_id', 'core_login_methods', array('login_classname=?', 'IPS\Login\Steam'))->first();
+            \IPS\Db::i()->delete( 'core_login_methods', array('login_classname=?', 'IPS\Login\Steam'));
+        } catch (\UnderflowException $e) {
+            // Do nothing, we're creating a new login handler no matter what, and removing the old Sign in.
+        }
+        if(!\IPS\Login\Handler::findMethod('IPS\steam\Login\Steam'))
+        {
+            $maxLoginOrder = \IPS\Db::i()->select('MAX(login_order)', 'core_login_methods')->first();
+
+            $id = \IPS\Db::i()->insert('core_login_methods', array(
+                'login_settings'  => json_encode(array()),
+                'login_classname' => 'IPS\steam\Login\Steam',
+                'login_enabled'   => 1,
+                'login_order'     => $maxLoginOrder + 1,
+                'login_register'  => 1,
+                'login_acp'       => 0
+            ));
+
+        }else{
+            $method->enabled = 1;
+            $method->save();
+        }
+
+        \IPS\Lang::saveCustom( 'core', "login_method_{$id}", \IPS\Member::loggedIn()->language()->get( \IPS\steam\Login\Steam::getTitle() ) );
+
+        $select = 'm.*';
+        $where = 'm.steamid>0';
+
+        $query = \IPS\Db::i()->select( $select, array('core_members', 'm'), $where, 'm.member_id ASC', array( 0, 10), NULL, NULL, '111');
+
+        if($query->count(TRUE))
+        {
+            \IPS\Task::queue( 'steam', 'convert', array( 'total' => $query->count(TRUE) ),3, array( 'total' ) );
+        }
+    }
 }

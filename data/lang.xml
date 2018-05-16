@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <language>
- <app key="steam" version="21007">
+ <app key="steam" version="21008">
   <word key="__app_steam" js="0">Steam Integration</word>
   <word key="module__steam_steam" js="0">Steam</word>
   <word key="menu__steam_steam" js="0">Steam</word>
@@ -165,5 +165,8 @@
   <word key="st_inChat" js="0">In-Chat</word>
   <word key="st_inGame" js="0">In-Game</word>
   <word key="st_members" js="0">Members</word>
+  <word key="steam_sign_in" js="0">Sign In With Steam</word>
+  <word key="steam_queue_convert" js="0">Converting Steam Logins</word>
+  <word key="login_handler_Steam" js="0">Steam Integration</word>
  </app>
 </language>
