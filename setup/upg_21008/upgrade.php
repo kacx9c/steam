@@ -57,7 +57,7 @@ class _Upgrade
             'login_acp' => 0
         ));
 
-        \IPS\Lang::saveCustom( 'core', "login_method_{$id}", \IPS\Member::loggedIn()->language()->get( \IPS\steam\Login\Steam::getTitle() ) );
+        \IPS\Lang::saveCustom( 'core', "login_method_{$id}", \IPS\Member::loggedIn()->language()->get( '__app_steam' ) );
 
         return TRUE;
 	}
