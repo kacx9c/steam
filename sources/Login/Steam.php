@@ -16,6 +16,8 @@ class _Steam extends \IPS\Login\Handler
      */
     public static $allowMultiple = false;
 
+    public static $shareService = null;
+
     protected $url = 'https://steamcommunity.com/openid/login';
 
 
@@ -117,6 +119,7 @@ class _Steam extends \IPS\Login\Handler
 
             return $member;
         } catch (\UnderflowException $e) {
+
         }
 
         /* Otherwise, we need to either create one or link it to an existing one */
