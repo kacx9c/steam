@@ -73,9 +73,35 @@ class _settings extends \IPS\Dispatcher\Controller
 
 		if( $values = $form->values() )
 		{
-			// Add any new entries to the database.
-			\IPS\steam\Update\Groups::sync($values['steam_comm_groups']);
-			$values['steam_comm_groups'] = json_encode($values['steam_comm_groups']);
+			// If groups array contains a URL to a Steam group, regex and pull out the group data
+			$groups = $values['steam_comm_groups'];
+			foreach($groups as $i => $group)
+			{
+			    if(filter_var($groups, FILTER_VALIDATE_URL))
+			    {
+			        // Take the last part of the URL that is the group and override this entry.
+			        $pieces = explode( '/', $group);
+			        
+			        $temp = array_pop($pieces);
+			        if($temp)
+			        {
+			            $groups[$i] = $temp
+			        }else
+			        {
+			            $groups[$i] = array_pop($pieces);
+			        }
+			    }
+			}
+			try{
+			    // Add any new entries to the database.
+			    \IPS\steam\Update\Groups::sync($groups);
+			}catch (\exception $e)
+			{
+			    // Catch BAD_XML if the sync fails, because not doing so will cause settings to not save
+			    // Do nothing for now, error handling to come later with update rewrite.
+			}
+
+			$values['steam_comm_groups'] = json_encode($groups);
 			$form->saveAsSettings( $values );
 		}
 
