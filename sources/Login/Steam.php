@@ -111,7 +111,7 @@ class _Steam extends \IPS\Login\Handler
             }
 
             /* ... and return the member object */
-            if ($member->email) {
+            if ($member->member_id) {
 
                 $member->steamid = $steamID;
                 $member->save();
@@ -128,7 +128,7 @@ class _Steam extends \IPS\Login\Handler
             if ($login->type === \IPS\Login::LOGIN_UCP) {
                 $exception = new \IPS\Login\Exception('generic_error', \IPS\Login\Exception::MERGE_SOCIAL_ACCOUNT);
                 $exception->handler = $this;
-                $exception->member = $login->reauthenticateAsk
+                $exception->member = $login->reauthenticateAs;
                 throw $exception;
             }
 
