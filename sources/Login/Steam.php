@@ -128,7 +128,7 @@ class _Steam extends \IPS\Login\Handler
             if ($login->type === \IPS\Login::LOGIN_UCP) {
                 $exception = new \IPS\Login\Exception('generic_error', \IPS\Login\Exception::MERGE_SOCIAL_ACCOUNT);
                 $exception->handler = $this;
-                $exception->member = $login->reauthenticateAs;
+                $exception->member = $login->reauthenticateAsk
                 throw $exception;
             }
 
@@ -185,7 +185,7 @@ class _Steam extends \IPS\Login\Handler
                 }
                 $member->profilesync = $profileSync;
             }
-            if ($member->email) {
+            if ($member->member_id) {
 
                 $member->steamid = $steamID;
             }
@@ -205,7 +205,7 @@ class _Steam extends \IPS\Login\Handler
                     'token_identifier'   => $steamID,
                     'token_linked'       => 0,
                 ));
-                if ($member->email) {
+                if ($member->member_id) {
                     $member->steamid = $steamID;
                 }
                 $member->save();
