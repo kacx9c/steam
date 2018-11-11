@@ -195,7 +195,10 @@ class _Update
             $p->addfriend = "steam://friends/add/" . $p->steamid;
             $p->last_update = time();
 
-            // Get Player Level and badges.
+            /*
+             * GET PLAYER LEVEL AND BADGES
+             */
+
             $url = "http://api.steampowered.com/IPlayerService/GetBadges/v1/?key=" . $this->api . "&steamid=" . $p->steamid;
             try {
                 $req = $this->request($url);
@@ -244,8 +247,10 @@ class _Update
                 }
             }
 
+            /*
+             * GET VAC BAN STATUS
+             */
 
-            // Get VAC Ban Status
             $url = "http://api.steampowered.com/ISteamUser/GetPlayerBans/v1/?key=" . $this->api . "&steamids=" . $p->steamid;
             try {
                 $req = $this->request($url);
@@ -293,8 +298,10 @@ class _Update
                 $err = 1;
             }
 
+            /*
+             * GET GAMES PLAYED IN THE LAST 2 WEEKS
+             */
 
-            /* Get Games they've played in the last 2 weeks */
             $url = "http://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/?key=" . $this->api . "&steamid=" . $p->steamid . "&format=json";
 
             try {
@@ -352,7 +359,10 @@ class _Update
                 }
             }
 
-            // Get a list of games they own.
+            /*
+             * GET LIST OF GAMES OWNED
+             */
+
             if (\IPS\Settings::i()->steam_get_owned) {
                 $url = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=" . $this->api . "&steamid=" . $p->steamid . "&include_appinfo=1&format=json";
 
@@ -406,7 +416,10 @@ class _Update
                 $p->owned = json_encode(array());
             }
 
-            // Get Player Groups
+            /*
+             * GET PLAYER GROUPS
+             */
+
             $url = "https://api.steampowered.com/ISteamUser/GetUserGroupList/v1/?key=" . $this->api . "&steamid=" . $p->steamid;
             try {
                 $base = "103582791429521408";
@@ -606,8 +619,6 @@ class _Update
         $mem->last_update = time();
         $mem->save();
         $this->fail[] = $m->member_id;
-
-        return;
     }
 
     /**
@@ -676,6 +687,10 @@ class _Update
                     $steamids = implode(",", $ids);
                 }
 
+                /*
+                 * GET PLAYER SUMMARIES
+                 */
+
                 $url = "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" . $this->api . "&steamids=" . $steamids . "&format=json";
                 try {
                     $req = $this->request($url);
@@ -716,9 +731,9 @@ class _Update
                     foreach ($players['response']['players'] as $id => $p) {
                         /* Random bug here.  Every other run of the task only one of the duplicates is updated.  Next run, both are updated */
                         if ($profiles[$id]['steamid'] === $p['steamid']) {
-                            $s = \IPS\steam\Profile::load($profiles[$id]['member_id'], 'st_member_id');
+                            $s = Profile::load($profiles[$id]['member_id'], 'st_member_id');
                         } else {
-                            $s = \IPS\steam\Profile::load($p['steamid'], 'st_steamid');
+                            $s = Profile::load($p['steamid'], 'st_steamid');
                         }
 
                         $m = \IPS\Member::load($s->member_id);
@@ -800,7 +815,7 @@ class _Update
             foreach ($cleanup as $m) {
                 $steamid = ($m->steamid ?: $this->getSteamID($m));
 
-                $s = \IPS\steam\Profile::load($m->member_id);
+                $s = Profile::load($m->member_id);
 
                 /* If they don't have an entry, create one... If their entry doesn't match,
                    purge it and update the steamID */
@@ -808,7 +823,7 @@ class _Update
                     $s->setDefaultValues();
                     $s->steamid = $steamid;
                     $s->member_id = $m->member_id;
-
+                    $s->last_update = time();
                     $s->save();
                 }
             }
