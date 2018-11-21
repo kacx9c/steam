@@ -738,31 +738,33 @@ class _Update
 
                         $m = \IPS\Member::load($s->member_id);
 
-                        $s->member_id = $m->member_id;
-                        $s->steamid = $p['steamid'];
-                        $s->last_update = time();
-                        $s->timecreated = (isset($p['timecreated']) ? $p['timecreated'] : null);
-                        $s->communityvisibilitystate = $p['communityvisibilitystate'];
-                        $s->personaname = $p['personaname'];
-                        $s->profileurl = $p['profileurl'];
-                        $s->avatar = $p['avatar'];
-                        $s->avatarmedium = $p['avatarmedium'];
-                        $s->avatarfull = $p['avatarfull'];
-                        $s->personastate = $p['personastate'];
-                        $s->lastlogoff = $p['lastlogoff'];
-                        $s->gameserverip = (isset($p['gameserverip']) ? $p['gameserverip'] : '');
-                        $s->gameid = (isset($p['gameid']) ? $p['gameid'] : 0);
+                        if ($m->member_id) {
+                            $s->member_id = $m->member_id;
+                            $s->steamid = $p['steamid'];
+                            $s->last_update = time();
+                            $s->timecreated = (isset($p['timecreated']) ? $p['timecreated'] : null);
+                            $s->communityvisibilitystate = $p['communityvisibilitystate'];
+                            $s->personaname = $p['personaname'];
+                            $s->profileurl = $p['profileurl'];
+                            $s->avatar = $p['avatar'];
+                            $s->avatarmedium = $p['avatarmedium'];
+                            $s->avatarfull = $p['avatarfull'];
+                            $s->personastate = $p['personastate'];
+                            $s->lastlogoff = $p['lastlogoff'];
+                            $s->gameserverip = (isset($p['gameserverip']) ? $p['gameserverip'] : '');
+                            $s->gameid = (isset($p['gameid']) ? $p['gameid'] : 0);
 
 
-                        if (isset($p['gameextrainfo']) || isset($p['gameid'])) {
-                            $s->gameextrainfo = (isset($p['gameextrainfo']) ? $p['gameextrainfo'] : $p['gameid']);
-                        } else {
-                            $s->gameextrainfo = null;
-                        }
+                            if (isset($p['gameextrainfo']) || isset($p['gameid'])) {
+                                $s->gameextrainfo = (isset($p['gameextrainfo']) ? $p['gameextrainfo'] : $p['gameid']);
+                            } else {
+                                $s->gameextrainfo = null;
+                            }
 
-                        $s->error = '';
-                        $s->save();
-
+                            $s->error = '';
+                            $s->save();
+                        } /* Improve data handling in rewrite. Log error or remove profile */
+                        
                         $done++;
                         $this->extras['profile_offset']++;
                         if ($this->extras['profile_offset'] >= $this->extras['profile_count']) {
