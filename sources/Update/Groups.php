@@ -156,7 +156,6 @@ class _Groups
 				}
 			}
 		}
-		return;
 	}
 
 	public static function request($url)
