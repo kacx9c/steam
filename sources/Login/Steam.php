@@ -3,7 +3,7 @@
 namespace IPS\steam\Login;
 
 /* To prevent PHP errors (extending class does not exist) revealing path */
-if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
+if (!\defined('\IPS\SUITE_UNIQUE_KEY')) {
     header((isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0') . ' 403 Forbidden');
     exit;
 }
@@ -15,6 +15,8 @@ class _Steam extends \IPS\Login\Handler
      * @brief    Can we have multiple instances of this handler?
      */
     public static $allowMultiple = false;
+
+    public static $shareService = null;
 
     protected $url = 'https://steamcommunity.com/openid/login';
 
@@ -91,7 +93,7 @@ class _Steam extends \IPS\Login\Handler
         $steamID = $this->validate();
 
         if (!$steamID) {
-            throw new \IPS\Login\Exception('generic_error', \IPS\Login\Exception::INTERNAL_ERROR);
+            throw new \IPS\Login\Exception('steam_err_validateFailed', \IPS\Login\Exception::INTERNAL_ERROR);
         }
 
         /* Find their local account if they have already logged in using this method in the past */
@@ -109,7 +111,7 @@ class _Steam extends \IPS\Login\Handler
             }
 
             /* ... and return the member object */
-            if ($member->email) {
+            if ($member->member_id) {
 
                 $member->steamid = $steamID;
                 $member->save();
@@ -117,13 +119,14 @@ class _Steam extends \IPS\Login\Handler
 
             return $member;
         } catch (\UnderflowException $e) {
+
         }
 
         /* Otherwise, we need to either create one or link it to an existing one */
         try {
             /* If the user is setting this up in the User CP, they are already logged in. Ask them to reauthenticate to link those accounts */
             if ($login->type === \IPS\Login::LOGIN_UCP) {
-                $exception = new \IPS\Login\Exception('generic_error', \IPS\Login\Exception::MERGE_SOCIAL_ACCOUNT);
+                $exception = new \IPS\Login\Exception('steam_err_reauth', \IPS\Login\Exception::MERGE_SOCIAL_ACCOUNT);
                 $exception->handler = $this;
                 $exception->member = $login->reauthenticateAs;
                 throw $exception;
@@ -133,6 +136,8 @@ class _Steam extends \IPS\Login\Handler
             $response = null;
             $userData = null;
             $key = \IPS\Settings::i()->steam_api_key;
+            $name = null;
+            $email = null;
 
             if ($key) {
 
@@ -142,15 +147,16 @@ class _Steam extends \IPS\Login\Handler
                     if ($response) {
                         // Get the first player
                         $userData = $response['response']['players'][0];
+                        $name = $userData['personaname'];
                     }
+
+                    // Store the data
+
                 } catch (\IPS\Http\Request\Exception $e) {
-                    throw new \IPS\Login\Exception('generic_error', \IPS\Login\Exception::INTERNAL_ERROR, $e);
+                    throw new \IPS\Login\Exception('steam_err_api_fail', \IPS\Login\Exception::INTERNAL_ERROR, $e);
                 }
 
             }
-
-            $name = $userData['personaname'];
-            $email = null;
 
             /* Try to create one. NOTE: Invision Community will automatically throw an exception which we catch below if $email matches an existing account, if registration is disabled, or if Spam Defense blocks the account creation */
             $member = $this->createAccount($name, $email);
@@ -182,7 +188,7 @@ class _Steam extends \IPS\Login\Handler
                 }
                 $member->profilesync = $profileSync;
             }
-            if ($member->email) {
+            if ($member->member_id) {
 
                 $member->steamid = $steamID;
             }
@@ -202,7 +208,7 @@ class _Steam extends \IPS\Login\Handler
                     'token_identifier'   => $steamID,
                     'token_linked'       => 0,
                 ));
-                if ($member->email) {
+                if ($member->member_id) {
                     $member->steamid = $steamID;
                 }
                 $member->save();
@@ -246,16 +252,18 @@ class _Steam extends \IPS\Login\Handler
             }
 
             $params['openid.' . $item] = get_magic_quotes_gpc() ? stripslashes($val) : $val;
+            $params['openid.' . $item] = trim($params['openid.' . $item]);
         }
 
         // Finally, add the all important mode.
-        $params['openid.mode'] = 'check_authentication';
+        $params['openid.mode'] = trim('check_authentication');
 
         // Validate whether it's true and if we have a good ID
         preg_match('/\d{17}$/', urldecode($_GET['openid_claimed_id']), $matches);
         $steamID64 = is_numeric($matches[0]) ? $matches[0] : 0;
 
-        $response = (string)\IPS\Http\Url::external('https://steamcommunity.com/openid/login')->request()->post($params);
+        $response = \IPS\Http\Url::external('https://steamcommunity.com/openid/login')->request()->post($params);
+        $response = (string)$response;
 
         $values = array();
 
@@ -267,6 +275,10 @@ class _Steam extends \IPS\Login\Handler
 
             $values[$key] = implode(':', $data);
         }
+
+        $params['response'] = $response;
+        \IPS\Log::log(json_encode($params));
+
 
         // Return our final value
         return $values['is_valid'] === 'true' ? $steamID64 : false;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <language>
- <app key="steam" version="21009">
+ <app key="steam" version="21010">
   <word key="__app_steam" js="0">Steam Integration</word>
   <word key="module__steam_steam" js="0">Steam</word>
   <word key="menu__steam_steam" js="0">Steam</word>
@@ -168,5 +168,8 @@
   <word key="steam_sign_in" js="0">Sign In With Steam</word>
   <word key="steam_queue_convert" js="0">Converting Steam Logins</word>
   <word key="login_handler_Steam" js="0">Steam Integration</word>
+  <word key="steam_err_validateFailed" js="0">Validation Failed</word>
+  <word key="steam_err_reauth" js="0">Already logged in, re authenticate</word>
+  <word key="steam_err_api_fail" js="0">API Call failed</word>
  </app>
 </language>
