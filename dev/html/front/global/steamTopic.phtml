@@ -66,7 +66,7 @@
 							<span class='ipsType_large'>{lang="steam_level"} {$steam->getLevel()['player_level']}</span>
 						</div>
 						<div class=''>
-							<progress value="{expression="round(((($steam->getLevel()['player_xp'] - $steam->getLevel()['player_xp_needed_current_level']) / ($steam->getLevel()['player_xp'] + $steam->getLevel()['player_xp_needed_to_level_up'] - $steam->getLevel()['player_xp_needed_current_level'])) * 100 ), 0)"}" max="{expression="($steam->getLevel()['player_xp'] + $steam->getLevel()['player_xp_needed_to_level_up'] - $steam->getLevel()['player_xp_needed_current_level'])"}" data-ipsTooltip title="{number="$steam->getLevel()['player_xp']"} {lang="steam_of"} {number="$steam->getLevel()['player_xp'] + $steam->getLevel()['player_xp_needed_to_level_up']"}"></progress>
+							<progress id='steamProgress' value="{expression=" round($steam->getLevel()['player_xp'] - $steam->getLevel()['player_xp_needed_current_level'], 0)"}" max="{expression="($steam->getLevel()['player_xp'] + $steam->getLevel()['player_xp_needed_to_level_up'] - $steam->getLevel()['player_xp_needed_current_level'])"}" data-ipsTooltip title="{number="$steam->getLevel()['player_xp']"} {lang="steam_of"} {number="$steam->getLevel()['player_xp'] + $steam->getLevel()['player_xp_needed_to_level_up']"}"></progress>
 						</div>
 					{{endif}}
 				{{endif}}
