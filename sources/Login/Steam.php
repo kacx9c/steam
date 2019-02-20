@@ -262,9 +262,19 @@ class _Steam extends \IPS\Login\Handler
         preg_match('/\d{17}$/', urldecode($_GET['openid_claimed_id']), $matches);
         $steamID64 = is_numeric($matches[0]) ? $matches[0] : 0;
 
+
         $response = \IPS\Http\Url::external('https://steamcommunity.com/openid/login')->request()->post($params);
         $response = (string)$response;
 
+        //DEBUG
+        if (\IPS\Settings::i()->steam_diagnostics) {
+            $diagnostics['get'] = $_GET;
+            $diagnostics['match'] = $matches;
+            $diagnostics['steam'] = $steamID64;
+            $diagnostics['urldecode'] = urldecode($_GET['openid_claimed_id']);
+            $diagnostics['response'] = $response;
+            \IPS\Log::log(json_encode($diagnostics), 'steam');
+        }
         $values = array();
 
         foreach (explode("\n", $response) as $value) {
@@ -277,8 +287,6 @@ class _Steam extends \IPS\Login\Handler
         }
 
         $params['response'] = $response;
-        \IPS\Log::log(json_encode($params));
-
 
         // Return our final value
         return $values['is_valid'] === 'true' ? $steamID64 : false;

@@ -549,6 +549,8 @@ class _Update
                 $req = $this->request($url);
 
                 if ($req->httpResponseCode != 200) {
+
+                    // API Call failed, go ahead and store them for updating later.
                     $this->failed($m, 'steam_err_getvanity');
                     if (\IPS\Settings::i()->steam_diagnostics) {
                         throw new \Exception($req->httpResponseCode . ': getVanity');
@@ -559,6 +561,7 @@ class _Update
                 try {
                     $id = $req->decodeJson();
                 } catch (\RuntimeException $e) {
+                    // Couldn't decode API response, go ahead and store them for updating later.
                     $this->failed($m, 'steam_err_getvanity');
                     if (\IPS\Settings::i()->steam_diagnostics) {
                         throw new \Exception($e->getMessage);
@@ -570,7 +573,8 @@ class _Update
                 if (is_array($id['response']) && count($id['response']) && ($id['response']['success'] == 1) && $id['response']['steamid']) {
                     $steamid = $id['response']['steamid'];
                 } else {
-                    $this->failed($m, 'steam_id_invalid');
+                    // Valid API response, they just entered a something stupid... Don't store.
+                    // $this->failed($m, 'steam_id_invalid');
 
                     if (\IPS\Settings::i()->steam_diagnostics) {
                         throw new \Exception('ID Invalid');
@@ -764,7 +768,7 @@ class _Update
                             $s->error = '';
                             $s->save();
                         } /* Improve data handling in rewrite. Log error or remove profile */
-                        
+
                         $done++;
                         $this->extras['profile_offset']++;
                         if ($this->extras['profile_offset'] >= $this->extras['profile_count']) {
