@@ -1,4 +1,4 @@
-# Steam Profile Integration - v 2.1.10
+# Steam Profile Integration - v 2.1.11
 
 ### Now including Sign in With Steam! (IPS 4.3+ only)
 
