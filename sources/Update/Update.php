@@ -901,7 +901,8 @@ class _Update
                     break;
                 }
                 if (\is_array($row['p']) && \count($row['p'])) {
-                    foreach (\IPS\core\ProfileFields\Field::values($row['p'], 'PROFILE') as $group => $fields) {
+                    // Set Location STAFF so task execution, running as guest, can still see the field data.
+                    foreach (\IPS\core\ProfileFields\Field::values($row['p'], 'STAFF') as $group => $fields) {
                         $member->profileFields['core_pfieldgroups_' . $group] = $fields;
                     }
                 } else {
