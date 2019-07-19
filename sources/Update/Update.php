@@ -3,8 +3,26 @@
 namespace IPS\steam;
 
 /* To prevent PHP errors (extending class does not exist) revealing path */
+
+use IPS\Task\Queue\OutOfRangeException;
+use IPS\Settings;
+use IPS\Data\Store;
+use IPS\Db;
+use IPS\Member;
+use IPS\Http\Request;
+use IPS\Http\Request\Sockets;
+use IPS\Http\Request\Curl;
+use IPS\Http\Url;
+use IPS\Http\Response;
+use IPS\Lang;
+use IPS\core\ProfileFields\Field;
+use InvalidArgumentException;
+use Exception;
+use RuntimeException;
+use LogicException;
+
 if (!\defined('\IPS\SUITE_UNIQUE_KEY')) {
-    header((isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0') . ' 403 Forbidden');
+    header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.0') . ' 403 Forbidden');
     exit;
 }
 
@@ -14,9 +32,13 @@ if (!\defined('\IPS\SUITE_UNIQUE_KEY')) {
 class _Update
 {
     /**
+     * @var array
+     */
+    static protected $badgesToKeep = array('1', '2', '13', '17', '21', '23');
+    /**
      * @brief    [IPS\Member]    Member object
      */
-    public $member = null;
+    public $member;
     /**
      * @var array
      */
@@ -65,10 +87,9 @@ class _Update
      * @var int
      */
     public $count = 0;
-    /**
-     * @var array
-     */
-    protected $badgesToKeep = array('1', '2', '13', '17', '21', '23');
+    private $err;
+
+    private $m;
 
     /**
      * _Update constructor.
@@ -76,47 +97,46 @@ class _Update
      */
     public function __construct()
     {
-        $this->api = \IPS\Settings::i()->steam_api_key;
+        $this->api = Settings::i()->steam_api_key;
 
         if (!$this->api) {
-            /* // If we don't have an API key, throw an exception to log an error message // */
-            throw new \Exception('steam_err_noapi');
+//          If we don't have an API key, throw an exception to log an error message
+            throw new InvalidArgumentException('steam_err_noapi');
         }
 
-        $this->steamLogin = \IPS\DB::i()->checkForColumn('core_members', 'steamid') ? 1 : 0;
+        $this->steamLogin = Db::i()->checkForColumn('core_members', 'steamid') ? 1 : 0;
 
-        $this->profile = new \IPS\steam\Profile;
-        /* Load the cache  data */
-        if (isset(\IPS\Data\Store::i()->steamData)) {
-            $this->extras = \IPS\Data\Store::i()->steamData;
-        } else {
-            $this->extras = array(
-                'offset'         => 0,
-                'count'          => 0,
-                'cleanup_offset' => 0,
-                'profile_offset' => 0,
-                'profile_count'  => 0,
-                'pf_id'          => 0,
-                'pf_group_id'    => 0,
-            );
-        }
+        $this->profile = new Profile;
+
+        $emptyCache = array(
+            'offset'         => 0,
+            'count'          => 0,
+            'cleanup_offset' => 0,
+            'profile_offset' => 0,
+            'profile_count'  => 0,
+            'pf_id'          => 0,
+            'pf_group_id'    => 0,
+        );
+//      Load the cache  data
+        $this->cache = Store::i()->steamData ?? $emptyCache;
+
         /* Save some resources, only get the profile field ID once every cycle instead of every time. */
-        if ($this->extras['offset'] == 0 || !isset($this->extras['pf_id']) || !isset($this->extras['pf_group_id'])) {
+        if ($this->cache['offset'] === 0 || !isset($this->cache['pf_id'], $this->cache['pf_group_id'])) {
             $this->cfID = $this->getFieldID();
-            $this->extras['pf_id'] = $this->cfID['pf_id'];
-            $this->extras['pf_group_id'] = $this->cfID['pf_group_id'];
+            $this->cache['pf_id'] = $this->cfID['pf_id'];
+            $this->cache['pf_group_id'] = $this->cfID['pf_group_id'];
         } else {
-            $this->cfID['pf_id'] = $this->extras['pf_id'];
-            $this->cfID['pf_group_id'] = $this->extras['pf_group_id'];
+            $this->cfID['pf_id'] = $this->cache['pf_id'];
+            $this->cfID['pf_group_id'] = $this->cache['pf_group_id'];
         }
-        if (!isset($this->extras['offset'])) {
-            $this->extras['offset'] = 0;
+        if (!isset($this->cache['offset'])) {
+            $this->cache['offset'] = 0;
         }
-        if (!isset($this->extras['profile_offset'])) {
-            $this->extras['profile_offset'] = 0;
+        if (!isset($this->cache['profile_offset'])) {
+            $this->cache['profile_offset'] = 0;
         }
 
-        \IPS\Data\Store::i()->steamData = $this->extras;
+        Store::i()->steamData = $this->cache;
         $this->members = array();
     }
 
@@ -126,11 +146,10 @@ class _Update
     public function getFieldID()
     {
         try {
-            $this->cfID = \IPS\DB::i()->select('pf_id,pf_group_id', 'core_pfields_data',
+            $this->cfID = Db::i()->select('pf_id,pf_group_id', 'core_pfields_data',
                 array('pf_type=?', 'Steamid'))->first();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             /* If the custom field doesn't exist, we'll get an underflow exception.  Just store null and move on */
-
             $this->cfID['pf_id'] = null;
             $this->cfID['pf_group_id'] = null;
         }
@@ -143,347 +162,91 @@ class _Update
      * @return bool
      * @throws \Exception
      */
-    public function update($single = 0)
+    public function update($single = 0): bool
     {
+        $members[] = null;
         if ($single) {
-            $members[] = \IPS\steam\Profile::load($single);
+            $members[] = Profile::load($single);
 
             if (!$members[0]->steamid) {
-                $member = \IPS\Member::load($single);
+                $member = Member::load($single);
                 $steamid = $this->getSteamID($member);
 
                 /* If they set their steamID, lets put them in the cache */
                 if ($steamid) {
-                    $m = \IPS\steam\Profile::load($member->member_id);
-                    if (!$m->steamid) {
-                        $m->member_id = $member->member_id;
-                        $m->steamid = $steamid;
-                        $m->setDefaultValues();
-                        $m->save();
+                    $this->m = Profile::load($member->member_id);
+                    if (!$this->m->steamid) {
+                        $this->m->member_id = $member->member_id;
+                        $this->m->steamid = $steamid;
+                        $this->m->setDefaultValues();
+                        $this->m->save();
 
-                        $members[] = $m;
+                        $members[] = $this->m;
                     }
 
                 } else {
                     /* We don't have a SteamID for this member, jump ship */
-                    if (\IPS\Settings::i()->steam_diagnostics) {
-                        throw new \Exception(\IPS\Lang::load(\IPS\Lang::defaultLanguage())->get('steam_id_invalid'));
-                    }
+                    $this->diagnostics(Lang::load(Lang::defaultLanguage())->get('steam_id_invalid'));
 
                     return false;
                 }
             }
         } else {
-            $select = "s.*";
+            $select = 's.*';
             $where = "s.st_steamid>0 AND s.st_restricted!='1'";
-            $query = \IPS\Db::i()->select($select, array('steam_profiles', 's'), $where, 's.st_member_id ASC',
-                array($this->extras['offset'], \IPS\Settings::i()->steam_batch_count), null, null, '011');
+            $query = Db::i()->select($select, array('steam_profiles', 's'), $where, 's.st_member_id ASC',
+                array($this->cache['offset'], Settings::i()->steam_batch_count), null, null, '011');
 
             foreach ($query as $row) {
-                $members[] = \IPS\steam\Profile::constructFromData($row);
+                $members[] = Profile::constructFromData($row);
             }
 
-            $this->extras['count'] = $query->count(true);
+            $this->cache['count'] = $query->count(true);
         }
 
         foreach ($members as $p) {
-            $err = 0;
+            $this->err = 0;
             // Load member so we can make changes.
-            $m = \IPS\Member::load($p->member_id);
+            $this->m = Member::load($p->member_id);
 
             // Store general information that doesn't rely on an API.
-            $p->addfriend = "steam://friends/add/" . $p->steamid;
+            $p->addfriend = 'steam://friends/add/' . $p->steamid;
             $p->last_update = time();
 
             /*
              * GET PLAYER LEVEL AND BADGES
              */
 
-            $url = "http://api.steampowered.com/IPlayerService/GetBadges/v1/?key=" . $this->api . "&steamid=" . $p->steamid;
-            try {
-                $req = $this->request($url);
-                if ($req->httpResponseCode != 200) {
-                    $this->failed($m, 'steam_err_getlevel');
-                    $err = 1;
-
-                    if (\IPS\Settings::i()->steam_diagnostics) {
-                        throw new \Exception($req->httpResponseCode . ": getLevel");
-                    }
-
-                }
-                try {
-                    $level = $req->decodeJson();
-                } catch (\RuntimeException $e) {
-                    $this->failed($m, 'steam_err_getlevel');
-                    $err = 1;
-                    if (\IPS\Settings::i()->steam_diagnostics) {
-                        throw new \Exception($e->getMessage());
-                    }
-                }
-
-                // Store the data and unset the variable to free up memory
-                if (isset($level)) {
-                    if (is_array($level['response']['badges']) && count($level['response']['badges'])) {
-                        // Prune data and only keep what's needed.
-                        $player_badges = array_filter($level['response']['badges'], array($this, 'badges'));
-                        unset($level['response']['badges']);
-                        $level['response']['badges'] = $player_badges;
-                        unset($player_badges);
-
-                    }
-                    $p->player_level = json_encode($level['response']);
-                } else {
-                    $p->player_level = json_encode(array());
-                }
-                unset($req);
-                unset($level);
-
-            } catch (\OutOfRangeException $e) {
-                $this->failed($m, 'steam_err_getlevel');
-                $err = 1;
-
-                if (\IPS\Settings::i()->steam_diagnostics) {
-                    throw new \Exception($e->getMessage());
-                }
-            }
+            $p = $this->getBadges($p);
 
             /*
              * GET VAC BAN STATUS
              */
 
-            $url = "http://api.steampowered.com/ISteamUser/GetPlayerBans/v1/?key=" . $this->api . "&steamids=" . $p->steamid;
-            try {
-                $req = $this->request($url);
-
-                if ($req->httpResponseCode != 200) {
-                    $this->failed($m, 'steam_err_vacbans');
-                    $err = 1;
-
-                    if (\IPS\Settings::i()->steam_diagnostics) {
-                        throw new \Exception($req->httpResponseCode . ": getVACBans");
-                    }
-                } else {
-                    try {
-                        $vacBans = $req->decodeJson();
-                    } catch (\RuntimeException $e) {
-                        $this->failed($m, 'steam_err_vacbans');
-                        $err = 1;
-
-                        if (\IPS\Settings::i()->steam_diagnostics) {
-                            throw new \Exception($e->getMessage());
-                        }
-                    }
-                    if (is_array($vacBans)) {
-                        foreach ($vacBans['players'] as $v) {
-                            if ($v['CommunityBanned'] || $v['VACBanned']) {
-                                $p->vac_status = '1';
-                                $p->vac_bans = json_encode($v);
-                            } else {
-                                $p->vac_status = '0';
-                                $p->vac_bans = json_encode(array());
-                            }
-                        }
-                    } else {
-                        $p->vac_status = '0';
-                        $p->vac_bans = json_encode(array());
-                    }
-                    unset($vacBans);
-                    unset($req);
-                }
-            } catch (\OutOfRangeException $e) {
-                if (\IPS\Settings::i()->steam_diagnostics) {
-                    throw new \Exception($e->getMessage());
-                }
-                $this->failed($m, 'steam_err_vacbans');
-                $err = 1;
-            }
+            $p = $this->getPlayerBans($p);
 
             /*
              * GET GAMES PLAYED IN THE LAST 2 WEEKS
              */
 
-            $url = "http://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/?key=" . $this->api . "&steamid=" . $p->steamid . "&format=json";
-
-            try {
-                $req = $this->request($url);
-
-                if ($req->httpResponseCode != 200) {
-                    $this->failed($m, 'steam_err_getrecent');
-                    $err = 1;
-
-                    if (\IPS\Settings::i()->steam_diagnostics) {
-                        throw new \Exception($req->httpResponseCode . ": getRecent");
-                    }
-                } else {
-                    try {
-                        $games = $req->decodeJson();
-                    } catch (\RuntimeException $e) {
-                        $this->failed($m, 'steam_err_getrecent');
-                        $err = 1;
-
-                        if (\IPS\Settings::i()->steam_diagnostics) {
-                            throw new \Exception($e->getMessage());
-                        }
-                    }
-
-                    // Store recently played game data and free up memory
-                    if (isset($games['response']['total_count']) AND isset($games['response']['games'])) {
-                        $p->playtime_2weeks = 0;
-                        foreach ($games['response']['games'] as $id => $g) {
-                            // If we don't have a logo for the game, don't bother storing it. Still tally time played.
-                            if (isset($g['img_icon_url']) && isset($g['img_logo_url'])) {
-                                if ($g['img_icon_url'] && $g['img_logo_url']) {
-                                    $_games[$g['appid']] = $g;
-                                }
-                            }
-                            $p->playtime_2weeks += $g['playtime_2weeks'];
-                            //	img_icon_url, img_logo_url - these are the filenames of various images for the game. To construct the URL to the image, use this format:
-                            //	http://media.steampowered.com/steamcommunity/public/images/apps/{appid}/{hash}.jpg
-                        }
-                        $p->games = json_encode($_games);
-                        $p->total_count = $games['response']['total_count']; // Total counts of games played in last 2 weeks
-                    } else {
-                        $p->playtime_2weeks = 0;
-                        $p->total_count = 0;
-                        $p->games = json_encode(array());
-                    }
-                    unset($req);
-                    unset($games);
-                    unset($_games);
-                }
-            } catch (\OutOfRangeException $e) {
-                $this->failed($m, 'steam_err_getrecent');
-                $err = 1;
-                if (\IPS\Settings::i()->steam_diagnostics) {
-                    throw new \Exception($e->getMessage());
-                }
-            }
+            $p = $this->getRecentlyPlayedGames($p);
 
             /*
              * GET LIST OF GAMES OWNED
              */
 
-            if (\IPS\Settings::i()->steam_get_owned) {
-                $url = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=" . $this->api . "&steamid=" . $p->steamid . "&include_appinfo=1&format=json";
-
-                try {
-                    $req = $this->request($url);
-
-                    if ($req->httpResponseCode != 200) {
-                        $this->failed($m, 'steam_err_getowned');
-                        $err = 1;
-                        if (\IPS\Settings::i()->steam_diagnostics) {
-                            throw new \Exception($req->httpResponseCode . ": getOwned");
-                        }
-                    } else {
-                        try {
-                            $owned = $req->decodeJson();
-                        } catch (\RuntimeException $e) {
-                            $this->failed($m, 'steam_err_getowned');
-                            $err = 1;
-                            if (\IPS\Settings::i()->steam_diagnostics) {
-                                throw new \Exception($e->getMessage());
-                            }
-                        }
-
-                        if (isset($owned['response']['game_count']) && \IPS\Settings::i()->steam_get_owned && isset($owned['response']['games'])) {
-                            foreach ($owned['response']['games'] as $id => $g) {
-                                if ($g['img_icon_url'] && $g['img_logo_url']) {
-                                    $_owned[$g['appid']] = $g;
-                                    //	img_icon_url, img_logo_url - these are the filenames of various images for the game. To construct the URL to the image, use this format:
-                                    //	http://media.steampowered.com/steamcommunity/public/images/apps/{appid}/{hash}.jpg
-                                }
-                            }
-                            $p->owned = json_encode($_owned);
-                            $p->game_count = (isset($owned['response']['game_count']) ? $owned['response']['game_count'] : 0);        // Total # of owned games, if we are pulling that data
-                        } else {
-                            $p->owned = json_encode(array());
-                            $p->game_count = 0;
-                        }
-                        unset($req);
-                        unset($owned);
-                        unset($_owned);
-                    }
-                } catch (\OutOfRangeException $e) {
-                    $this->failed($m, 'steam_err_getowned');
-                    $err = 1;
-                    if (\IPS\Settings::i()->steam_diagnostics) {
-                        throw new \Exception($e->getMessage());
-                    }
-                }
-
-            } else {
-                $p->owned = json_encode(array());
-            }
+            $p = $this->getOwnedGames($p);
 
             /*
              * GET PLAYER GROUPS
              */
 
-            $url = "https://api.steampowered.com/ISteamUser/GetUserGroupList/v1/?key=" . $this->api . "&steamid=" . $p->steamid;
-            try {
-                $base = "103582791429521408";
-                $req = $this->request($url);
-                if ($req->httpResponseCode != 200) {
-                    $content = array();
-                    if ($req->httpResponseCode == 403) {
-                        $content = $req->decodeJson();
-                    }
-                    if (!isset($content['response']['success'])) {
-                        $this->failed($m, 'steam_err_getGroupList');
-                        $err = 1;
+            $p = $this->getUserGroupList($p);
 
-                        if (\IPS\Settings::i()->steam_diagnostics) {
-                            throw new \Exception($req->httpResponseCode . ": getGroupList");
-                        }
-                    }
-                } else {
-                    try {
-                        $groupList = $req->decodeJson();
-                    } catch (\RuntimeException $e) {
-                        $this->failed($m, 'steam_err_getGroupList');
-                        $err = 1;
-                        if (\IPS\Settings::i()->steam_diagnostics) {
-                            throw new \Exception($e->getMessage());
-                        }
-                    }
-
-                    // Store the data and unset the variable to free up memory
-                    if (isset($groupList) && $groupList['response']['success'] == true) {
-                        if (is_array($groupList['response']['groups']) && count($groupList['response']['groups'])) {
-                            $_groups = array();
-                            foreach ($groupList['response']['groups'] as $g) {
-                                if (PHP_INT_SIZE == 8) {
-                                    $_groups[$g['gid']] = $base + $g['gid'];
-                                } elseif (extension_loaded('bcmath') && function_exists('bcadd')) {
-                                    $_groups[] = bcadd($base, $g['gid'], 0);
-                                } else {
-                                    /* If we've gotten here it's a 64 bit server with a limit on PHP_INT_SIZE or a 32 bit server w/o bcmath installed */
-                                    throw new \Exception('Missing extension: php-bcmath');
-                                }
-                            }
-
-                        }
-                        $p->player_groups = json_encode($_groups);
-                    } else {
-                        $p->player_groups = json_encode(array());
-                    }
-                    unset($req);
-                    unset($groupList);
-                }
-            } catch (\OutOfRangeException $e) {
-                $this->failed($m, 'steam_err_getGroups');
-                $err = 1;
-
-                if (\IPS\Settings::i()->steam_diagnostics) {
-                    throw new \Exception($e->getMessage());
-                }
-            }
-
-            if (!$err) {
+            if (!$this->err) {
                 $p->error = ''; // Correctly set member, so clear any errors.
             }
-            $err = 0;
+            $this->err = 0;
 
             // Store the data
             $p->save();
@@ -492,11 +255,11 @@ class _Update
             $this->stError = '';
         }
         if (!$single) {
-            $this->extras['offset'] = $this->extras['offset'] + \IPS\Settings::i()->steam_batch_count;
-            if ($this->extras['offset'] >= $this->extras['count']) {
-                $this->extras['offset'] = 0;
+            $this->cache['offset'] += (int)Settings::i()->steam_batch_count;
+            if ($this->cache['offset'] >= $this->cache['count']) {
+                $this->cache['offset'] = 0;
             }
-            \IPS\Data\Store::i()->steamData = $this->extras;
+            Store::i()->steamData = $this->cache;
         }
 
         return true;
@@ -507,21 +270,19 @@ class _Update
      * @return bool|float|int|mixed|null|string
      * @throws \Exception
      */
-    public function getSteamID($m)
+    public function getSteamID(Member $m)
     {
         $steamid = null;
 
-        if (isset($m->steamid)) {
-            if ($m->steamid && $m->steamid != '0') {
-                return $m->steamid;
-            }
+        if (isset($m->steamid) && $m->steamid != '0') {
+            return $m->steamid;
         }
 
         $group = "core_pfieldgroups_{$this->cfID['pf_group_id']}";
         $field = "core_pfield_{$this->cfID['pf_id']}";
 
-        if (!isset($m->profileFields[$group][$field]) && $this->cfID['pf_id']) {
-            //$m = \IPS\Member::load($m->member_id);
+        if ($this->cfID['pf_id'] && !isset($m->profileFields[$group][$field])) {
+            //$m = Member::load($m->member_id);
             $m->profileFields = $m->profileFields('PROFILE');
         }
         // Don't just check if the var exists / isset.  Check if it has something in it.
@@ -534,38 +295,37 @@ class _Update
                 // ID64 = (Z*2) + 76561197960265728 + Y
                 $_steam = explode(':', $m->profileFields[$group][$field]);
 
-                if (PHP_INT_SIZE == 8) {
+                if (PHP_INT_SIZE === 8) {
                     $steamid = $_steam[2] * 2 + 76561197960265728 + $_steam[1];
-                } elseif (extension_loaded('bcmath') && function_exists('bcadd') && function_exists('bcmul')) {
-                    $steamid = bcadd(bcadd(bcmul($_steam[2], 2, 0), '76561197960265728', 0), $_steam[1], 0);
+                } elseif (function_exists('bcadd') && function_exists('bcmul') && extension_loaded('bcmath')) {
+                    $steamid = bcadd(bcadd(bcmul($_steam[2], 2), '76561197960265728'), $_steam[1]);
                 } else {
                     /* If we've gotten here it's a 64 bit server with a limit on PHP_INT_SIZE or a 32 bit server w/o bcmath installed */
-                    throw new \Exception('Missing extension: php-bcmath');
+                    throw new LogicException('Missing extension: php-bcmath');
                 }
 
 
             } elseif (!$m->steamid && !$steamid) {
-                $url = "http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=" . $this->api . "&vanityurl=" . $m->profileFields[$group][$field];
+                $url = 'http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=' . $this->api . '&vanityurl=' . $m->profileFields[$group][$field];
+                /**
+                 * @var Response $req
+                 */
                 $req = $this->request($url);
 
                 if ($req->httpResponseCode != 200) {
 
                     // API Call failed, go ahead and store them for updating later.
                     $this->failed($m, 'steam_err_getvanity');
-                    if (\IPS\Settings::i()->steam_diagnostics) {
-                        throw new \Exception($req->httpResponseCode . ': getVanity');
-                    }
+                    $this->diagnostics($req->httpResponseCode . ': getVanity');
 
                     return false;
                 }
                 try {
                     $id = $req->decodeJson();
-                } catch (\RuntimeException $e) {
+                } catch (RuntimeException $e) {
                     // Couldn't decode API response, go ahead and store them for updating later.
                     $this->failed($m, 'steam_err_getvanity');
-                    if (\IPS\Settings::i()->steam_diagnostics) {
-                        throw new \Exception($e->getMessage);
-                    }
+                    $this->diagnostics($e->getMessage());
 
                     return false;
                 }
@@ -576,9 +336,7 @@ class _Update
                     // Valid API response, they just entered a something stupid... Don't store.
                     // $this->failed($m, 'steam_id_invalid');
 
-                    if (\IPS\Settings::i()->steam_diagnostics) {
-                        throw new \Exception('ID Invalid');
-                    }
+                    $this->diagnostics('ID Invalid');
 
                     return false;
                 }
@@ -598,31 +356,386 @@ class _Update
      */
     protected function request($url)
     {
-        if ($url) {
-            return \IPS\Http\Url::external($url)->request(\IPS\LONG_REQUEST_TIMEOUT)->get();
+        /**
+         * @var Curl|Sockets $req
+         */
+        $req = null;
+        $json = null;
+        try {
+
+            $req = Url::external($url)->request(\IPS\LONG_REQUEST_TIMEOUT);
+            $json = $req->get();
+        } catch (Request\CurlException $e) {
+            //Try one more time in case we're hitting to many requests...
+            // Wait 3 seconds
+            sleep(3);
+            try {
+                $req = Url::external($url)->request(\IPS\LONG_REQUEST_TIMEOUT);
+                $json = $req->get();
+            } catch (Request\CurlException $e) {
+                throw new \OutOfRangeException($e);
+            }
         }
 
-        return null;
+        return $json;
     }
 
     /**
      * @param      $m
      * @param null $lang
      */
-    protected function failed($m, $lang = null)
+    protected function failed($m, $lang = null): void
     {
         if (isset($m->member_id)) {
-            $mem = $this->profile->load($m->member_id);
+            $mem = $this->profile::load($m->member_id);
         } else {
             return;
         }
 
         // Either we loaded an existing record, or are working with a new record... Either way, update and save it.
         $mem->member_id = $m->member_id;
-        $mem->error = ($lang ? $lang : '');
+        $mem->error = ($lang ?? '');
         $mem->last_update = time();
         $mem->save();
         $this->fail[] = $m->member_id;
+    }
+
+    private function diagnostics($message): void
+    {
+        if (Settings::i()->steam_diagnostics) {
+            throw new RuntimeException($message);
+        }
+    }
+
+    private function getBadges($p)
+    {
+        $url = 'http://api.steampowered.com/IPlayerService/GetBadges/v1/?key=' . $this->api . '&steamid=' . $p->steamid;
+        try {
+            /**
+             * @var Response $req
+             */
+            $req = $this->request($url);
+
+            if ($req->httpResponseCode != 200) {
+                $this->failed($this->m, 'steam_err_getlevel');
+                $this->err = 1;
+
+                $this->diagnostics($req->httpResponseCode . ': getLevel');
+
+            }
+            try {
+                $level = $req->decodeJson();
+            } catch (RuntimeException $e) {
+                $this->failed($this->m, 'steam_err_getlevel');
+                $this->err = 1;
+                $this->diagnostics($e->getMessage());
+
+            }
+
+            // Store the data and unset the variable to free up memory
+            if (isset($level)) {
+                if (is_array($level['response']['badges']) && count($level['response']['badges'])) {
+                    // Prune data and only keep what's needed.
+                    $player_badges = array_filter($level['response']['badges'], array($this, 'badges'));
+                    unset($level['response']['badges']);
+                    $level['response']['badges'] = $player_badges;
+                    unset($player_badges);
+
+                }
+                $p->player_level = json_encode($level['response']);
+            } else {
+                $p->player_level = json_encode(array());
+            }
+            unset($req, $level);
+
+        } catch (\OutOfRangeException $e) {
+            $this->failed($this->m, 'steam_err_getlevel');
+            $this->err = 1;
+
+            $this->diagnostics($e->getMessage());
+
+        }
+
+        return $p;
+    }
+
+    private function getPlayerBans($p)
+    {
+        $url = 'http://api.steampowered.com/ISteamUser/GetPlayerBans/v1/?key=' . $this->api . '&steamids=' . $p->steamid;
+        $vacBans = null;
+        try {
+            try {
+                /**
+                 * @var Response $req
+                 */
+                $req = $this->request($url);
+            } catch (Request\CurlException $e) {
+                //Try one more time in case we're hitting to many requests...
+                // Wait 3 seconds
+                sleep(3);
+                try {
+                    $req = $this->request($url);
+                } catch (Request\CurlException $e) {
+                    throw new \OutOfRangeException($e->getMessage());
+                }
+            }
+
+            if ($req->httpResponseCode != 200) {
+                $this->failed($this->m, 'steam_err_vacbans');
+                $this->err = 1;
+
+                $this->diagnostics($req->httpResponseCode . ': getVACBans');
+
+            } else {
+                try {
+                    $vacBans = $req->decodeJson();
+                } catch (RuntimeException $e) {
+                    $this->failed($this->m, 'steam_err_vacbans');
+                    $this->err = 1;
+
+                    $this->diagnostics($e->getMessage());
+
+                }
+                if (is_array($vacBans)) {
+                    foreach ($vacBans['players'] as $v) {
+                        if ($v['CommunityBanned'] || $v['VACBanned']) {
+                            $p->vac_status = '1';
+                            $p->vac_bans = json_encode($v);
+                        } else {
+                            $p->vac_status = '0';
+                            $p->vac_bans = json_encode(array());
+                        }
+                    }
+                } else {
+                    $p->vac_status = '0';
+                    $p->vac_bans = json_encode(array());
+                }
+                unset($vacBans, $req);
+            }
+        } catch (\OutOfRangeException $e) {
+            $this->diagnostics($e->getMessage());
+
+            $this->failed($this->m, 'steam_err_vacbans');
+            $this->err = 1;
+        }
+
+        return $p;
+    }
+
+    private function getRecentlyPlayedGames($p)
+    {
+        $url = 'http://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/?key=' . $this->api . '&steamid=' . $p->steamid . '&format=json';
+        $games[] = null;
+        $_games[] = null;
+        try {
+            try {
+                /**
+                 * @var Response $req
+                 */
+                $req = $this->request($url);
+            } catch (Request\CurlException $e) {
+                //Try one more time in case we're hitting to many requests...
+                // Wait 3 seconds
+                sleep(3);
+                try {
+                    $req = $this->request($url);
+                } catch (Request\CurlException $e) {
+                    throw new \OutOfRangeException($e->getMessage());
+                }
+            }
+
+            if ($req->httpResponseCode != 200) {
+                $this->failed($this->m, 'steam_err_getrecent');
+                $this->err = 1;
+
+                $this->diagnostics($req->httpResponseCode . ': getRecentGames');
+
+            } else {
+                try {
+                    $games = $req->decodeJson();
+                } catch (RuntimeException $e) {
+                    $this->failed($this->m, 'steam_err_getrecent');
+                    $this->err = 1;
+
+                    $this->diagnostics($e->getMessage());
+
+                }
+
+                // Store recently played game data and free up memory
+                if (isset($games['response']['total_count'], $games['response']['games'])) {
+                    $p->playtime_2weeks = 0;
+                    foreach ($games['response']['games'] as $id => $g) {
+                        // If we don't have a logo for the game, don't bother storing it. Still tally time played.
+                        if (isset($g['img_icon_url'], $g['img_logo_url'])) {
+                            if ($g['img_icon_url'] && $g['img_logo_url']) {
+                                $_games[$g['appid']] = $g;
+                            }
+                        }
+                        $p->playtime_2weeks += $g['playtime_2weeks'];
+                        //	img_icon_url, img_logo_url - these are the filenames of various images for the game. To construct the URL to the image, use this format:
+                        //	http://media.steampowered.com/steamcommunity/public/images/apps/{appid}/{hash}.jpg
+                    }
+                    $p->games = json_encode($_games);
+                    $p->total_count = $games['response']['total_count']; // Total counts of games played in last 2 weeks
+                } else {
+                    $p->playtime_2weeks = 0;
+                    $p->total_count = 0;
+                    $p->games = json_encode(array());
+                }
+                unset($req, $games, $_games);
+            }
+        } catch (\OutOfRangeException $e) {
+            $this->failed($this->m, 'steam_err_getrecent');
+            $this->err = 1;
+            $this->diagnostics($e->getMessage());
+
+        }
+
+        return $p;
+    }
+
+    private function getOwnedGames($p)
+    {
+        $owned[] = null;
+        $_owned[] = null;
+        if (Settings::i()->steam_get_owned) {
+            $url = 'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=' . $this->api . '&steamid=' . $p->steamid . '&include_appinfo=1&format=json';
+
+            try {
+                try {
+                    /**
+                     * @var Response $req
+                     */
+                    $req = $this->request($url);
+                } catch (Request\CurlException $e) {
+                    //Try one more time in case we're hitting to many requests...
+                    // Wait 3 seconds
+                    sleep(3);
+                    try {
+                        $req = $this->request($url);
+                    } catch (Request\CurlException $e) {
+                        throw new \OutOfRangeException($e->getMessage());
+                    }
+                }
+
+                if ($req->httpResponseCode != 200) {
+                    $this->failed($this->m, 'steam_err_getowned');
+                    $this->err = 1;
+                    $this->diagnostics($req->httpResponseCode . ': getOwned');
+
+                } else {
+                    try {
+                        $owned = $req->decodeJson();
+                    } catch (RuntimeException $e) {
+                        $this->failed($this->m, 'steam_err_getowned');
+                        $this->err = 1;
+                        $this->diagnostics($e->getMessage());
+
+                    }
+
+                    if (isset($owned['response']['game_count'], $owned['response']['games']) && Settings::i()->steam_get_owned) {
+                        foreach ($owned['response']['games'] as $id => $g) {
+                            if ($g['img_icon_url'] && $g['img_logo_url']) {
+                                $_owned[$g['appid']] = $g;
+                                //	img_icon_url, img_logo_url - these are the filenames of various images for the game. To construct the URL to the image, use this format:
+                                //	http://media.steampowered.com/steamcommunity/public/images/apps/{appid}/{hash}.jpg
+                            }
+                        }
+                        $p->owned = json_encode($_owned);
+                        $p->game_count = ($owned['response']['game_count'] ?? 0);        // Total # of owned games, if we are pulling that data
+                    } else {
+                        $p->owned = json_encode(array());
+                        $p->game_count = 0;
+                    }
+                    unset($req, $owned, $_owned);
+                }
+            } catch (\OutOfRangeException $e) {
+                $this->failed($this->m, 'steam_err_getowned');
+                $this->err = 1;
+                $this->diagnostics($e->getMessage());
+
+            }
+
+        } else {
+            $p->owned = json_encode(array());
+        }
+
+        return $p;
+    }
+
+    private function getUserGroupList($p)
+    {
+        $url = 'https://api.steampowered.com/ISteamUser/GetUserGroupList/v1/?key=' . $this->api . '&steamid=' . $p->steamid;
+        $_groups = null;
+        try {
+            $base = '103582791429521408';
+            try {
+                /**
+                 * @var Response $req
+                 */
+                $req = $this->request($url);
+            } catch (Request\CurlException $e) {
+                //Try one more time in case we're hitting to many requests...
+                // Wait 3 seconds
+                sleep(3);
+                try {
+                    $req = $this->request($url);
+                } catch (Request\CurlException $e) {
+                    throw new \OutOfRangeException($e->getMessage());
+                }
+            }
+            if ($req->httpResponseCode != 200) {
+                $content = array();
+                if ($req->httpResponseCode == 403) {
+                    $content = $req->decodeJson();
+                }
+                if (!isset($content['response']['success'])) {
+                    $this->failed($this->m, 'steam_err_getGroupList');
+                    $this->err = 1;
+
+                    $this->diagnostics($req->httpResponseCode . ': getGroupList');
+                }
+            } else {
+                try {
+                    $groupList = $req->decodeJson();
+                } catch (RuntimeException $e) {
+                    $this->failed($this->m, 'steam_err_getGroupList');
+                    $this->err = 1;
+                    $this->diagnostics($e->getMessage());
+
+                }
+
+                // Store the data and unset the variable to free up memory
+                if (isset($groupList) && $groupList['response']['success'] == true) {
+                    if (is_array($groupList['response']['groups']) && count($groupList['response']['groups'])) {
+                        $_groups = array();
+                        foreach ($groupList['response']['groups'] as $g) {
+                            if (PHP_INT_SIZE == 8) {
+                                $_groups[$g['gid']] = (int)$base + $g['gid'];
+                            } elseif (function_exists('bcadd') && extension_loaded('bcmath')) {
+                                $_groups[] = bcadd($base, $g['gid']);
+                            } else {
+                                /* If we've gotten here it's a 64 bit server with a limit on PHP_INT_SIZE or a 32 bit server w/o bcmath installed */
+                                throw new RuntimeException('Missing extension: php-bcmath');
+                            }
+                        }
+
+                    }
+                    $p->player_groups = json_encode($_groups);
+                } else {
+                    $p->player_groups = json_encode(array());
+                }
+                unset($req, $groupList);
+            }
+        } catch (\OutOfRangeException $e) {
+            $this->failed($this->m, 'steam_err_getGroups');
+            $this->err = 1;
+
+            $this->diagnostics($e->getMessage());
+
+        }
+
+        return $p;
     }
 
     /**
@@ -630,52 +743,55 @@ class _Update
      * @return bool
      * @throws \Exception
      */
-    public function updateProfile($single = 0)
+    public function updateProfile($single = 0): bool
     {
+        $req = null;
         try {
             $done = 0;
             if (!$single) {
-                $profile_count = round((\IPS\Settings::i()->steam_profile_count / 100), 0);
+                $profile_count = round(Settings::i()->steam_profile_count / 100);
             } else {
                 $profile_count = 1;
             }
             for ($i = 0; $i < $profile_count; $i++) {
                 $ids = array();
                 $steamids = '';
-                $select = "s.st_member_id,s.st_steamid,s.st_restricted";
+                $select = 's.st_member_id,s.st_steamid,s.st_restricted';
                 $where = "s.st_steamid>0 AND s.st_restricted!='1'";
                 if ($single) {
                     $where .= " AND s.st_member_id='{$single}'";
 
                     /* Is the member already in the database ? */
-                    $s = \IPS\steam\Profile::load($single);
+                    $s = Profile::load($single);
                     if ($s->member_id != $single || $s->steamid < 1) {
-                        $m = \IPS\Member::load($single);
-
-                        if ($m->member_id) {
-                            $steamid = $this->getSteamID($m);
+                        $this->m = Member::load($single);
+                        $steamid = null;
+                        if ($this->m->member_id) {
+                            $steamid = $this->getSteamID($this->m);
                         }
 
                         /* If they set their steamID, lets put them in the cache */
                         if ($steamid) {
                             if (!$s->steamid) {
-                                $s->member_id = $m->member_id;
+                                $s->member_id = $this->m->member_id;
                                 $s->steamid = $steamid;
                                 $s->setDefaultValues();
                                 $s->save();
                             }
 
                         } else {
-                            if (\IPS\Settings::i()->steam_diagnostics) {
-                                throw new \Exception(\IPS\Lang::load(\IPS\Lang::defaultLanguage())->get('steam_id_invalid'));
-                            }
+                            /**
+                             * @var Lang $message
+                             */
+                            $message = Lang::load(Lang::defaultLanguage());
+                            $this->diagnostics($message->get('steam_id_invalid'));
 
                             return false;
                         }
                     }
                 }
-                $query = \IPS\Db::i()->select($select, array('steam_profiles', 's'), $where, 's.st_member_id ASC',
-                    array($this->extras['profile_offset'], 100), null, null, '011');
+                $query = Db::i()->select($select, array('steam_profiles', 's'), $where, 's.st_member_id ASC',
+                    array($this->cache['profile_offset'], 100), null, null, '011');
 
                 foreach ($query as $id => $row) {
                     $ids[$id] = $row['st_steamid'];
@@ -685,50 +801,50 @@ class _Update
                     );
                 }
 
-                $this->extras['profile_count'] = $query->count(true);
+                $this->cache['profile_count'] = $query->count(true);
 
-                if (is_array($ids) && count($ids)) {
-                    $steamids = implode(",", $ids);
+                if (\is_array($ids) && \count($ids)) {
+                    $steamids = implode(',', $ids);
                 }
 
                 /*
                  * GET PLAYER SUMMARIES
                  */
-
-                $url = "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" . $this->api . "&steamids=" . $steamids . "&format=json";
+                $profiles[] = null;
+                $url = 'http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=' . $this->api . '&steamids=' . $steamids . '&format=json';
                 try {
+                    /**
+                     * @var Response $req
+                     */
                     $req = $this->request($url);
 
                     if ($req->httpResponseCode != 200) {
                         if ($single) {
-                            $this->failed(\IPS\Member::load($single), 'steam_err_getplayer');
+                            $this->failed(Member::load($single), 'steam_err_getplayer');
                         }
 
                         /* Throw an Exception */
-                        if (\IPS\Settings::i()->steam_diagnostics) {
-                            throw new \Exception($req->httpResponseCode);
-                        }
+                        $this->diagnostics($req->httpResponseCode);
+
                         continue;
                     }
                     try {
                         $players = $req->decodeJson();
-                    } catch (\RuntimeException $e) {
+                    } catch (RuntimeException $e) {
                         if ($single) {
-                            $this->failed(\IPS\Member::load($single), 'steam_err_getplayer');
+                            $this->failed(Member::load($single), 'steam_err_getplayer');
                         }
-                        if (\IPS\Settings::i()->steam_diagnostics) {
-                            throw new \Exception($e->getMessage());
-                        }
+                        $this->diagnostics($e->getMessage());
+
                         continue;
                     }
 
                 } catch (\OutOfRangeException $e) {
                     if ($single) {
-                        $this->failed(\IPS\Member::load($single), 'steam_err_getplayer');
+                        $this->failed(Member::load($single), 'steam_err_getplayer');
                     }
-                    if (\IPS\Settings::i()->steam_diagnostics) {
-                        throw new \Exception($e->getMessage());
-                    }
+                    $this->diagnostics($e->getMessage());
+
                     continue;
                 }
                 if (is_array($players)) {
@@ -740,13 +856,13 @@ class _Update
                             $s = Profile::load($p['steamid'], 'st_steamid');
                         }
 
-                        $m = \IPS\Member::load($s->member_id);
+                        $this->m = Member::load($s->member_id);
 
-                        if ($m->member_id) {
-                            $s->member_id = $m->member_id;
+                        if ($this->m->member_id) {
+                            $s->member_id = $this->m->member_id;
                             $s->steamid = $p['steamid'];
                             $s->last_update = time();
-                            $s->timecreated = (isset($p['timecreated']) ? $p['timecreated'] : null);
+                            $s->timecreated = $p['timecreated'] ?? null;
                             $s->communityvisibilitystate = $p['communityvisibilitystate'];
                             $s->personaname = $p['personaname'];
                             $s->profileurl = $p['profileurl'];
@@ -755,12 +871,12 @@ class _Update
                             $s->avatarfull = $p['avatarfull'];
                             $s->personastate = $p['personastate'];
                             $s->lastlogoff = $p['lastlogoff'];
-                            $s->gameserverip = (isset($p['gameserverip']) ? $p['gameserverip'] : '');
-                            $s->gameid = (isset($p['gameid']) ? $p['gameid'] : 0);
+                            $s->gameserverip = $p['gameserverip'] ?? '';
+                            $s->gameid = $p['gameid'] ?? 0;
 
 
                             if (isset($p['gameextrainfo']) || isset($p['gameid'])) {
-                                $s->gameextrainfo = (isset($p['gameextrainfo']) ? $p['gameextrainfo'] : $p['gameid']);
+                                $s->gameextrainfo = $p['gameextrainfo'] ?? $p['gameid'];
                             } else {
                                 $s->gameextrainfo = null;
                             }
@@ -770,27 +886,25 @@ class _Update
                         } /* Improve data handling in rewrite. Log error or remove profile */
 
                         $done++;
-                        $this->extras['profile_offset']++;
-                        if ($this->extras['profile_offset'] >= $this->extras['profile_count']) {
-                            $this->extras['profile_offset'] = 0;
+                        $this->cache['profile_offset']++;
+                        if ($this->cache['profile_offset'] >= $this->cache['profile_count']) {
+                            $this->cache['profile_offset'] = 0;
                             break;
                         }
                     }
                 }
                 /* If we've run through everyone we have, no reason to continue */
-                if ($done >= $this->extras['profile_count']) {
+                if ($done >= $this->cache['profile_count']) {
                     break;
                 }
 
             }
             unset($profiles);
-            \IPS\Data\Store::i()->steamData = $this->extras;
+            Store::i()->steamData = $this->cache;
 
             return true;
         } catch (\OutOfRangeException $e) {
-            if (\IPS\Settings::i()->steam_diagnostics) {
-                throw new \OutOfRangeException;
-            }
+            $this->diagnostics($e->getMessage());
 
             return false;
         }
@@ -800,109 +914,108 @@ class _Update
         this will make sure everyone with a valid steamid in their account
         gets put into the steam_profile table for update.
     */
+
     /**
      * @param int $offset
      * @throws \Exception
      */
-    public function cleanup($offset = -1)
+    public function cleanup($offset = -1): void
     {
         // AIWA-101 If cache does not initialize properly, cleanup_offset may not exist.
         if ($offset == -1) {
-            if (isset($this->extras['cleanup_offset'])) {
-                $offset = $this->extras['cleanup_offset'];
-            } else {
-                $offset = 0;
-                $this->extras['cleanup_offset'] = 0;
+            $offset = $this->cache['cleanup_offset'] ?? 0;
+            if ($offset) {
+                $this->cache['cleanup_offset'] = 0;
             }
         }
         $cleanup = $this->load($offset);
 
         if (\is_array($cleanup) && \count($cleanup)) {
-            foreach ($cleanup as $m) {
-                $steamid = ($m->steamid ?: $this->getSteamID($m));
+            foreach ($cleanup as $this->m) {
+                $steamid = ($this->m->steamid ?: $this->getSteamID($this->m));
 
-                $s = Profile::load($m->member_id);
+                $s = Profile::load($this->m->member_id);
 
                 /* If they don't have an entry, create one... If their entry doesn't match,
                    purge it and update the steamID */
                 if (!$s->steamid || ($s->steamid != $steamid)) {
                     $s->setDefaultValues();
                     $s->steamid = $steamid;
-                    $s->member_id = $m->member_id;
+                    $s->member_id = $this->m->member_id;
                     $s->last_update = time();
                     $s->save();
                 }
             }
         }
 
-        $this->extras['cleanup_offset'] = $this->extras['cleanup_offset'] + \IPS\Settings::i()->steam_batch_count;
-        if ($this->extras['cleanup_offset'] >= $this->extras['count']) {
-            $this->extras['cleanup_offset'] = 0;
+        $this->cache['cleanup_offset'] += (int)Settings::i()->steam_batch_count;
+        if ($this->cache['cleanup_offset'] >= $this->cache['count']) {
+            $this->cache['cleanup_offset'] = 0;
         }
 
         /* Set the Extra data Cache */
-        \IPS\Data\Store::i()->steamData = $this->extras;
+        Store::i()->steamData = $this->cache;
     }
 
     /**
      * @param int $offset
      * @return array
      */
-    public function load($offset = 0)
+    public function load($offset = 0): array
     {
         /* We are loading new members, if there is anyone still there, dump 'em. */
         unset($this->members);
-
-        if (($this->cfID['pf_id'] && $this->cfID['pf_group_id']) || $this->steamLogin) {
+        $query = null;
+        if ($this->steamLogin || ($this->cfID['pf_id'] && $this->cfID['pf_group_id'])) {
             // Build select and where clauses
-            $select_member = "m.*";
+            $select_member = 'm.*';
             //$select_pfields = "p.field_". $this->cfID['pf_id'];
-            $select_pfields = "p.*";
+            $select_pfields = 'p.*';
 
-            $where = "p.member_id=m.member_id";
+            $where = 'p.member_id=m.member_id';
 
             // INNER join, INNER join, INNER join!!!!!
 
-            if ($this->cfID['pf_id'] && $this->steamLogin) {
-                $select_member .= ",m.steamid";
-                $select = $select_member . "," . $select_pfields;
-                $where .= " AND (p.field_" . $this->cfID['pf_id'] . "<>'' OR m.steamid>0)";
+            if ($this->steamLogin && $this->cfID['pf_id']) {
+                $select_member .= ',m.steamid';
+                $select = $select_member . ',' . $select_pfields;
+                $where .= ' AND (p.field_' . $this->cfID['pf_id'] . "<>'' OR m.steamid>0)";
 
-                $query = \IPS\Db::i()->select($select, array('core_members', 'm'), null, 'm.member_id ASC',
-                    array($offset, \IPS\Settings::i()->steam_batch_count), null, null, '111')
+                $query = Db::i()->select($select, array('core_members', 'm'), null, 'm.member_id ASC',
+                    array($offset, Settings::i()->steam_batch_count), null, null, '111')
                     ->join(array('core_pfields_content', 'p'), $where, 'INNER');
 
             } elseif ($this->cfID['pf_id']) {
-                $select = $select_member . "," . $select_pfields;
-                $where .= " AND (p.field_" . $this->cfID['pf_id'] . "<>'')";
+                $select = $select_member . ',' . $select_pfields;
+                $where .= ' AND (p.field_' . $this->cfID['pf_id'] . "<>'')";
 
-                $query = \IPS\Db::i()->select($select, array('core_members', 'm'), null, 'm.member_id ASC',
-                    array($offset, \IPS\Settings::i()->steam_batch_count), null, null, '111')
+                $query = Db::i()->select($select, array('core_members', 'm'), null, 'm.member_id ASC',
+                    array($offset, Settings::i()->steam_batch_count), null, null, '111')
                     ->join(array('core_pfields_content', 'p'), $where, 'INNER');
 
             } elseif ($this->steamLogin) {
-                $select_member .= ",m.steamid";
+                $select_member .= ',m.steamid';
                 $select = $select_member;
-                $where = "m.steamid>0";
+                $where = 'm.steamid>0';
 
-                $query = \IPS\Db::i()->select($select, array('core_members', 'm'), $where, 'm.member_id ASC',
-                    array($offset, \IPS\Settings::i()->steam_batch_count), null, null, '111');
+                $query = Db::i()->select($select, array('core_members', 'm'), $where, 'm.member_id ASC',
+                    array($offset, Settings::i()->steam_batch_count), null, null, '111');
             }
 
             // Execute one of the queries built above
             foreach ($query as $row) {
-                $m = new \IPS\Member;
+                $this->m = new Member;
                 if (isset($row['m'])) {
-                    $member = $m->constructFromData($row['m']);
+                    $member = $this->m::constructFromData($row['m']);
                 } else {
-                    $member = $m->constructFromData($row);
+                    $member = $this->m::constructFromData($row);
                 }
                 if (!$member->real_name || !$member->member_id) {
                     break;
                 }
                 if (\is_array($row['p']) && \count($row['p'])) {
                     // Set Location STAFF so task execution, running as guest, can still see the field data.
-                    foreach (\IPS\core\ProfileFields\Field::values($row['p'], 'STAFF') as $group => $fields) {
+                    foreach (Field::values($row['p'], 'STAFF') as $group => $fields) {
                         $member->profileFields['core_pfieldgroups_' . $group] = $fields;
                     }
                 } else {
@@ -911,10 +1024,10 @@ class _Update
                 $this->members[] = $member;
             }
             // Count of all records found ignoring the limit
-            $this->extras['count'] = $query->count(true);
+            $this->cache['count'] = $query->count(true);
 
         } else {
-            $this->stError = \IPS\Lang::load(\IPS\Lang::defaultLanguage())->get('steam_field_invalid');
+            $this->stError = Lang::load(Lang::defaultLanguage())->get('steam_field_invalid');
         }
 
         return $this->members;
@@ -923,39 +1036,35 @@ class _Update
     /**
      * @param $member
      */
-    public function remove($member)
+    public function remove($member): void
     {
         try {
-            $r = \IPS\steam\Profile::load($member);
+            $r = Profile::load($member);
             $r->setDefaultValues();
             $r->save();
 
-        } catch (\Exception $e) {
-            return;
+        } catch (Exception $e) {
+//          Need to define what to do here...
         }
-
-        return;
     }
 
     /**
      * @param $member
      * @return bool
      */
-    public function restrict($member)
+    public function restrict($member): bool
     {
         try {
             if ($member != null) {
-                $p = \IPS\steam\Profile::load($member);
+                $p = Profile::load($member);
                 $p->member_id = $member; // Make sure we set the member_id just in case the member doesn't actually exist.
                 $p->restricted = 1;
                 $p->save();
             } else {
                 return false;
             }
-        } catch (\Exception $e) {
-            if (\IPS\Settings::i()->steam_diagnostics) {
-                throw new \OutOfRangeException;
-            }
+        } catch (Exception $e) {
+            $this->diagnostics($e->getMessage());
 
             return false;
         }
@@ -967,11 +1076,11 @@ class _Update
      * @param $member
      * @return bool
      */
-    public function unrestrict($member)
+    public function unrestrict($member): bool
     {
         try {
             if ($member != null) {
-                $p = \IPS\steam\Profile::load($member);
+                $p = Profile::load($member);
                 if ($p->restricted == 1) {
                     $p->restricted = 0;
                     $p->save();
@@ -979,10 +1088,8 @@ class _Update
             } else {
                 return false;
             }
-        } catch (\Exception $e) {
-            if (\IPS\Settings::i()->steam_diagnostics) {
-                throw new \OutOfRangeException;
-            }
+        } catch (Exception $e) {
+            $this->diagnostics($e->getMessage());
 
             return false;
         }
@@ -994,7 +1101,7 @@ class _Update
      * @param bool $raw
      * @return null|string
      */
-    public function error($raw = true)
+    public function error($raw = true): string
     {
         if ($raw) {
             return $this->stError;
@@ -1003,7 +1110,7 @@ class _Update
         if ($this->stError) {
             $return = $this->stError;
         } elseif (is_array($this->failed) && count($this->failed)) {
-            $return = \IPS\Lang::load(\IPS\Lang::defaultLanguage())->get('task_steam_profile') . " - " . implode(',',
+            $return = Lang::load(Lang::defaultLanguage())->get('task_steam_profile') . ' - ' . implode(',',
                     $this->fail);
         } else {
             $return = null;
@@ -1016,14 +1123,13 @@ class _Update
      * @param $element
      * @return bool
      */
-    protected function badges($element)
+    protected function badges($element): bool
     {
 
-        if (in_array($element['badgeid'], $this->badgesToKeep) && !array_key_exists('appid', $element)) {
+        if (!array_key_exists('appid', $element && \in_array($element['badgeid'], $this->badgesToKeep, false))) {
             return true;
         }
 
         return false;
     }
-
 }
