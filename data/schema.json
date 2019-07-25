@@ -311,18 +311,18 @@
                 "zerofill": false
             },
             "st_player_level": {
-                "allow_null": true,
-                "auto_increment": false,
-                "binary": false,
-                "comment": "",
-                "decimals": null,
-                "default": null,
-                "length": 0,
                 "name": "st_player_level",
-                "type": "TEXT",
-                "unsigned": false,
+                "type": "MEDIUMTEXT",
+                "length": 0,
+                "decimals": null,
                 "values": [],
-                "zerofill": false
+                "allow_null": true,
+                "default": null,
+                "comment": "",
+                "unsigned": false,
+                "zerofill": false,
+                "auto_increment": false,
+                "binary": false
             },
             "st_member_id": {
                 "name": "st_member_id",

@@ -2,9 +2,23 @@
 
 namespace IPS\steam\Login;
 
+use IPS\Request;
+use IPS\Http\Url;
+use IPS\Log;
+use IPS\Http\Request\Curl;
+use IPS\Http\Request\Sockets;
+use IPS\Db;
+use IPS\Member;
+use IPS\Dispatcher;
+use IPS\Session;
+use IPS\Login;
+use IPS\steam\Profile;
+use IPS\Settings;
+use IPS\Output;
+
 /* To prevent PHP errors (extending class does not exist) revealing path */
 if (!\defined('\IPS\SUITE_UNIQUE_KEY')) {
-    header((isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0') . ' 403 Forbidden');
+    header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.0') . ' 403 Forbidden');
     exit;
 }
 
@@ -29,7 +43,7 @@ class _Steam extends \IPS\Login\Handler
      *                       return array( 'savekey'    => new \IPS\Helpers\Form\[Type]( ... ), ... );
      * @endcode
      */
-    public function acpForm()
+    public function acpForm(): array
     {
         return array();
 //        $return['api_key'] = new \IPS\Helpers\Form\Text('login_steam_key',
@@ -41,9 +55,9 @@ class _Steam extends \IPS\Login\Handler
 
     /**
      * Get logo to display in user cp sidebar
-     * @return    \IPS\Http\Url|string
+     * @return    Url|string
      */
-    public function logoForUcp()
+    public function logoForUcp(): string
     {
         return 'steam';
     }
@@ -52,42 +66,42 @@ class _Steam extends \IPS\Login\Handler
 
     /**
      * Show in Account Settings?
-     * @param    \IPS\Member|NULL $member The member, or NULL for if it should show generally
+     * @param Member|NULL $member The member, or NULL for if it should show generally
      * @return  bool Show in UCP or not
      */
-    public function showInUcp(\IPS\Member $member = null)
+    public function showInUcp(Member $member = null): bool
     {
         return true;
     }
 
     /**
      * Authenticate
-     * @param    \IPS\Login $login The login object
-     * @return    \IPS\Member
-     * @copyright Lavoaster github.com/lavoaster/
-     * @license   http://opensource.org/licenses/mit-license.php The MIT License
+     * @param \IPS\Login $login The login object
+     * @return    Member
      * @throws    \IPS\Login\Exception
+     * @license   http://opensource.org/licenses/mit-license.php The MIT License
+     * @copyright Lavoaster github.com/lavoaster/
      */
-    public function authenticateButton(\IPS\Login $login)
+    public function authenticateButton(Login $login): Member
     {
         /* If we haven't been redirected back, redirect the user to external site */
-        if (!isset(\IPS\Request::i()->success)) {
-            $redirect = \IPS\Http\Url::external($this->url)->setQueryString(array(
+        if (!isset(Request::i()->success)) {
+            $redirect = Url::external($this->url)->setQueryString(array(
                 'openid.ns'           => 'http://specs.openid.net/auth/2.0',
                 'openid.mode'         => 'checkid_setup',
                 'openid.return_to'    => (string)$login->url->setQueryString(array(
                     'service'       => $this->id,
                     'success'       => '1',
                     '_processLogin' => $this->id,
-                    'csrfKey'       => \IPS\Session::i()->csrfKey,
+                    'csrfKey'       => Session::i()->csrfKey,
                 )),
-                'openid.realm'        => (string)\IPS\Http\Url::internal('', 'none'),
+                'openid.realm'        => (string)Url::internal('', 'none'),
                 'openid.identity'     => 'http://specs.openid.net/auth/2.0/identifier_select',
                 'openid.claimed_id'   => 'http://specs.openid.net/auth/2.0/identifier_select',
-                'openid.assoc_handle' => $login->url->getFurlQuery() === 'settings/login' ? 'ucp' : \IPS\Dispatcher::i()->controllerLocation,
+                'openid.assoc_handle' => $login->url->getFurlQuery() === 'settings/login' ? 'ucp' : Dispatcher::i()->controllerLocation,
             ));
 
-            \IPS\Output::i()->redirect($redirect);
+            Output::i()->redirect($redirect);
         }
 
         $steamID = $this->validate();
@@ -98,14 +112,14 @@ class _Steam extends \IPS\Login\Handler
 
         /* Find their local account if they have already logged in using this method in the past */
         try {
-            $link = \IPS\Db::i()->select('*', 'core_login_links',
+            $link = Db::i()->select('*', 'core_login_links',
                 array('token_login_method=? AND token_identifier=?', $this->id, $steamID))->first();
-            $member = \IPS\Member::load($link['token_member']);
+            $member = Member::load($link['token_member']);
 
 
             /* If the user never finished the linking process, or the account has been deleted, discard this access token */
             if (!$link['token_linked'] or !$member->member_id) {
-                \IPS\Db::i()->delete('core_login_links',
+                Db::i()->delete('core_login_links',
                     array('token_login_method=? AND token_member=?', $this->id, $link['token_member']));
                 throw new \UnderflowException;
             }
@@ -125,7 +139,7 @@ class _Steam extends \IPS\Login\Handler
         /* Otherwise, we need to either create one or link it to an existing one */
         try {
             /* If the user is setting this up in the User CP, they are already logged in. Ask them to reauthenticate to link those accounts */
-            if ($login->type === \IPS\Login::LOGIN_UCP) {
+            if ($login->type === Login::LOGIN_UCP) {
                 $exception = new \IPS\Login\Exception('steam_err_reauth', \IPS\Login\Exception::MERGE_SOCIAL_ACCOUNT);
                 $exception->handler = $this;
                 $exception->member = $login->reauthenticateAs;
@@ -135,14 +149,14 @@ class _Steam extends \IPS\Login\Handler
             /* If an api key is provided, attempt to load the user from steam */
             $response = null;
             $userData = null;
-            $key = \IPS\Settings::i()->steam_api_key;
+            $key = Settings::i()->steam_api_key;
             $name = null;
             $email = null;
 
             if ($key) {
 
                 try {
-                    $response = \IPS\Http\Url::external("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key={$key}&steamids={$steamID}")->request()->get()->decodeJson();
+                    $response = Url::external("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key={$key}&steamids={$steamID}")->request()->get()->decodeJson();
 
                     if ($response) {
                         // Get the first player
@@ -163,7 +177,7 @@ class _Steam extends \IPS\Login\Handler
 
 
             /* If we're still here, a new account was created. Store something in core_login_links so that the next time this user logs in, we know they've used this method before */
-            \IPS\Db::i()->insert('core_login_links', array(
+            Db::i()->insert('core_login_links', array(
                 'token_login_method' => $this->id,
                 'token_member'       => $member->member_id,
                 'token_identifier'   => $steamID,
@@ -197,12 +211,12 @@ class _Steam extends \IPS\Login\Handler
 
             return $member;
         } catch (\IPS\Login\Exception $exception) {
-            $member = \IPS\Member::loggedIn();
+            $member = Member::loggedIn();
             /* If the account creation was rejected because there is already an account with a matching email address
-                make a note of it in core_login_links so that after the user reauthenticates they can be set as being
+                make a note of it in core_login_links so that after the user re-authenticates they can be set as being
                 allowed to use this login handler in future */
             if ($exception->getCode() === \IPS\Login\Exception::MERGE_SOCIAL_ACCOUNT) {
-                \IPS\Db::i()->insert('core_login_links', array(
+                Db::i()->insert('core_login_links', array(
                     'token_login_method' => $this->id,
                     'token_member'       => $exception->member->member_id,
                     'token_identifier'   => $steamID,
@@ -218,98 +232,81 @@ class _Steam extends \IPS\Login\Handler
         }
     }
 
-//    public function usernameIsInUse( $username, \IPS\Member $exclude=NULL )
+//    public function usernameIsInUse( $username, Member $exclude=NULL )
 //    {
 //        return NULL;
 //    }
 
     /**
      * This will validate the incoming Steam OpenID request
-     * @package       Steam Community API
-     * @copyright (c) 2010 ichimonai.com
-     * @license       http://opensource.org/licenses/mit-license.php The MIT License
      * @return int|bool
+     * @license   http://opensource.org/licenses/mit-license.php The MIT License
+     * @copyright Lavoaster github.com/lavoaster/
      */
     protected function validate()
     {
         $params = array(
-            'openid.signed' => \IPS\Request::i()->openid_signed,
-            'openid.sig'    => str_replace(' ', '+', \IPS\Request::i()->openid_sig),
-            'openid.ns'     => 'http://specs.openid.net/auth/2.0',
+            'openid.ns'           => 'http://specs.openid.net/auth/2.0',
+            'openid.assoc_handle' => Request::i()->openid_assoc_handle,
+            'openid.signed'       => Request::i()->openid_signed,
+            'openid.sig'          => Request::i()->openid_sig,
+            'openid.mode'         => 'check_authentication',
         );
 
-        foreach ($params as $key => &$value) {
-            $value = urldecode($value);
-        }
-
         // Get all the params that were sent back and resend them for validation
-        $signed = explode(',', urldecode(\IPS\Request::i()->openid_signed));
+        $signed = explode(',', $params['openid.signed']);
         foreach ($signed as $item) {
-            $val = \IPS\Request::i()->{'openid_' . str_replace('.', '_', $item)};
-
-            if ($item !== 'response_nonce' || mb_strpos($val, '%') !== false) {
-                $val = urldecode($val);
+            // First some security checks, ensure the param exists before attempting to call it
+            $parameterName = 'openid_' . str_replace('.', '_', $item);
+            if (!isset(Request::i()->$parameterName)) {
+                continue;
             }
-
-            $params['openid.' . $item] = get_magic_quotes_gpc() ? stripslashes($val) : $val;
-            $params['openid.' . $item] = trim($params['openid.' . $item]);
+            $params['openid.' . $item] = Request::i()->$parameterName;
         }
-
-        // Finally, add the all important mode.
-        $params['openid.mode'] = trim('check_authentication');
 
         // Validate whether it's true and if we have a good ID
-        preg_match('/\d{17}$/', urldecode($_GET['openid_claimed_id']), $matches);
+        preg_match('/\d{17,25}$/', urldecode($_GET['openid_claimed_id']), $matches);
         $steamID64 = is_numeric($matches[0]) ? $matches[0] : 0;
 
-
-        $response = \IPS\Http\Url::external('https://steamcommunity.com/openid/login')->request()->post($params);
-        $response = (string)$response;
+        /**
+         * @var Sockets|Curl $response
+         */
+        $response = (string)Url::external('https://steamcommunity.com/openid/login')->request()->post($params);
 
         //DEBUG
-        if (\IPS\Settings::i()->steam_diagnostics) {
+        if (Settings::i()->steam_diagnostics) {
             $diagnostics['get'] = $_GET;
             $diagnostics['match'] = $matches;
             $diagnostics['steam'] = $steamID64;
             $diagnostics['urldecode'] = urldecode($_GET['openid_claimed_id']);
             $diagnostics['response'] = $response;
-            \IPS\Log::log(json_encode($diagnostics), 'steam');
+            Log::log(json_encode($diagnostics), 'steam');
         }
-        $values = array();
-
-        foreach (explode("\n", $response) as $value) {
-            $data = explode(":", $value);
-
-            $key = $data[0];
-            unset($data[0]);
-
-            $values[$key] = implode(':', $data);
-        }
-
-        $params['response'] = $response;
 
         // Return our final value
-        return $values['is_valid'] === 'true' ? $steamID64 : false;
+        $isValid = preg_match('/is_valid\s*:\s*true/i', $response) && ($steamID64 !== 0);
+
+        return $isValid ? $steamID64 : false;
     }
 
     /**
      * Get title
      * @return    string
      */
-    public static function getTitle()
+    public static function getTitle(): string
     {
-        return 'login_handler_Steam'; // Create a langauge string for this
+        return 'login_handler_Steam'; // Create a language string for this
     }
 
     /**
      * Syncing Options
-     * @param    \IPS\Member $member      The member we're asking for (can be used to not show certain options iof the
+     * @param Member $member              The member we're asking for (can be used to not show certain options iof the
      *                                    user didn't grant those scopes)
-     * @param    bool        $defaultOnly If TRUE, only returns which options should be enabled by default for a new
+     * @param bool   $defaultOnly         If TRUE, only returns which options should be enabled by default for a new
      *                                    account
      * @return    array
      */
-    public function syncOptions(\IPS\Member $member, $defaultOnly = false)
+    public function syncOptions(Member $member, $defaultOnly = false): array
     {
         $return = array();
 
@@ -326,52 +323,67 @@ class _Steam extends \IPS\Login\Handler
     /**
      * Get user's profile photo
      * May return NULL if server doesn't support this
-     * @param    \IPS\Member $member Member
-     * @return    \IPS\Http\Url|NULL
+     * @param Member $member Member
+     * @return    Url|NULL
      * @throws    \IPS\Login\Exception    The token is invalid and the user needs to reauthenticate
      * @throws    \DomainException        General error where it is safe to show a message to the user
      * @throws    \RuntimeException        Unexpected error from service
      */
-    public function userProfilePhoto(\IPS\Member $member)
+    public function userProfilePhoto(Member $member): Url
     {
-        return \IPS\Http\Url::external(\IPS\steam\Profile::load($member->member_id)->avatarfull);
+        return Url::external(Profile::load($member->member_id)->avatarfull);
     }
 
     /**
      * Get user's profile name
      * May return NULL if server doesn't support this
-     * @param    \IPS\Member $member Member
-     * @return    string|NULL
+     * @param Member $member Member
+     * @return    Profile
      * @throws    \IPS\Login\Exception    The token is invalid and the user needs to reauthenticate
      * @throws    \DomainException        General error where it is safe to show a message to the user
      * @throws    \RuntimeException        Unexpected error from service
      */
-    public function userProfileName(\IPS\Member $member)
+    public function userProfileName(Member $member): Profile
     {
-        return \IPS\steam\Profile::load($member->member_id)->personaname;
+        return Profile::load($member->member_id)->personaname;
     }
 
     /**
      * Get link to user's remote profile
      * May return NULL if server doesn't support this
-     * @param    string $identifier The ID Nnumber/string from remote service
-     * @param    string $username   The username from remote service
-     * @return    \IPS\Http\Url|NULL
+     * @param string $identifier The ID Nnumber/string from remote service
+     * @param string $username   The username from remote service
+     * @return    bool
      * @throws    \IPS\Login\Exception    The token is invalid and the user needs to reauthenticate
      * @throws    \DomainException        General error where it is safe to show a message to the user
      * @throws    \RuntimeException        Unexpected error from service
      */
-    public function userLink($identifier, $username)
+    public function userLink($identifier, $username): bool
     {
         return null;
-//        return \IPS\Http\Url::external( (string)\IPS\steam\Profile::load($member->member_id)->profileurl);
+//        return Url::external( (string)\IPS\steam\Profile::load($member->member_id)->profileurl);
+    }
+
+    /**
+     * Unlink Account
+     * @param Member $member The member or NULL for currently logged in member
+     * @return    void
+     */
+    public function disassociate(Member $member = null): void
+    {
+        $member = $member ?: Member::loggedIn();
+
+        $member->steamid = null;
+        $member->save();
+
+        parent::disassociate($member);
     }
 
     /**
      * Get the button color
      * @return    string
      */
-    public function buttonColor()
+    public function buttonColor(): string
     {
         return '#171a21';
     }
@@ -380,7 +392,7 @@ class _Steam extends \IPS\Login\Handler
      * Get the button icon
      * @return    string
      */
-    public function buttonIcon()
+    public function buttonIcon(): string
     {
         return 'steam'; // A fontawesome icon
     }
@@ -389,7 +401,7 @@ class _Steam extends \IPS\Login\Handler
      * Get button text
      * @return    string
      */
-    public function buttonText()
+    public function buttonText(): string
     {
         return 'steam_sign_in'; // Create a language string for this
     }
@@ -398,24 +410,9 @@ class _Steam extends \IPS\Login\Handler
      * Get button CSS class
      * @return    string
      */
-    public function buttonClass()
+    public function buttonClass(): string
     {
         return '';
-    }
-
-    /**
-     * Unlink Account
-     * @param    \IPS\Member $member The member or NULL for currently logged in member
-     * @return    void
-     */
-    public function disassociate(\IPS\Member $member = null)
-    {
-        $member = $member ?: \IPS\Member::loggedIn();
-
-        $member->steamid = null;
-        $member->save();
-
-        parent::disassociate($member);
     }
 
 }

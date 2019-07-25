@@ -1,0 +1,23 @@
+[
+    {
+        "method": "changeColumn",
+        "params": [
+            "steam_profiles",
+            "st_player_level",
+            {
+                "name": "st_player_level",
+                "type": "MEDIUMTEXT",
+                "length": 0,
+                "decimals": null,
+                "values": [],
+                "allow_null": true,
+                "default": null,
+                "comment": "",
+                "unsigned": false,
+                "zerofill": false,
+                "auto_increment": false,
+                "binary": false
+            }
+        ]
+    }
+]
