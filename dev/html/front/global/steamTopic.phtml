@@ -61,7 +61,7 @@
 				</div>
 				{{if isset($steam->player_level)}}
 
-					{{if is_array($steam->getLevel()) && count($steam->getLevel()) }}
+					{{if \is_array($steam->getLevel()) && \count($steam->getLevel()) }}
 						<div class=''>
 							<span class='ipsType_large'>{lang="steam_level"} {$steam->getLevel()['player_level']}</span>
 						</div>
@@ -80,7 +80,7 @@
 			</div>
 	{{if isset($steam->games)}}
 
-	  	{{if is_array($steam->getRecent()) && count($steam->getRecent()) && ($steam->total_count > 0) }}
+	  	{{if \is_array($steam->getRecent()) && \count($steam->getRecent()) && ($steam->total_count > 0) }}
 	 		<div class='ipsSpacer_both ipsSpacer_half'>
 	    	{{foreach $steam->getRecent(8) as $_id => $g }}
 	    		<div class='ipsPos_left' style="margin-right: 5px;">

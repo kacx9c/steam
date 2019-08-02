@@ -317,7 +317,7 @@ class _Update
                         return false;
                     }
                     /* If the steam name is valid, store the 64 bit version, if not, skip 'em. */
-                    if (is_array($id['response']) && count($id['response']) && ($id['response']['success'] == 1) && $id['response']['steamid']) {
+                    if (\is_array($id['response']) && \count($id['response']) && ($id['response']['success'] == 1) && $id['response']['steamid']) {
                         $steamid = $id['response']['steamid'];
                     } else {
                         // Valid API response, they just entered a something stupid... Don't store.
@@ -427,7 +427,7 @@ class _Update
 
             // Store the data and unset the variable to free up memory
             if (isset($level)) {
-                if (is_array($level['response']['badges']) && count($level['response']['badges'])) {
+                if (\is_array($level['response']['badges']) && \count($level['response']['badges'])) {
                     // Prune data and only keep what's needed.
                     $player_badges = array_filter($level['response']['badges'], array($this, 'badges'));
                     unset($level['response']['badges']);
@@ -471,7 +471,7 @@ class _Update
                     $this->failed($this->m, 'steam_err_vacbans');
                     $this->diagnostics($e->getMessage());
                 }
-                if (is_array($vacBans)) {
+                if (\is_array($vacBans)) {
                     foreach ($vacBans['players'] as $v) {
                         if ($v['CommunityBanned'] || $v['VACBanned']) {
                             $p->vac_status = '1';
@@ -502,8 +502,8 @@ class _Update
     protected function getRecentlyPlayedGames($p)
     {
         $url = 'http://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/?key=' . $this->api . '&steamid=' . $p->steamid . '&format=json';
-        $games[] = null;
-        $_games[] = null;
+        $games = array();
+        $_games = array();
         try {
             /**
              * @var Response $req
@@ -526,7 +526,7 @@ class _Update
                     $p->playtime_2weeks = 0;
                     foreach ($games['response']['games'] as $id => $g) {
                         // If we don't have a logo for the game, don't bother storing it. Still tally time played.
-                        if ($g['img_icon_url'] && $g['img_logo_url'] && isset($g['img_icon_url'], $g['img_logo_url'])) {
+                        if (isset($g['img_icon_url'], $g['img_logo_url']) && $g['img_icon_url'] && $g['img_logo_url']) {
                             $_games[$g['appid']] = $g;
                         }
                         $p->playtime_2weeks += $g['playtime_2weeks'];
@@ -556,8 +556,8 @@ class _Update
      */
     protected function getOwnedGames($p)
     {
-        $owned[] = null;
-        $_owned[] = null;
+        $owned = array();
+        $_owned = array();
         if (Settings::i()->steam_get_owned) {
             $url = 'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=' . $this->api . '&steamid=' . $p->steamid . '&include_appinfo=1&format=json';
             try {
@@ -637,7 +637,7 @@ class _Update
 
                 // Store the data and unset the variable to free up memory
                 if (isset($groupList) && $groupList['response']['success'] == true) {
-                    if (is_array($groupList['response']['groups']) && count($groupList['response']['groups'])) {
+                    if (\is_array($groupList['response']['groups']) && \count($groupList['response']['groups'])) {
                         $_groups = array();
                         foreach ($groupList['response']['groups'] as $g) {
                             if (PHP_INT_SIZE == 8) {
@@ -770,7 +770,7 @@ class _Update
 
                     continue;
                 }
-                if (is_array($players)) {
+                if (\is_array($players)) {
                     foreach ($players['response']['players'] as $id => $p) {
                         /* Random bug here.  Every other run of the task only one of the duplicates is updated.  Next run, both are updated */
                         if ($profiles[$id]['steamid'] === $p['steamid']) {
@@ -1019,7 +1019,7 @@ class _Update
         }
         if ($this->stError) {
             $return = $this->stError;
-        } elseif (is_array($this->failed) && count($this->failed)) {
+        } elseif (\is_array($this->failed) && \count($this->failed)) {
             $return = Lang::load(Lang::defaultLanguage())->get('task_steam_profile') . ' - ' . implode(',',
                     $this->fail);
         } else {

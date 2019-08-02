@@ -1,5 +1,5 @@
 <ips:template parameters="$members, $config" />
-{{if is_array($members) && count($members)}}
+{{if \is_array($members) && \count($members)}}
 
 <h3 class='ipsWidget_title'>{lang="steam_title"}</h3>
 <div class='ipsPad'>
@@ -7,7 +7,7 @@
 		{{foreach $members as $id => $m}}
 			<div class='ipsColumns'>
 				<div class='ipsColumn ipsColumn_veryNarrow'>
-				    <a href='{$m->profileurl}' class='ipsUserPhoto_small' target='_blank'><img src='{$m->avatarmedium}' class='ipsSpacer_bottom'/></a>
+				    <a href='{$m->profileurl}' class='ipsUserPhoto_small' target='_blank'><img src='{$m->avatarmedium}' alt='{$m->personaname}' class='ipsSpacer_bottom'/></a>
 				</div>
 				<div class='ipsColumn ipsColumn_fluid'>
 				    <span class='ipsTruncate ipsTruncate_line'>
@@ -24,7 +24,7 @@
 					    	<ul class='ipsGrid'>
 							    {{foreach $m->getRecent(6) as $_id => $g }}
 							        <li class='ipsGrid_span2'>
-							        	<img src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/{$g['appid']}/{$g['img_icon_url']}.jpg" data-ipsToolTip title="{$g['name']}: {expression="round($g['playtime_2weeks'] / 60, 1)"} {lang="steam_2weeks"}" height='28px' width='28px'/>
+							        	<img src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/{$g['appid']}/{$g['img_icon_url']}.jpg" data-ipsToolTip alt="{$g['name']}" title="{$g['name']}: {expression="round($g['playtime_2weeks'] / 60, 1)"} {lang="steam_2weeks"}" height='28px' width='28px'/>
 							        </li>
 								{{endforeach}}
 						     </ul>

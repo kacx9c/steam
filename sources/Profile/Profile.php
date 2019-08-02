@@ -68,8 +68,8 @@ class _Profile extends \IPS\Patterns\ActiveRecord
 
     /**
      * Construct ActiveRecord from database row
-     * @param    array $data                        Row from database table
-     * @param    bool  $updateMultitonStoreIfExists Replace current object in multiton store if it already exists there?
+     * @param array $data                        Row from database table
+     * @param bool  $updateMultitonStoreIfExists Replace current object in multiton store if it already exists there?
      * @return    static
      */
     public static function constructFromData($data, $updateMultitonStoreIfExists = true)
@@ -108,7 +108,7 @@ class _Profile extends \IPS\Patterns\ActiveRecord
     public function getLevel()
     {
         if (isset($this->player_level)) {
-            if (!is_array($this->playerLevel) || !count($this->playerLevel)) {
+            if (!\is_array($this->playerLevel) || !\count($this->playerLevel)) {
                 $this->playerLevel = json_decode($this->player_level, true);
             }
 
@@ -139,13 +139,13 @@ class _Profile extends \IPS\Patterns\ActiveRecord
         // Otherwise, let's see what we have... If we have a numeric value, it's a gameid, search owned / recent
         // If it's not numeric, set the string passed and move on.
         $name = null;
-        if (is_numeric($value) && \IPS\Settings::i()->steam_get_owned) {
+        if (\is_numeric($value) && \IPS\Settings::i()->steam_get_owned) {
             $this->ownedGames = $this->getOwned();
             // If we're playing the game, we own it. Check the cache for the game name.
             if (isset($this->ownedGames[$value])) {
                 $name = $this->ownedGames[$value]['name'];
             }
-        } elseif (is_numeric($value)) {
+        } elseif (\is_numeric($value)) {
             $this->recentGames = $this->getRecent();
             if (isset($this->recentGames[$value])) {
                 $name = $this->recentGames[$value]['name'];
@@ -159,7 +159,7 @@ class _Profile extends \IPS\Patterns\ActiveRecord
     public function getOwned()
     {
         if (isset($this->owned)) {
-            if (!is_array($this->ownedGames) || !count($this->ownedGames)) {
+            if (!\is_array($this->ownedGames) || !\count($this->ownedGames)) {
                 $this->ownedGames = json_decode($this->owned, true);
             }
 
@@ -173,16 +173,16 @@ class _Profile extends \IPS\Patterns\ActiveRecord
     public function getRecent($count = 0)
     {
         if (isset($this->games)) {
-            if (!is_array($this->recentGames) || !count($this->recentGames)) {
+            if (!\is_array($this->recentGames) || !\count($this->recentGames)) {
                 $this->recentGames = json_decode($this->games, true);
             }
 
             $temp = $this->recentGames;
 
-            if (is_array($temp) && count($temp) && $count) {
+            if (\is_array($temp) && \count($temp) && $count) {
                 /* Limit to $count recent games, otherwise we may break a layout */
-                while (count($temp) > $count) {
-                    $yoink = array_pop($temp);
+                while (\count($temp) > $count) {
+                    $yoink = \array_pop($temp);
                     unset($yoink);
                 }
             }

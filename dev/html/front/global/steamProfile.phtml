@@ -57,7 +57,7 @@
 		</ul>
 	{{endif}}
 <!-- Warning  -->
-{{if ((member.member_id == intval(request.id)) || member.isAdmin()) && $steam->error }}
+{{if ((member.member_id == \intval(request.id)) || member.isAdmin()) && $steam->error }}
 	<div class='ipsColumns ipsColumns_bothSpacing ipsColumns_halfSpacing'>
 		<div class='ipsColumn ipsColumn_fluid'>
 			<span class='ipsBadge ipsBadge_negative ipsBadge_large ipsPos_right'>{lang="$steam->error"}</span>
@@ -91,16 +91,16 @@
 					{{endif}}
 				</div>
 
-				{{if is_array($steam->getLevel()) && count($steam->getLevel()) }}
+				{{if \is_array($steam->getLevel()) && \count($steam->getLevel()) }}
 					<div class=''>
 						<span class='ipsType_large'>{lang="steam_level"} {$steam->getLevel()['player_level']}</span>
 					</div>
 					<div class='ipsSpacer_bottom ipsSpacer_half'>
-						<progress id='steamProgress' value="{expression=" round($steam->getLevel()['player_xp'] - $steam->getLevel()['player_xp_needed_current_level'], 0)"}" max="{expression="($steam->getLevel()['player_xp'] + $steam->getLevel()['player_xp_needed_to_level_up'] - $steam->getLevel()['player_xp_needed_current_level'])"}" data-ipsTooltip title="{number="$steam->getLevel()['player_xp']"} {lang="steam_of"} {number="$steam->getLevel()['player_xp'] + $steam->getLevel()['player_xp_needed_to_level_up']"}"></progress>
+						<progress id='steamProgress' value="{expression=" \round($steam->getLevel()['player_xp'] - $steam->getLevel()['player_xp_needed_current_level'], 0)"}" max="{expression="($steam->getLevel()['player_xp'] + $steam->getLevel()['player_xp_needed_to_level_up'] - $steam->getLevel()['player_xp_needed_current_level'])"}" data-ipsTooltip title="{number="$steam->getLevel()['player_xp']"} {lang="steam_of"} {number="$steam->getLevel()['player_xp'] + $steam->getLevel()['player_xp_needed_to_level_up']"}"></progress>
 					</div>
 				{{endif}}
 				{{if $steam->playtime_2weeks }}
-					<span class='ipsType_light'>{expression="round($steam->playtime_2weeks / 60, 1)"} {lang="steam_2weeks"}</span><br />
+					<span class='ipsType_light'>{expression="\round($steam->playtime_2weeks / 60, 1)"} {lang="steam_2weeks"}</span><br />
 				{{elseif $steam->communityvisibilitystate == 1 }}
 					<span class='ipsType_warning ipsType_large'><strong>{lang="steam_private"}</strong></span><br />
 				{{else}}
@@ -115,7 +115,7 @@
 	</div>
 
 <!-- Recently Played Games -->
-	{{if is_array($steam->getRecent()) && count($steam->getRecent()) && ($steam->total_count > 0) }}
+	{{if \is_array($steam->getRecent()) && \count($steam->getRecent()) && ($steam->total_count > 0) }}
 	<div class='general_box'>
 		<h4 class='ipsType_sectionTitle'>{lang="steam_recent"}</h4>
 		<ol class=' ipsGrid' data-ipsGrid data-ipsGrid-equalHeights='all' data-ipsGrid-minItemSize='345'>
@@ -127,11 +127,11 @@
 				 		{{else}}
 				 			<a href="https://store.steampowered.com/app/{$g['appid']}" data-ipsTooltip title="{$g['name']}" target='_blank'>
 				 		{{endif}}
-							<img src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/{$g['appid']}/{$g['img_logo_url']}.jpg" title="{$g['name']}: {expression="round(($g['playtime_2weeks'] / 60), 1)"} {lang='steam_2weeks'}" data-ipsTooltip /></a>
+							<img src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/{$g['appid']}/{$g['img_logo_url']}.jpg" title="{$g['name']}: {expression=" \round(($g['playtime_2weeks'] / 60), 1)"} {lang='steam_2weeks'}" data-ipsTooltip /></a>
 					</div>
 					<div class='{{if $steam->gameextrainfo === $g['name'] }}steamInGameData{{else}}steamGameData{{endif}}'>
-						<span>{expression="round($g['playtime_2weeks'] / 60,  1)"} {lang="steam_2weeks"}</span><br />
-						<span>{expression="round($g['playtime_forever'] / 60, 1)"} {lang="steam_forever"}</span>
+						<span>{expression="\round($g['playtime_2weeks'] / 60,  1)"} {lang="steam_2weeks"}</span><br />
+						<span>{expression="\round($g['playtime_forever'] / 60, 1)"} {lang="steam_forever"}</span>
 					</div>
 				</li>
 	     	{{endforeach}}
@@ -141,7 +141,7 @@
 </div>
 
 <!-- Owned Games Data -->
-{{if  settings.steam_get_owned && is_array($steam->getOwned()) && count($steam->getOwned()) && $steam->game_count }}
+{{if  settings.steam_get_owned && \is_array($steam->getOwned()) && \count($steam->getOwned()) && $steam->game_count }}
 	{{if settings.steam_profile_style == 'one'}}
 		<div class='general_box'>
 			<h4 class='ipsType_sectionTitle'>{lang="steam_owned_games"}</h3>
@@ -169,7 +169,7 @@
 					 	{{else}}
 					 		<a href="https://store.steampowered.com/app/{$g['appid']}" target='_blank'>
 					 	{{endif}}
-							<img src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/{$g['appid']}/{$g['img_logo_url']}.jpg" data-ipsTooltip title="{$g['name']}: {expression="round($g['playtime_forever'] / 60, 1)"} {lang="steam_forever"}"/></a>
+							<img src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/{$g['appid']}/{$g['img_logo_url']}.jpg" data-ipsTooltip title="{$g['name']}: {expression=" \round($g['playtime_forever'] / 60, 1)"} {lang="steam_forever"}"/></a>
 					</div>
 				{{endforeach}}
 			</div>
