@@ -1,6 +1,6 @@
-# Steam Profile Integration - v 2.1.11
+# Steam Profile Integration - v 2.1.12
 
-### Now including Sign in With Steam! (IPS 4.3+ only)
+Includes Steam Login Handler.
 
 This app will obtain data from Steam for your users, and groups, and place it in your IPS Community database for use anywhere on your site. Your board will re-load your members Steam Online information, in configurable batches, every 2 minutes, so you always have up to date information without impacting load times of your community pages.
 
@@ -82,5 +82,5 @@ Note: If starting with existing data in a Profile Field, or Sign in With Steam, 
 * **[Aiwa](https://aiwa.me)**
 
 ## Acknowledgments
-
+* **[Lavoaster](https://github.com/Lavoaster/IPS-SteamLoginMethod/blob/master/LICENSE)**
 * IPS Underground
