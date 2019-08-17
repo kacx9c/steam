@@ -51,14 +51,14 @@ class _Profile extends \IPS\Patterns\ActiveRecord
     public static function load($id, $idField = null, $extraWhereClause = null)
     {
         try {
-            if ($id === null OR $id === 0 OR $id === '') {
-                $classname = get_called_class();
+            if ($id === null || $id === 0 || $id === '') {
+                $classname = \get_called_class();
 
                 return new $classname;
             }
             $member = parent::load($id, $idField, $extraWhereClause);
         } catch (\OutOfRangeException $e) {
-            $classname = get_called_class();
+            $classname = \get_called_class();
 
             return new $classname;
         }

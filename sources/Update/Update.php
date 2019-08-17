@@ -849,10 +849,10 @@ class _Update
                 $this->cache['cleanup_offset'] = 0;
             }
         }
-        $cleanup = $this->load($offset);
+        $this->load($offset);
 
-        if (\is_array($cleanup) && \count($cleanup)) {
-            foreach ($cleanup as $this->m) {
+        if (\is_array($this->members) && \count($this->members)) {
+            foreach ($this->members as $this->m) {
                 $steamid = ($this->m->steamid ?: $this->getSteamID($this->m));
 
                 $s = Profile::load($this->m->member_id);
@@ -878,13 +878,17 @@ class _Update
 
     /**
      * @param int $offset
-     * @return array
+     * @return void
      */
-    public function load($offset = 0): array
+    public function load($offset = 0): void
     {
         /* We are loading new members, if there is anyone still there, dump 'em. */
         $this->members = array();
         $query = null;
+
+        if ($offset > $this->cache['count']) {
+            $offset = $this->cache['count'];
+        }
         if ($this->steamLogin || ($this->cache['pf_id'] && $this->cache['pf_group_id'])) {
             // Build select and where clauses
             $select_member = 'm.*';
@@ -895,15 +899,12 @@ class _Update
             // INNER join, INNER join, INNER join!!!!!
 
             if ($this->cache['pf_id']) {
-                $select_member .= ',m.steamid';
                 $select = $select_member . ',' . $select_pfields;
-                $where .= ' AND (p.field_' . $this->cache['pf_id'] . "<>'')";
-                if ($this->steamLogin) {
-                    $where .= ' OR m.steamid>0';
-                }
+                $where .= ' AND (p.field_' . $this->cache['pf_id'] . ' IS NOT NULL';
+                $where .= $this->steamLogin ? ' OR m.steamid>0)' : ')';
 
                 $query = Db::i()->select($select, array('core_members', 'm'), null, 'm.member_id ASC',
-                    array($offset, Settings::i()->steam_batch_count), null, null, '111')
+                    array($offset, Settings::i()->steam_batch_count), null, null, '110')
                     ->join(array('core_pfields_content', 'p'), $where, 'INNER');
 
             } elseif ($this->steamLogin) {
@@ -912,7 +913,7 @@ class _Update
                 $where = 'm.steamid>0';
 
                 $query = Db::i()->select($select, array('core_members', 'm'), $where, 'm.member_id ASC',
-                    array($offset, Settings::i()->steam_batch_count), null, null, '111');
+                    array($offset, Settings::i()->steam_batch_count), null, null, '110');
             }
 
             // Execute one of the queries built above
@@ -923,7 +924,7 @@ class _Update
                 } else {
                     $member = $this->m::constructFromData($row);
                 }
-                if (!$member->real_name || !$member->member_id) {
+                if (!$member->member_id) {
                     break;
                 }
                 if (\is_array($row['p']) && \count($row['p'])) {
@@ -937,12 +938,10 @@ class _Update
                 $this->members[] = $member;
             }
             // Count of all records found ignoring the limit
-            $this->cache['count'] = $query->count(true);
+            $this->cache['count'] = $query->count(false);
         } else {
             $this->stError = Lang::load(Lang::defaultLanguage())->get('steam_field_invalid');
         }
-
-        return $this->members;
     }
 
     /**
