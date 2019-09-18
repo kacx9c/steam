@@ -28,7 +28,7 @@ class _Steam
 
     /**
      * Member has validated
-     * @param    \IPS\Member $member Member validated
+     * @param \IPS\Member $member Member validated
      * @return    void
      */
     public function onValidate($member)
@@ -180,8 +180,8 @@ class _Steam
 
     /**
      * Member is merged with another member
-     * @param    \IPS\Member $member  Member being kept
-     * @param    \IPS\Member $member2 Member being removed
+     * @param \IPS\Member $member  Member being kept
+     * @param \IPS\Member $member2 Member being removed
      * @return    void
      */
     public function onMerge($member, $member2)

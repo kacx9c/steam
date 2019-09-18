@@ -36,16 +36,13 @@ abstract class steam_hook_steamid extends _HOOK_CLASS_
 
             } catch (\RuntimeException $e) {
                 if (method_exists(get_parent_class(), __FUNCTION__)) {
-                    return call_user_func_array('parent::' . __FUNCTION__, \func_get_args());
-                } else {
-                    throw $e;
+                    return \call_user_func_array('parent::' . __FUNCTION__, \func_get_args());
                 }
-
-                return call_user_func_array('parent::form', func_get_args());
+                throw $e;
             }
         } catch (\RuntimeException $e) {
             if (method_exists(get_parent_class(), __FUNCTION__)) {
-                return call_user_func_array('parent::' . __FUNCTION__, \func_get_args());
+                return \call_user_func_array('parent::' . __FUNCTION__, \func_get_args());
             } else {
                 throw $e;
             }
@@ -84,13 +81,12 @@ abstract class steam_hook_steamid extends _HOOK_CLASS_
                 ));
             }
 
-            return call_user_func_array('parent::canKeepValueOnChange', \func_get_args());
+            return \call_user_func_array('parent::canKeepValueOnChange', \func_get_args());
         } catch (\RuntimeException $e) {
             if (method_exists(get_parent_class(), __FUNCTION__)) {
-                return call_user_func_array('parent::' . __FUNCTION__, \func_get_args());
-            } else {
-                throw $e;
+                return \call_user_func_array('parent::' . __FUNCTION__, \func_get_args());
             }
+            throw $e;
         }
     }
 
@@ -102,13 +98,12 @@ abstract class steam_hook_steamid extends _HOOK_CLASS_
             }
 
             //return parent::buildHelper( $value, $customValidationCode);
-            return call_user_func_array('parent::buildHelper', \func_get_args());
+            return \call_user_func_array('parent::buildHelper', \func_get_args());
         } catch (\RuntimeException $e) {
             if (method_exists(get_parent_class(), __FUNCTION__)) {
-                return call_user_func_array('parent::' . __FUNCTION__, \func_get_args());
-            } else {
-                throw $e;
+                return \call_user_func_array('parent::' . __FUNCTION__, \func_get_args());
             }
+            throw $e;
         }
     }
 }

@@ -169,7 +169,6 @@ class _Steam extends \IPS\Login\Handler
                 } catch (\IPS\Http\Request\Exception $e) {
                     throw new \IPS\Login\Exception('steam_err_api_fail', \IPS\Login\Exception::INTERNAL_ERROR, $e);
                 }
-
             }
 
             /* Try to create one. NOTE: Invision Community will automatically throw an exception which we catch below if $email matches an existing account, if registration is disabled, or if Spam Defense blocks the account creation */
@@ -254,10 +253,10 @@ class _Steam extends \IPS\Login\Handler
         );
 
         // Get all the params that were sent back and resend them for validation
-        $signed = explode(',', $params['openid.signed']);
+        $signed = \explode(',', $params['openid.signed']);
         foreach ($signed as $item) {
             // First some security checks, ensure the param exists before attempting to call it
-            $parameterName = 'openid_' . str_replace('.', '_', $item);
+            $parameterName = 'openid_' . \str_replace('.', '_', $item);
             if (!isset(Request::i()->$parameterName)) {
                 continue;
             }
@@ -266,7 +265,7 @@ class _Steam extends \IPS\Login\Handler
 
         // Validate whether it's true and if we have a good ID
         preg_match('/\d{17,25}$/', urldecode($_GET['openid_claimed_id']), $matches);
-        $steamID64 = is_numeric($matches[0]) ? $matches[0] : 0;
+        $steamID64 = \is_numeric($matches[0]) ? $matches[0] : 0;
 
         /**
          * @var Sockets|Curl $response
@@ -278,9 +277,9 @@ class _Steam extends \IPS\Login\Handler
             $diagnostics['get'] = $_GET;
             $diagnostics['match'] = $matches;
             $diagnostics['steam'] = $steamID64;
-            $diagnostics['urldecode'] = urldecode($_GET['openid_claimed_id']);
+            $diagnostics['urldecode'] = \urldecode($_GET['openid_claimed_id']);
             $diagnostics['response'] = $response;
-            Log::log(json_encode($diagnostics), 'steam');
+            Log::log(\json_encode($diagnostics), 'steam');
         }
 
         // Return our final value
@@ -338,12 +337,12 @@ class _Steam extends \IPS\Login\Handler
      * Get user's profile name
      * May return NULL if server doesn't support this
      * @param Member $member Member
-     * @return    Profile
+     * @return    string
      * @throws    \IPS\Login\Exception    The token is invalid and the user needs to reauthenticate
      * @throws    \DomainException        General error where it is safe to show a message to the user
      * @throws    \RuntimeException        Unexpected error from service
      */
-    public function userProfileName(Member $member): Profile
+    public function userProfileName(Member $member): string
     {
         return Profile::load($member->member_id)->personaname;
     }

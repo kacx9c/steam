@@ -18,9 +18,8 @@ class steam_hook_steamDefault extends _HOOK_CLASS_
         } catch (\RuntimeException $e) {
             if (method_exists(get_parent_class(), __FUNCTION__)) {
                 return \call_user_func_array('parent::' . __FUNCTION__, \func_get_args());
-            } else {
-                throw $e;
             }
+            throw $e;
         }
     }
 }

@@ -24,7 +24,7 @@ class _convert
 {
     /**
      * Parse data before queuing
-     * @param    array $data
+     * @param array $data
      * @return    array
      */
     public function preQueueData($data)
@@ -54,8 +54,8 @@ class _convert
 
     /**
      * Run Background Task
-     * @param    mixed $data   Data as it was passed to \IPS\Task::queue()
-     * @param    int   $offset Offset
+     * @param mixed $data   Data as it was passed to \IPS\Task::queue()
+     * @param int   $offset Offset
      * @return    int                            New offset
      * @throws    \IPS\Task\Queue\OutOfRangeException    Indicates offset doesn't exist and thus task is complete
      */
@@ -89,7 +89,7 @@ class _convert
 
         \IPS\Db::i()->insert('core_login_links', $insert);
 
-        $count = $query->count(true);
+        $count = $query->count(false);
         if ($count <= $offset) {
             // Conversion complete
             throw new \IPS\Task\Queue\OutOfRangeException;
@@ -100,8 +100,8 @@ class _convert
 
     /**
      * Get Progress
-     * @param    mixed $data   Data as it was passed to \IPS\Task::queue()
-     * @param    int   $offset Offset
+     * @param mixed $data      Data as it was passed to \IPS\Task::queue()
+     * @param int   $offset    Offset
      * @return    array( 'text' => 'Doing something...', 'complete' => 50 )    Text explaining task and percentage
      *                         complete
      * @throws    \OutOfRangeException    Indicates offset doesn't exist and thus task is complete
@@ -122,7 +122,7 @@ class _convert
 
     /**
      * Perform post-completion processing
-     * @param    array $data
+     * @param array $data
      * @return    void
      */
     public function postComplete($data)
