@@ -41,13 +41,13 @@ class _Profile extends ActiveRecord
     /**
      * @brief    Bitwise keys
      */
-    protected static $bitOptions;
+    protected static $bitOptions = array();
     /**
      * @brief    [ActiveRecord] Multiton Store
      * @note    This needs to be declared in any child classes as well, only declaring here for editor
      *          code-complete/error-check functionality
      */
-    protected static $multitons;
+    protected static $multitons = array();
     /**
      * @var array
      */

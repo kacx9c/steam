@@ -26,7 +26,7 @@ class _Groups extends ActiveRecord
     /**
      * @brief    [ActiveRecord] ID Database Column
      */
-    public static $databaseColumnId;
+    public static $databaseColumnId = 'id';
 
     /**
      * @brief    [ActiveRecord] Database table
@@ -42,7 +42,7 @@ class _Groups extends ActiveRecord
     /**
      * @brief    Bitwise keys
      */
-    protected static $bitOptions;
+    protected static $bitOptions = array();
 
     /**
      * @var array
@@ -64,7 +64,7 @@ class _Groups extends ActiveRecord
      * @note    This needs to be declared in any child classes as well, only declaring here for editor
      *          code-complete/error-check functionality
      */
-    protected static $multitons;
+    protected static $multitons = array();
 
     /**
      * @param int|string $id

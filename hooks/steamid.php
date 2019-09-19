@@ -20,32 +20,27 @@ abstract class steam_hook_steamid extends _HOOK_CLASS_
      * @param \IPS\Helpers\Form $form The form
      * @return    void
      */
-    public function form(&$form): void
+    public function form(&$form)
     {
-        try {
-            try {
-                static::$additionalFieldTypes['Steamid'] = 'pf_type_steamid';
-                static::$additionalFieldToggles['Steamid'] = array(
-                    'pf_not_null',
-                    'pf_max_input',
-                    'pf_input_format',
-                    'pf_search_type',
-                    "{$form->id}_header_pfield_displayoptions",
-                );
-                parent::form($form);
 
-            } catch (\RuntimeException $e) {
-                if (method_exists(get_parent_class(), __FUNCTION__)) {
-                    return \call_user_func_array('parent::' . __FUNCTION__, \func_get_args());
-                }
-                throw $e;
-            }
+        try {
+            static::$additionalFieldTypes['Steamid'] = 'pf_type_steamid';
+            static::$additionalFieldToggles['Steamid'] = array(
+                'pf_not_null',
+                'pf_max_input',
+                'pf_input_format',
+                'pf_search_type',
+                "{$form->id}_header_pfield_displayoptions",
+            );
+            parent::form($form);
+
         } catch (\RuntimeException $e) {
             if (method_exists(get_parent_class(), __FUNCTION__)) {
                 return \call_user_func_array('parent::' . __FUNCTION__, \func_get_args());
             }
             throw $e;
         }
+
     }
 
     /**
