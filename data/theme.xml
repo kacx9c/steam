@@ -166,7 +166,7 @@
 {{if  settings.steam_get_owned && \is_array($steam->getOwned()) && \count($steam->getOwned()) && $steam->game_count }}
 	{{if settings.steam_profile_style == 'one'}}
 		<div class='general_box'>
-			<h4 class='ipsType_sectionTitle'>{lang="steam_owned_games"}</h3>
+			<h4 class='ipsType_sectionTitle'>{lang="steam_owned_games"}</h4>
 			<ol class='ipsGrid'>
 				{{foreach $steam->getOwned() as $_id => $g }}
 					<li class='ipsGrid_span1 ipsPad'>
@@ -182,7 +182,7 @@
 		</div>
 	{{else}}
 		<div class='general_box'>
-			<h4 class='ipsType_sectionTitle'>{lang="steam_owned_games"}</h3>
+			<h4 class='ipsType_sectionTitle'>{lang="steam_owned_games"}</h4>
 			<div class='ipsGrid' data-ipsGrid data-ipsGrid-minItemSize='180'>
 				{{foreach $steam->getOwned() as $_id => $g }}
 					<div class='ipsGrid_span3 ipsSpacer_bottom'>
@@ -484,19 +484,19 @@
 	text-align: center;
 	cursor: default;
 }</css>
- <css css_location="front" css_app="steam" css_attributes="" css_path="." css_name="widget.css">.st_hPhoto{
+ <css css_location="front" css_app="steam" css_attributes="" css_path="." css_name="widget.css">.st_hPhoto {
 	height: 176px;
 }
 
-.st_hJoin{
+.st_hJoin {
 	width: 90px;
 }
 
-.st_hCounts{
+.st_hCounts {
 	width: 94px;
 }
 
-.st_inGame{
+.st_inGame {
 	color: #8bc53f;
 }
 

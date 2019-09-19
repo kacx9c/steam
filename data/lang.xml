@@ -64,7 +64,7 @@
   <word key="steam_header" js="0">Steam Profile</word>
   <word key="steam_2weeks" js="0">hrs in the last 2 weeks</word>
   <word key="steam_noplaytime" js="0">0</word>
-  <word key="steam_private" js="0">Private</word>
+  <word key="steam_private" js="0">This profile is private.</word>
   <word key="steam_forever" js="0">hrs on record</word>
   <word key="steam_level" js="0">Level</word>
   <word key="steam_addfriend" js="0">Add Friend</word>

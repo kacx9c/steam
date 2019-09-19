@@ -1,26 +1,26 @@
 {
-  "steamTopic": {
-	"type": "S",
-	"class": "\\IPS\\Theme\\class_forums_front_topics"
-  },
-  "steamHover": {
-	"type": "S",
-	"class": "\\IPS\\Theme\\class_core_front_profile"
-  },
-  "steamPostJoin": {
-	"type": "C",
-	"class": "\\IPS\\forums\\Topic\\Post"
-  },
-  "steamDefault": {
-	"type": "C",
-	"class": "\\IPS\\core\\modules\\front\\members\\profile"
-  },
-  "steamid": {
-	"type": "C",
-	"class": "\\IPS\\CustomField"
-  },
-  "SteamLoginHandler": {
-	"type": "C",
-	"class": "\\IPS\\Login\\Handler"
-  }
+    "steamTopic": {
+        "type": "S",
+        "class": "\\IPS\\Theme\\class_forums_front_topics"
+    },
+    "steamHover": {
+        "type": "S",
+        "class": "\\IPS\\Theme\\class_core_front_profile"
+    },
+    "steamPostJoin": {
+        "type": "C",
+        "class": "\\IPS\\forums\\Topic\\Post"
+    },
+    "steamDefault": {
+        "type": "C",
+        "class": "\\IPS\\core\\modules\\front\\members\\profile"
+    },
+    "steamid": {
+        "type": "C",
+        "class": "\\IPS\\CustomField"
+    },
+    "SteamLoginHandler": {
+        "type": "C",
+        "class": "\\IPS\\Login\\Handler"
+    }
 }
