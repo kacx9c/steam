@@ -11,9 +11,13 @@
 
 namespace IPS\steam\extensions\core\Queue;
 
+use IPS\Db;
+use IPS\Member;
+
+
 /* To prevent PHP errors (extending class does not exist) revealing path */
 if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
-    header((isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0') . ' 403 Forbidden');
+    header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.0') . ' 403 Forbidden');
     exit;
 }
 
@@ -27,7 +31,7 @@ class _convert
      * @param array $data
      * @return    array
      */
-    public function preQueueData($data)
+    public function preQueueData($data): array
     {
         $duplicates = array();
         try {
@@ -59,7 +63,7 @@ class _convert
      * @return    int                            New offset
      * @throws    \IPS\Task\Queue\OutOfRangeException    Indicates offset doesn't exist and thus task is complete
      */
-    public function run($data, $offset)
+    public function run($data, $offset): int
     {
         if ($data['total'] === 0) {
             // No conversion to be done
@@ -72,12 +76,12 @@ class _convert
         $select = 'm.*';
         $where = 'm.steamid>0';
 
-        $query = \IPS\Db::i()->select($select, array('core_members', 'm'), $where, 'm.member_id ASC',
+        $query = Db::i()->select($select, array('core_members', 'm'), $where, 'm.member_id ASC',
             array($offset, 100), null, null, '111');
 
         $insert = array();
         foreach ($query as $row) {
-            $member = \IPS\Member::constructFromData($row);
+            $member = Member::constructFromData($row);
             $insert[] = array(
                 'token_login_method' => $method->id,
                 'token_member'       => $member->member_id,
@@ -87,7 +91,7 @@ class _convert
             ++$offset;
         }
 
-        \IPS\Db::i()->insert('core_login_links', $insert);
+        Db::i()->insert('core_login_links', $insert);
 
         $count = $query->count(false);
         if ($count <= $offset) {
@@ -106,7 +110,7 @@ class _convert
      *                         complete
      * @throws    \OutOfRangeException    Indicates offset doesn't exist and thus task is complete
      */
-    public function getProgress($data, $offset)
+    public function getProgress($data, $offset): array
     {
         $percent = 100;
 
@@ -115,7 +119,7 @@ class _convert
         }
 
         return array(
-            'text'     => \IPS\Member::loggedIn()->language()->addToStack('steam_queue_convert', false),
+            'text'     => Member::loggedIn()->language()->addToStack('steam_queue_convert', false),
             'complete' => $percent,
         );
     }
@@ -125,7 +129,7 @@ class _convert
      * @param array $data
      * @return    void
      */
-    public function postComplete($data)
+    public function postComplete($data): void
     {
 
     }

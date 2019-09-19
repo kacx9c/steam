@@ -20,7 +20,7 @@ abstract class steam_hook_steamid extends _HOOK_CLASS_
      * @param \IPS\Helpers\Form $form The form
      * @return    void
      */
-    public function form(&$form)
+    public function form(&$form): void
     {
         try {
             try {
@@ -43,12 +43,15 @@ abstract class steam_hook_steamid extends _HOOK_CLASS_
         } catch (\RuntimeException $e) {
             if (method_exists(get_parent_class(), __FUNCTION__)) {
                 return \call_user_func_array('parent::' . __FUNCTION__, \func_get_args());
-            } else {
-                throw $e;
             }
+            throw $e;
         }
     }
 
+    /**
+     * @param $newType
+     * @return bool|mixed|void
+     */
     protected function canKeepValueOnChange($newType)
     {
         try {
@@ -90,6 +93,11 @@ abstract class steam_hook_steamid extends _HOOK_CLASS_
         }
     }
 
+    /**
+     * @param null $value
+     * @param null $customValidationCode
+     * @return mixed|void
+     */
     public function buildHelper($value = null, $customValidationCode = null)
     {
         try {

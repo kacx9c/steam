@@ -30,28 +30,28 @@ class _Steam extends \IPS\Login\Handler
      */
     public static $allowMultiple = false;
 
-    public static $shareService = null;
+    public static $shareService;
 
     protected $url = 'https://steamcommunity.com/openid/login';
 
 
-    /**
-     * ACP Settings Form
-     * @return    array    List of settings to save - settings will be stored to core_login_handlers.login_settings DB
-     *                       field
-     * @code
-     *                       return array( 'savekey'    => new \IPS\Helpers\Form\[Type]( ... ), ... );
-     * @endcode
-     */
-    public function acpForm(): array
-    {
-        return array();
-//        $return['api_key'] = new \IPS\Helpers\Form\Text('login_steam_key',
-//            isset($this->settings['api_key']) ? $this->settings['api_key'] : '', false);
-
-//        $return['use_steam_name'] = new \IPS\Helpers\Form\YesNo('login_steam_name',
-//            isset($this->settings['use_steam_name']) ? $this->settings['use_steam_name'] : false, true);
-    }
+//    /**
+//     * ACP Settings Form
+//     * @return    array    List of settings to save - settings will be stored to core_login_handlers.login_settings DB
+//     *                       field
+//     * @code
+//     *                       return array( 'savekey'    => new \IPS\Helpers\Form\[Type]( ... ), ... );
+//     * @endcode
+//     */
+//    public function acpForm(): array
+//    {
+//        return array();
+////        $return['api_key'] = new \IPS\Helpers\Form\Text('login_steam_key',
+////            isset($this->settings['api_key']) ? $this->settings['api_key'] : '', false);
+//
+////        $return['use_steam_name'] = new \IPS\Helpers\Form\YesNo('login_steam_name',
+////            isset($this->settings['use_steam_name']) ? $this->settings['use_steam_name'] : false, true);
+//    }
 
     /**
      * Get logo to display in user cp sidebar
@@ -156,7 +156,11 @@ class _Steam extends \IPS\Login\Handler
             if ($key) {
 
                 try {
-                    $response = Url::external("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key={$key}&steamids={$steamID}")->request()->get()->decodeJson();
+                    /**
+                     * @var Curl|Sockets $req
+                     */
+                    $req = Url::external("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key={$key}&steamids={$steamID}")->request();
+                    $response = $req->get()->decodeJson();
 
                     if ($response) {
                         // Get the first player
@@ -267,9 +271,6 @@ class _Steam extends \IPS\Login\Handler
         preg_match('/\d{17,25}$/', urldecode($_GET['openid_claimed_id']), $matches);
         $steamID64 = \is_numeric($matches[0]) ? $matches[0] : 0;
 
-        /**
-         * @var Sockets|Curl $response
-         */
         $response = (string)Url::external('https://steamcommunity.com/openid/login')->request()->post($params);
 
         //DEBUG

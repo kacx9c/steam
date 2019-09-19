@@ -5,9 +5,13 @@
 
 namespace IPS\steam\extensions\core\MemberSync;
 
+use IPS\Data\Store;
+use IPS\steam\Profile;
+use IPS\steam\Update;
+
 /* To prevent PHP errors (extending class does not exist) revealing path */
 if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
-    header((isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0') . ' 403 Forbidden');
+    header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.0') . ' 403 Forbidden');
     exit;
 }
 
@@ -16,25 +20,29 @@ if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
  */
 class _Steam
 {
+
     /**
-     * Member account has been created
-     * @param    $member    \IPS\Member    New member account
-     * @return    void
+     * @param $member
+     * @throws \Exception
      */
-    public function onCreateAccount($member)
+    public function onCreateAccount($member): void
     {
         $this->onValidate($member);
     }
 
+
     /**
-     * Member has validated
-     * @param \IPS\Member $member Member validated
-     * @return    void
+     * @param $member
+     * @throws \Exception
      */
-    public function onValidate($member)
+    public function onValidate($member): void
     {
-        if (isset(\IPS\Data\Store::i()->steamData)) {
-            $cache = \IPS\Data\Store::i()->steamData;
+        /**
+         * @var array $cache
+         */
+        $cache = array();
+        if (isset(Store::i()->steamData)) {
+            $cache = Store::i()->steamData;
         }
         if (!$member->steamid && !isset($cache['pf_id'])) {
 
@@ -43,12 +51,12 @@ class _Steam
             return;
         }
 
-        $steam = new \IPS\steam\Update;
+        $steam = new Update;
         $steamid = $steam->getSteamID($member);
 
         /* If they set their steamID, lets put them in the cache */
         if ($steamid) {
-            $m = \IPS\steam\Profile::load($member->member_id);
+            $m = Profile::load($member->member_id);
             if (!$m->steamid) {
                 $m->member_id = $member->member_id;
                 $m->steamid = $steamid;
@@ -71,21 +79,37 @@ class _Steam
      * @param    $changes       array        The changes
      * @return    void
      */
-    public function onProfileUpdate($member, $changes)
+    public function onProfileUpdate($member, $changes): void
     {
         /* Did they change their SteamID?  If so, store them in the profile table */
         /* If they are using the steam login, ignore profile field.  */
         try {
+            /**
+             * @var array $cache
+             */
+            $cache = array();
             if ($member->steamid && !isset($changes['steamid'])) {
                 /* Steam Login has priority, if it's set ignore profile fields. */
                 return;
             }
-            if (isset(\IPS\Data\Store::i()->steamData)) {
-                $cache = \IPS\Data\Store::i()->steamData;
+            if (isset(Store::i()->steamData)) {
+                $cache = Store::i()->steamData;
             }
+            /**
+             * @var string $group
+             */
+            $group = '';
+            /**
+             * @var string $field
+             */
+            $field = '';
+            /**
+             * @var string $_field
+             */
+            $_field = '';
             $delete = false;
-            if (isset($cache['pf_id']) && isset($cache['pf_group_id'])) {
-                $group = "core_pfieldgroups_";
+            if (isset($cache['pf_id'], $cache['pf_group_id'])) {
+                $group = 'core_pfieldgroups_';
                 $field = 'core_pfield_';
                 $_field = 'field_';
 
@@ -101,22 +125,22 @@ class _Steam
             }
 
             if ($delete) {
-                $s = \IPS\steam\Profile::load($member->member_id);
+                $s = Profile::load($member->member_id);
                 if ($s->member_id) {
                     $s->delete();
                 }
             }
-            if ((isset($changes['steamid']) || isset($changes[$_field])) && !$delete) {
-                $steam = new \IPS\steam\Update;
+            if (!$delete && (isset($changes['steamid']) || isset($changes[$_field]))) {
+                $steam = new Update;
 
                 $member->profileFields = $member->profileFields();
                 if (isset($changes[$_field])) {
                     $member->profileFields[$group][$field] = $changes[$_field];
                 }
 
-                $steamid = (isset($changes['steamid']) ? $changes['steamid'] : $steam->getSteamID($member));
+                $steamid = ($changes['steamid'] ?? $steam->getSteamID($member));
 
-                $s = \IPS\steam\Profile::load($member->member_id);
+                $s = Profile::load($member->member_id);
 
                 /* If the steamid is valid, go ahead and save and update the cache right now */
                 if ($steamid) {
@@ -133,10 +157,8 @@ class _Steam
                     // Was an empty object, just taking out the trash.
                     unset($s);
                 }
-            } else {
-                /* Do Nothing for now */
             }
-        } catch (\OutOfRangeException $e) {
+        } catch (\Exception $e) {
             //throw new \OutOfRangeException;
         }
     }
@@ -146,11 +168,11 @@ class _Steam
      * @param    $member    \IPS\Member    The member
      * @return    void
      */
-    public function onSetAsSpammer($member)
+    public function onSetAsSpammer($member): void
     {
         try {
             /* Set steam restriction */
-            $steam = new \IPS\steam\Update;
+            $steam = new Update;
             $steam->restrict($member->member_id);
 
         } catch (\OutOfRangeException $e) {
@@ -163,17 +185,17 @@ class _Steam
      * @param    $member    \IPS\Member    The member
      * @return    void
      */
-    public function onUnSetAsSpammer($member)
+    public function onUnSetAsSpammer($member): void
     {
         try {
             /* Unrestrict steam account */
-            $steam = new \IPS\steam\Update;
+            $steam = new Update;
             $steam->unrestrict($member->member_id);
             /* Try to update the profile */
             $steam->updateProfile($member->member_id);
             $steam->update($member->member_id);
 
-        } catch (\OutOfRangeException $e) {
+        } catch (\Exception $e) {
             throw new \OutOfRangeException;
         }
     }
@@ -184,7 +206,7 @@ class _Steam
      * @param \IPS\Member $member2 Member being removed
      * @return    void
      */
-    public function onMerge($member, $member2)
+    public function onMerge($member, $member2): void
     {
         /* Purge member2 steam data */
         $this->onDelete($member2);
@@ -195,11 +217,11 @@ class _Steam
      * @param    $member    \IPS\Member    The member
      * @return    void
      */
-    public function onDelete($member)
+    public function onDelete($member): void
     {
         /* Purge member steam data */
         try {
-            $steam = \IPS\steam\Profile::load($member->member_id);
+            $steam = Profile::load($member->member_id);
             $steam->delete();
 
         } catch (\OutOfRangeException $e) {

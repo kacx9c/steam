@@ -3,31 +3,39 @@
 
 namespace IPS\steam\modules\front\steam;
 
+use IPS\Dispatcher\Controller;
+use IPS\Session;
+use IPS\Member;
+use IPS\steam\Profile;
+use IPS\steam\Update;
+use IPS\Request;
+use IPS\Output;
+
 /* To prevent PHP errors (extending class does not exist) revealing path */
 if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
-    header((isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0') . ' 403 Forbidden');
+    header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.0') . ' 403 Forbidden');
     exit;
 }
 
 /**
  * steamProfile
  */
-class _steamProfile extends \IPS\Dispatcher\Controller
+class _steamProfile extends Controller
 {
     /**
      * Execute
      * @return    void
      */
-    public function execute()
+    public function execute(): void
     {
-        \IPS\Session::i()->csrfCheck();
-        $this->member_id = \intval(\IPS\Request::i()->id);
+        Session::i()->csrfCheck();
+        $this->member_id = (int)Request::i()->id;
 
-        if ($this->member_id > 0 && (($this->member_id == \IPS\Member::loggedIn()->member_id) || \IPS\Member::loggedIn()->isAdmin())) {
-            $this->member = \IPS\Member::load($this->member_id);
-            $this->steam = \IPS\steam\Profile::load($this->member_id);
+        if ($this->member_id > 0 && (($this->member_id == Member::loggedIn()->member_id) || Member::loggedIn()->isAdmin())) {
+            $this->member = Member::load($this->member_id);
+            $this->steam = Profile::load($this->member_id);
         } else {
-            \IPS\Output::i()->error('node_error', '2ST100/1', 404, '');
+            Output::i()->error('node_error', '2ST100/1', 404, '');
         }
         parent::execute();
     }
@@ -36,29 +44,32 @@ class _steamProfile extends \IPS\Dispatcher\Controller
      * ...
      * @return    void
      */
-    protected function manage()
+    protected function manage(): void
     {
         /* Replace with default Online user display */
         /* Nothing to see here, send them back to the profile they came from */
-        \IPS\Output::i()->redirect($this->member->url()->setQueryString('tab', 'node_steam_steamprofile'));
+        Output::i()->redirect($this->member->url()->setQueryString('tab', 'node_steam_steamprofile'));
     }
 
     // Create new methods with the same name as the 'do' parameter which should execute it
 
-    public function update()
+    /**
+     *
+     */
+    public function update(): void
     {
-        \IPS\Session::i()->csrfCheck();
+        Session::i()->csrfCheck();
         try {
-            $profile = \IPS\steam\Profile::load($this->member_id);
-            if ($profile->last_update > (time() - 30) && !\IPS\Member::loggedIn()->isAdmin()) {
-                $message = \IPS\Member::loggedIn()->language()->addToStack('steam_wait');
+            $profile = Profile::load($this->member_id);
+            if ($profile->last_update > (time() - 30) && !Member::loggedIn()->isAdmin()) {
+                $message = Member::loggedIn()->language()->addToStack('steam_wait');
             } else {
-                $stUpdate = new \IPS\steam\Update;
+                $stUpdate = new Update;
                 $stUpdate->updateProfile($this->member_id);
                 if ($stUpdate->update($this->member_id)) {
-                    $message = \IPS\Member::loggedIn()->language()->addToStack('steam_updated');
+                    $message = Member::loggedIn()->language()->addToStack('steam_updated');
                 } else {
-                    $message = \IPS\Member::loggedIn()->language()->addToStack('steam_err_updated');
+                    $message = Member::loggedIn()->language()->addToStack('steam_err_updated');
                 }
             }
 
@@ -67,81 +78,93 @@ class _steamProfile extends \IPS\Dispatcher\Controller
             $message = $e->getMessage();
         }
 
-        \IPS\Output::i()->redirect($this->member->url()->setQueryString('tab', 'node_steam_steamprofile'), $message);
+        Output::i()->redirect($this->member->url()->setQueryString('tab', 'node_steam_steamprofile'), $message);
     }
 
-    public function disable()
+    /**
+     *
+     */
+    public function disable(): void
     {
-        \IPS\Session::i()->csrfCheck();
+        Session::i()->csrfCheck();
 
         try {
             $this->steam->setDefaultValues();
             $this->steam->restricted = 1;
             $this->steam->save();
-            $message = \IPS\Member::loggedIn()->language()->addToStack('steam_disabled');
+            $message = Member::loggedIn()->language()->addToStack('steam_disabled');
         } catch (\Exception $e) {
-            $message = \IPS\Member::loggedIn()->language()->addToStack('steam_err_disabled');
+            $message = Member::loggedIn()->language()->addToStack('steam_err_disabled');
         }
 
-        \IPS\Output::i()->redirect($this->member->url()->setQueryString('tab', 'node_steam_steamprofile'), $message);
+        Output::i()->redirect($this->member->url()->setQueryString('tab', 'node_steam_steamprofile'), $message);
     }
 
-    public function enable()
+    /**
+     *
+     */
+    public function enable(): void
     {
-        \IPS\Session::i()->csrfCheck();
+        Session::i()->csrfCheck();
 
         try {
             $this->steam->setDefaultValues();
             $this->steam->restricted = 0;
             $this->steam->save();
-            $message = \IPS\Member::loggedIn()->language()->addToStack('steam_enabled');
+            $message = Member::loggedIn()->language()->addToStack('steam_enabled');
         } catch (\Exception $e) {
-            $message = \IPS\Member::loggedIn()->language()->addToStack('steam_err_enabled');
+            $message = Member::loggedIn()->language()->addToStack('steam_err_enabled');
         }
 
-        \IPS\Output::i()->redirect($this->member->url()->setQueryString('tab', 'node_steam_steamprofile'), $message);
+        Output::i()->redirect($this->member->url()->setQueryString('tab', 'node_steam_steamprofile'), $message);
     }
 
-    public function validate()
+    /**
+     *
+     */
+    public function validate(): void
     {
-        \IPS\Session::i()->csrfCheck();
+        Session::i()->csrfCheck();
         try {
             if ($this->member->steamid) {
                 /* If LAVO has set a steamid for the member, let's assume it's valid */
-                $message = \IPS\Member::loggedIn()->language()->addToStack('steam_validated');
+                $message = Member::loggedIn()->language()->addToStack('steam_validated');
             } else {
-                $stUpdate = new \IPS\steam\Update;
+                $stUpdate = new Update;
                 /* Lets check the profile field */
                 if ($stUpdate->getSteamID($this->member)) {
-                    $message = \IPS\Member::loggedIn()->language()->addToStack('steam_validated');
+                    $message = Member::loggedIn()->language()->addToStack('steam_validated');
                 } else {
-                    $message = \IPS\Member::loggedIn()->language()->addToStack('steam_err_validated');
+                    $message = Member::loggedIn()->language()->addToStack('steam_err_validated');
                 }
             }
         } catch (\Exception $e) {
             $message = $e->getMessage();
         }
 
-        \IPS\Output::i()->redirect($this->member->url()->setQueryString('tab', 'node_steam_steamprofile'), $message);
+        Output::i()->redirect($this->member->url()->setQueryString('tab', 'node_steam_steamprofile'), $message);
 
     }
 
-    public function remove()
+    /**
+     *
+     */
+    public function remove(): void
     {
-        \IPS\Session::i()->csrfCheck();
+        Session::i()->csrfCheck();
         try {
-            $steam = \IPS\steam\Profile::load($this->member->member_id);
+            $steam = Profile::load($this->member->member_id);
             if ($steam->steamid) {
                 $steam->delete();
-                $message = \IPS\Member::loggedIn()->language()->addToStack('steam_removed');
+                $message = Member::loggedIn()->language()->addToStack('steam_removed');
             } else {
-                $message = \IPS\Member::loggedIn()->language()->addToStack('steam_err_removed');
+                $message = Member::loggedIn()->language()->addToStack('steam_err_removed');
             }
         } catch (\Exception $e) {
-            $message = \IPS\Member::loggedIn()->language()->addToStack('steam_err_removed');
+            $message = Member::loggedIn()->language()->addToStack('steam_err_removed');
         }
 
-        \IPS\Output::i()->redirect($this->member->url()->setQueryString('tab', 'node_steam_steamprofile'), $message);
+        Output::i()->redirect($this->member->url()->setQueryString('tab', 'node_steam_steamprofile'), $message);
     }
 
 

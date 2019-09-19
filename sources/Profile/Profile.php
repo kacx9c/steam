@@ -2,16 +2,20 @@
 
 namespace IPS\steam;
 
+use IPS\Member;
+use IPS\Settings;
+use IPS\Patterns\ActiveRecord;
+
 /* To prevent PHP errors (extending class does not exist) revealing path */
 if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
-    header((isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0') . ' 403 Forbidden');
+    header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.0') . ' 403 Forbidden');
     exit;
 }
 
 /**
  * Steam Update Class
  */
-class _Profile extends \IPS\Patterns\ActiveRecord
+class _Profile extends ActiveRecord
 {
     /**
      * @brief    [ActiveRecord] Database Prefix
@@ -37,28 +41,43 @@ class _Profile extends \IPS\Patterns\ActiveRecord
     /**
      * @brief    Bitwise keys
      */
-    protected static $bitOptions = array();
+    protected static $bitOptions;
     /**
      * @brief    [ActiveRecord] Multiton Store
      * @note    This needs to be declared in any child classes as well, only declaring here for editor
      *          code-complete/error-check functionality
      */
-    protected static $multitons = array();
+    protected static $multitons;
+    /**
+     * @var array
+     */
     public $ownedGames = array();
+    /**
+     * @var array
+     */
     public $recentGames = array();
+    /**
+     * @var array
+     */
     public $playerLevel = array();
 
-    public static function load($id, $idField = null, $extraWhereClause = null)
+    /**
+     * @param int|string $id
+     * @param null       $idField
+     * @param null       $extraWhereClause
+     * @return \IPS\steam\Profile
+     */
+    public static function load($id, $idField = null, $extraWhereClause = null): Profile
     {
         try {
             if ($id === null || $id === 0 || $id === '') {
-                $classname = \get_called_class();
+                $classname = static::class;
 
                 return new $classname;
             }
             $member = parent::load($id, $idField, $extraWhereClause);
         } catch (\OutOfRangeException $e) {
-            $classname = \get_called_class();
+            $classname = static::class;
 
             return new $classname;
         }
@@ -77,7 +96,10 @@ class _Profile extends \IPS\Patterns\ActiveRecord
         return parent::constructFromData($data, $updateMultitonStoreIfExists);
     }
 
-    public function setDefaultValues()
+    /**
+     *
+     */
+    public function setDefaultValues(): void
     {
         $this->error = '';
         $this->personaname = '';
@@ -105,7 +127,10 @@ class _Profile extends \IPS\Patterns\ActiveRecord
         $this->steamid = null;
     }
 
-    public function getLevel()
+    /**
+     * @return array
+     */
+    public function getLevel(): array
     {
         if (isset($this->player_level)) {
             if (!\is_array($this->playerLevel) || !\count($this->playerLevel)) {
@@ -113,22 +138,28 @@ class _Profile extends \IPS\Patterns\ActiveRecord
             }
 
             return $this->playerLevel;
-        } else {
-            return array();
         }
+
+        return array();
 
     }
 
-    public function set_personaname($value)
+    /**
+     * @param $value
+     */
+    public function set_personaname($value): void
     {
         // If their database isn't set up for mb4, strip 4 byte characters and replace with Diamond ?.
-        if (\IPS\Settings::i()->getFromConfGlobal('sql_utf8mb4') !== true) {
+        if (Settings::i()->getFromConfGlobal('sql_utf8mb4') !== true) {
             $value = preg_replace('/[\x{10000}-\x{10FFFF}]/u', "\xEF\xBF\xBD", $value);
         }
         $this->_data['personaname'] = $value;
     }
 
-    public function set_gameextrainfo($value)
+    /**
+     * @param $value
+     */
+    public function set_gameextrainfo($value): void
     {
         // If the value we're saving is NULL, save it and return.
         if (!$value) {
@@ -139,7 +170,7 @@ class _Profile extends \IPS\Patterns\ActiveRecord
         // Otherwise, let's see what we have... If we have a numeric value, it's a gameid, search owned / recent
         // If it's not numeric, set the string passed and move on.
         $name = null;
-        if (\is_numeric($value) && \IPS\Settings::i()->steam_get_owned) {
+        if (\is_numeric($value) && Settings::i()->steam_get_owned) {
             $this->ownedGames = $this->getOwned();
             // If we're playing the game, we own it. Check the cache for the game name.
             if (isset($this->ownedGames[$value])) {
@@ -156,7 +187,10 @@ class _Profile extends \IPS\Patterns\ActiveRecord
         $this->_data['gameextrainfo'] = $name;
     }
 
-    public function getOwned()
+    /**
+     * @return array|mixed
+     */
+    public function getOwned(): ?array
     {
         if (isset($this->owned)) {
             if (!\is_array($this->ownedGames) || !\count($this->ownedGames)) {
@@ -164,13 +198,16 @@ class _Profile extends \IPS\Patterns\ActiveRecord
             }
 
             return $this->ownedGames;
-        } else {
-            return array();
         }
 
+        return array();
     }
 
-    public function getRecent($count = 0)
+    /**
+     * @param int $count
+     * @return array
+     */
+    public function getRecent($count = 0): array
     {
         if (isset($this->games)) {
             if (!\is_array($this->recentGames) || !\count($this->recentGames)) {
@@ -179,7 +216,7 @@ class _Profile extends \IPS\Patterns\ActiveRecord
 
             $temp = $this->recentGames;
 
-            if (\is_array($temp) && \count($temp) && $count) {
+            if ($count && \is_array($temp) && \count($temp)) {
                 /* Limit to $count recent games, otherwise we may break a layout */
                 while (\count($temp) > $count) {
                     $yoink = \array_pop($temp);
@@ -188,14 +225,17 @@ class _Profile extends \IPS\Patterns\ActiveRecord
             }
 
             return $temp;
-        } else {
-            return array();
         }
+
+        return array();
     }
 
-    public function author()
+    /**
+     * @return \IPS\Member
+     */
+    public function author(): Member
     {
-        return \IPS\Member::load($this->member_id);
+        return Member::load($this->member_id);
     }
 
 }

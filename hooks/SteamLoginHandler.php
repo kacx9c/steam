@@ -8,7 +8,10 @@ if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
 abstract class steam_hook_SteamLoginHandler extends _HOOK_CLASS_
 {
 
-    public static function handlerClasses()
+    /**
+     * @return array
+     */
+    public static function handlerClasses(): array
     {
         $return = parent::handlerClasses();
         $return[] = 'IPS\steam\Login\Steam';

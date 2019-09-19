@@ -3,9 +3,16 @@
 
 namespace IPS\steam\modules\admin\steam;
 
+use IPS\Http\Url;
+use IPS\Helpers\Table;
+use IPS\Member;
+use IPS\Output;
+use IPS\Theme;
+use IPS\DateTime;
+
 /* To prevent PHP errors (extending class does not exist) revealing path */
 if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
-    header((isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0') . ' 403 Forbidden');
+    header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.0') . ' 403 Forbidden');
     exit;
 }
 
@@ -14,15 +21,21 @@ if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
  */
 class _view extends \IPS\Dispatcher\Controller
 {
+    /**
+     * @var string
+     */
     public $table = '';
 
+    /**
+     * @var array
+     */
     public $includeRows = array();
 
     /**
      * Execute
      * @return    void
      */
-    public function execute()
+    public function execute(): void
     {
         $this->includeRows = array(
             'photo',
@@ -45,11 +58,11 @@ class _view extends \IPS\Dispatcher\Controller
      * Manage
      * @return    void
      */
-    protected function manage()
+    protected function manage(): void
     {
         /* Create the table */
-        $this->table = new \IPS\Helpers\Table\Db('steam_profiles',
-            \IPS\Http\Url::internal('app=steam&module=steam&controller=view'));
+        $this->table = new Table\Db('steam_profiles',
+            Url::internal('app=steam&module=steam&controller=view'));
 
         /* To add new rows, overload and array_splice value into $this->includeRows.  Then return parent */
         $this->table->include = $this->includeRows;
@@ -59,8 +72,8 @@ class _view extends \IPS\Dispatcher\Controller
         $this->table->quickSearch = 'name';
 
         $this->table->advancedSearch = array(
-            'name'       => \IPS\Helpers\Table\SEARCH_CONTAINS_TEXT,
-            'st_steamid' => \IPS\Helpers\Table\SEARCH_CONTAINS_TEXT,
+            'name'       => Table\SEARCH_CONTAINS_TEXT,
+            'st_steamid' => Table\SEARCH_CONTAINS_TEXT,
         );
 
         /* $this->table->parsers */
@@ -94,14 +107,17 @@ class _view extends \IPS\Dispatcher\Controller
             'steam_filters_vacban'   => 'st_vac_status<>0',
         );
 
-        \IPS\Output::i()->title = \IPS\Member::loggedIn()->language()->addToStack('menu__steam_steam_view_title');
+        Output::i()->title = Member::loggedIn()->language()->addToStack('menu__steam_steam_view_title');
 
         /* Display */
-        \IPS\Output::i()->output = \IPS\Theme::i()->getTemplate('global', 'core')->block('title', (string)$this->table);
+        Output::i()->output = Theme::i()->getTemplate('global', 'core')->block('title', (string)$this->table);
     }
 
     /* Overload and add additional parsers for added columns to $data */
-    protected function parsedData($data = array())
+    /**
+     * @param array $data
+     */
+    protected function parsedData($data = array()): void
     {
         $this->table->parsers = array_merge(array(
             'photo'                       => function ($value, $row) {
@@ -143,123 +159,193 @@ class _view extends \IPS\Dispatcher\Controller
         ), $data);
     }
 
-    protected function photo($value, $row)
+    /**
+     * @param $value
+     * @param $row
+     * @return string
+     */
+    protected function photo($value, $row): string
     {
         if ($row['st_avatarmedium']) {
-            return "<img src=" . $row['st_avatarmedium'] . " class='ipsUserPhoto_small'/>";
-        } elseif ($row['st_restricted']) {
-            return "<span class='ipsType_warning'><strong>" . \IPS\Member::loggedIn()->language()->addToStack('steam_disabled') . "</strong></span>";
-        } else {
-            return;
+            return "<img src={$row['st_avatarmedium']} class='ipsUserPhoto_small'/>";
         }
+        if ($row['st_restricted']) {
+            return "<span class='ipsType_warning'><strong>{Member::loggedIn()->language()->addToStack('steam_disabled')}</strong></span>";
+        }
+
+        return '';
+
     }
 
-    protected function name($value, $row)
+    /**
+     * @param $value
+     * @param $row
+     * @return string
+     */
+    protected function name($value, $row): string
     {
-        $member = \IPS\Member::constructFromData($row);
+        $member = Member::constructFromData($row);
 
-        return "<a href=" . $member->url() . " target='_blank'>" . $member->name . "</a>";
+        return "<a href={$member->url()} target='_blank'>{$member->name}</a>";
 
     }
 
-    protected function steamID($value, $row)
+    /**
+     * @param $value
+     * @param $row
+     * @return string
+     */
+    protected function steamID($value, $row): string
     {
         if ($value) {
-            return "<a href=" . $row['st_profileurl'] . " target='_blank'>" . $value . "</a>";
-        } else {
-            return;
+            return "<a href={$row['st_profileurl']} target='_blank'>{$value}</a>";
         }
+
+        return '';
+
     }
 
-    protected function personaname($value, $row)
+    /**
+     * @param $value
+     * @param $row
+     * @return string
+     */
+    protected function personaname($value, $row): string
     {
-        $member = \IPS\Member::constructFromData($row);
+        $member = Member::constructFromData($row);
 
-        return "<a href=" . $member->acpUrl() . " target='_blank'>" . $value . "</a>";
+        return "<a href={$member->acpUrl()} target='_blank'>{$value}</a>";
     }
 
-    protected function lastUpdate($value, $row)
+    /**
+     * @param $value
+     * @param $row
+     * @return string
+     */
+    protected function lastUpdate($value, $row): string
     {
         if ($value) {
-            $ts = \IPS\DateTime::ts($value);
+            $ts = DateTime::ts($value);
 
             return $ts->relative('RELATIVE_FORMAT_SHORT');
-        } else {
-            return '';
         }
+
+        return '';
     }
 
-    protected function lastLogoff($value, $row)
+    /**
+     * @param $value
+     * @param $row
+     * @return string
+     */
+    protected function lastLogoff($value, $row): string
     {
         if ($value) {
-            $ts = \IPS\DateTime::ts($value);
+            $ts = DateTime::ts($value);
             if ($value < (time() - 86400)) {
                 return $ts->strFormat('%x');
-            } else {
-                return $ts->relative('RELATIVE_FORMAT_SHORT');
             }
-        } else {
-            return '';
+
+            return $ts->relative('RELATIVE_FORMAT_SHORT');
         }
+
+        return '';
     }
 
-    protected function restricted($value, $row)
+    /**
+     * @param $value
+     * @param $row
+     * @return string
+     */
+    protected function restricted($value, $row): string
     {
         return $value;
-        if ($value == 0) {
-            return "<span class='ipsType_success'><strong>" . \IPS\Member::loggedIn()->language()->addToStack('steam_no') . "</strong></span>";
-        }
-        if ($value < time()) {
-            return "<span class='ipsType_warning'><strong>" . \IPS\Member::loggedIn()->language()->addToStack('steam_yes') . "</strong></span>";
-        }
+//        if ($value == 0) {
+//            return "<span class='ipsType_success'><strong>{Member::loggedIn()->language()->addToStack('steam_no')}</strong></span>";
+//        }
+//        if ($value < time()) {
+//            return "<span class='ipsType_warning'><strong>{Member::loggedIn()->language()->addToStack('steam_yes')}</strong></span>";
+//        }
     }
 
-    protected function communityVisibilityState($value, $row)
+    /**
+     * @param $value
+     * @param $row
+     * @return string
+     */
+    protected function communityVisibilityState($value, $row): string
     {
         if ($value == 3) {
-            return "<span class='ipsType_success'><strong>" . \IPS\Member::loggedIn()->language()->addToStack('steam_public') . "</strong></span>";
-        } elseif ($value == 1 || $value == 2) {
-            return "<span class='ipsType_warning'><strong>" . \IPS\Member::loggedIn()->language()->addToStack('steam_private') . "</strong></span>";
-        } else {
-            return '';
+            return "<span class='ipsType_success'><strong>{Member::loggedIn()->language()->addToStack('steam_public')}</strong></span>";
         }
+        if ($value == 1 || $value == 2) {
+            return "<span class='ipsType_warning'><strong>{Member::loggedIn()->language()->addToStack('steam_private')}</strong></span>";
+        }
+
+        return '';
     }
 
-    protected function vacStatus($value, $row)
+    /**
+     * @param $value
+     * @param $row
+     * @return string
+     */
+    protected function vacStatus($value, $row): string
     {
         if ($value == 0) {
-            return "<span class='ipsType_success'><strong>" . \IPS\Member::loggedIn()->language()->addToStack('steam_no') . "</strong></span>";
+            return "<span class='ipsType_success'><strong>{Member::loggedIn()->language()->addToStack('steam_no')}</strong></span>";
         }
         if ($value < time()) {
-            return "<span class='ipsType_warning'><strong>" . \IPS\Member::loggedIn()->language()->addToStack('steam_banned') . "</strong></span>";
+            return "<span class='ipsType_warning'><strong>{Member::loggedIn()->language()->addToStack('steam_banned')}</strong></span>";
         }
+
+        return '';
     }
 
-    protected function personaState($value, $row)
+    /**
+     * @param $value
+     * @param $row
+     * @return string
+     */
+    protected function personaState($value, $row): string
     {
         if ($row['st_gameextrainfo'] || $row['st_gameid']) {
-            return '<span class="ipsBadge ipsBadge_positive" data-ipsToolTip title="' . $row['st_gameextrainfo'] . '">' . \IPS\Member::loggedIn()->language()->addToStack('steam_ingame') . '</span>';
-        } else {
-            if (!$value) {
-                return '<span class="ipsBadge ipsBadge_neutral">' . \IPS\Member::loggedIn()->language()->addToStack('steam_status_' . $value) . '</span>';
-            } else {
-                return '<span class="ipsBadge" style="background: #86b5d9;">' . \IPS\Member::loggedIn()->language()->addToStack('steam_status_' . $value) . '</span>';
-            }
+            return "<span class='ipsBadge ipsBadge_positive' data-ipsToolTip title='{$row['st_gameextrainfo']}'>{Member::loggedIn()->language()->addToStack('steam_ingame')}</span>";
         }
+        if (!$value) {
+            return "<span class='ipsBadge ipsBadge_neutral'>{Member::loggedIn()->language()->addToStack('steam_status_' . $value)}</span>";
+        }
+
+        return "<span class='ipsBadge' style='background: #86b5d9;'>{Member::loggedIn()->language()->addToStack('steam_status_' . $value)}</span>";
+
     }
 
-    protected function playtime($value, $row)
+    /**
+     * @param $value
+     * @param $row
+     * @return float
+     */
+    protected function playtime($value, $row): float
     {
         if ($value) {
-            return \round(($value / 60), 1);
+            return \round($value / 60, 1);
         }
+
+        return 0;
     }
 
-    protected function error($value, $row)
+    /**
+     * @param $value
+     * @param $row
+     * @return string
+     */
+    protected function error($value, $row): string
     {
         if ($value) {
-            return '<span class="ipsType_warning" data-ipsToolTip title="' . \IPS\Member::loggedIn()->language()->addToStack($value) . '"><strong>ERROR</strong></span>';
+            return "<span class='ipsType_warning' data-ipsToolTip title='{Member::loggedIn()->language()->addToStack($value)}'><strong>ERROR</strong></span>";
         }
+
+        return '';
     }
 
 

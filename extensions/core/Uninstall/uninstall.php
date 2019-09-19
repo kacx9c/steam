@@ -12,9 +12,12 @@
 
 namespace IPS\steam\extensions\core\Uninstall;
 
+use IPS\Login\Handler;
+use IPS\Db;
+
 /* To prevent PHP errors (extending class does not exist) revealing path */
 if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
-    header((isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0') . ' 403 Forbidden');
+    header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.0') . ' 403 Forbidden');
     exit;
 }
 
@@ -26,20 +29,23 @@ class _uninstall
     /**
      * Code to execute before the application has been uninstalled
      * @param string $application Application directory
-     * @return    array
+     * @return    void
      */
-    public function preUninstall($application)
+    public function preUninstall($application): void
     {
-        $handler = \IPS\Login\Handler::findMethod('IPS\steam\Login\Steam');
+        /**
+         * @var \IPS\Login\Handler $handler
+         */
+        $handler = Handler::findMethod('IPS\steam\Login\Steam');
         try {
-            \IPS\Db::i()->update('core_login_methods', array('login_enabled=?', 0), array('login_id=?', $handler->id));
+            Db::i()->update('core_login_methods', array('login_enabled=?', 0), array('login_id=?', $handler->id));
         } catch (\IPS\Db\Exception $e) {
         }
 
         try {
-            \IPS\Db::i()->update('core_pfields_data', array('pf_type' => 'Text'), array('pf_type=?', 'Steamid'));
+            Db::i()->update('core_pfields_data', array('pf_type' => 'Text'), array('pf_type=?', 'Steamid'));
             // \IPS\Db::i()->dropColumn( 'core_groups', array( 'steam_index', 'steam_pull' ));
-        } catch (\IPS\Db\Exception $e) {
+        } catch (Db\Exception $e) {
             /* Ignore "Cannot drop because it does not exist" */
             if ($e->getCode() <> 1091) {
                 throw $e;
@@ -50,9 +56,9 @@ class _uninstall
     /**
      * Code to execute after the application has been uninstalled
      * @param string $application Application directory
-     * @return    array
+     * @return    void
      */
-    public function postUninstall($application)
+    public function postUninstall($application): void
     {
     }
 }

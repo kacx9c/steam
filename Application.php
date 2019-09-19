@@ -2,20 +2,26 @@
 
 namespace IPS\steam;
 
+use IPS\Member;
+use IPS\Application;
+use IPS\Request;
+use IPS\Output;
+use IPS\Db;
+
 /**
  * Blog Application Class
  */
-class _Application extends \IPS\Application
+class _Application extends Application
 {
     /**
      * Init
      * @return    void
      */
-    public function init()
+    public function init(): void
     {
         /* If the viewing member cannot view the board (ex: guests must login first), then send a 404 Not Found header here, before the Login page shows in the dispatcher */
-        if (!\IPS\Member::loggedIn()->group['g_view_board'] and (\IPS\Request::i()->module == 'steam' and \IPS\Request::i()->controller == 'view' and \IPS\Request::i()->do == 'rss')) {
-            \IPS\Output::i()->error('node_error', '2B221/1', 404, '');
+        if (!Member::loggedIn()->group['g_view_board'] && (Request::i()->module == 'steam' && Request::i()->controller == 'view' && Request::i()->do == 'rss')) {
+            Output::i()->error('node_error', '2B221/1', 404, '');
         }
     }
 
@@ -24,12 +30,12 @@ class _Application extends \IPS\Application
      *  specific installation needs. Always run as the last step.
      * @return void
      */
-    public function installOther()
+    public function installOther(): void
     {
         // Will need to get rid of this at some point and start managing everything from the login handler table
         // or profile fields.  Need to get out of core_members.
-        if (!\IPS\Db::i()->checkForColumn('core_members', 'steamid')) {
-            \IPS\Db::i()->addColumn('core_members', [
+        if (!Db::i()->checkForColumn('core_members', 'steamid')) {
+            Db::i()->addColumn('core_members', [
                 'name'   => 'steamid',
                 'type'   => 'VARCHAR',
                 'length' => 17,
@@ -38,55 +44,12 @@ class _Application extends \IPS\Application
 
         // Will need to get rid of this at some point and start managing everything from the login handler table
         // or profile fields.  Need to get out of core_members.
-        if (!\IPS\Db::i()->checkForIndex('core_members', 'steamid')) {
-            \IPS\Db::i()->addIndex('core_members', array(
+        if (!Db::i()->checkForIndex('core_members', 'steamid')) {
+            Db::i()->addIndex('core_members', array(
                 'name'    => 'steamid',
                 'type'    => 'key',
                 'columns' => array('steamid'),
             ));
         }
-
-        // Removing the cleanup of Lavo's 4.2.x login handler.
-        // As we move beyond 4.4, the chances of needing it are slim, and can still be done manually via ACP.
-//        try {
-//            \IPS\Db::i()->select('login_id', 'core_login_methods',
-//                array('login_classname=?', 'IPS\Login\Steam'))->first();
-//            \IPS\Db::i()->delete('core_login_methods', array('login_classname=?', 'IPS\Login\Steam'));
-//        } catch (\UnderflowException $e) {
-//            // Do nothing, we're creating a new login handler no matter what, and removing the old Sign in.
-//        }
-
-        // Auto creates login handler
-        // but is causing clients to have duplicates when they uninstall and re-install
-//        if (!\IPS\Login\Handler::findMethod('IPS\steam\Login\Steam')) {
-//            $maxLoginOrder = \IPS\Db::i()->select('MAX(login_order)', 'core_login_methods')->first();
-//
-//            $id = \IPS\Db::i()->insert('core_login_methods', array(
-//                'login_settings'  => json_encode(array()),
-//                'login_classname' => 'IPS\steam\Login\Steam',
-//                'login_enabled'   => 1,
-//                'login_order'     => $maxLoginOrder + 1,
-//                'login_register'  => 1,
-//                'login_acp'       => 0,
-//            ));
-//
-//        } else {
-//            return;
-//        }
-
-        // Auto creates login handler
-        // but is causing clients to have duplicates when they uninstall and re-install
-//         \IPS\Lang::saveCustom('core', "login_method_{$id}", \IPS\Member::loggedIn()->language()->get('__app_steam'));
-
-        // Getting rid of the IPS 4.2 conversion code. can provide on an as needed basis.
-//        $select = 'm.*';
-//        $where = 'm.steamid>0';
-//
-//        $query = \IPS\Db::i()->select($select, array('core_members', 'm'), $where, 'm.member_id ASC', array(0, 10),
-//            null, null, '111');
-//
-//        if ($query->count(true)) {
-//            \IPS\Task::queue('steam', 'convert', array('total' => $query->count(true)), 3, array('total'));
-//        }
     }
 }

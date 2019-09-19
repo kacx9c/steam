@@ -9,7 +9,7 @@ class steam_hook_steamPostJoin extends _HOOK_CLASS_
      * @param \IPS\Content\Item $item The item
      * @return    array
      */
-    static public function joins(\IPS\Content\Item $item)
+    public static function joins(\IPS\Content\Item $item): array
     {
         try {
             $return = parent::joins($item);
@@ -27,9 +27,8 @@ class steam_hook_steamPostJoin extends _HOOK_CLASS_
         } catch (\RuntimeException $e) {
             if (method_exists(get_parent_class(), __FUNCTION__)) {
                 return call_user_func_array('parent::' . __FUNCTION__, \func_get_args());
-            } else {
-                throw $e;
             }
+            throw $e;
         }
     }
 
@@ -39,7 +38,7 @@ class steam_hook_steamPostJoin extends _HOOK_CLASS_
      * @param bool  $updateMultitonStoreIfExists Replace current object in multiton store if it already exists there?
      * @return    static
      */
-    static public function constructFromData($data, $updateMultitonStoreIfExists = true)
+    public static function constructFromData($data, $updateMultitonStoreIfExists = true)
     {
         try {
             $steam = null;
@@ -57,9 +56,8 @@ class steam_hook_steamPostJoin extends _HOOK_CLASS_
         } catch (\RuntimeException $e) {
             if (method_exists(get_parent_class(), __FUNCTION__)) {
                 return call_user_func_array('parent::' . __FUNCTION__, \func_get_args());
-            } else {
-                throw $e;
             }
+            throw $e;
         }
     }
 

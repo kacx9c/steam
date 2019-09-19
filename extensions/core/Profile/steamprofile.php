@@ -12,9 +12,14 @@
 
 namespace IPS\steam\extensions\core\Profile;
 
+use IPS\Member;
+use IPS\steam\Profile;
+use IPS\Theme;
+use IPS\Output;
+
 /* To prevent PHP errors (extending class does not exist) revealing path */
 if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
-    header((isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0') . ' 403 Forbidden');
+    header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.0') . ' 403 Forbidden');
     exit;
 }
 
@@ -33,10 +38,10 @@ class _steamprofile
      * @param \IPS\Member $member Member whose profile we are viewing
      * @return    void
      */
-    public function __construct(\IPS\Member $member)
+    public function __construct(Member $member)
     {
         $this->member = $member;
-        $this->stProfile = new \IPS\steam\Profile;
+        $this->stProfile = new Profile;
         $this->steam = $this->stProfile->load($this->member->member_id, 'st_member_id');
     }
 
@@ -44,7 +49,7 @@ class _steamprofile
      * Is there content to display?
      * @return    bool
      */
-    public function showTab()
+    public function showTab(): bool
     {
         if (!$this->member->group['steam_pull']) {
             return false;
@@ -52,7 +57,7 @@ class _steamprofile
         if ($this->steam->member_id && $this->steam->steamid) {
             return true;
         }
-        if (\IPS\Member::loggedIn()->isAdmin() || ($this->member->member_id == \IPS\Member::loggedIn()->member_id)) {
+        if (($this->member->member_id == Member::loggedIn()->member_id) || Member::loggedIn()->isAdmin()) {
             return true;
         }
 
@@ -65,17 +70,16 @@ class _steamprofile
      * Display
      * @return    string
      */
-    public function render()
+    public function render(): string
     {
         /* Load up a template and return it. */
         if (!$this->steam->member_id) {
             /* If there isn't a Steam profile, set the member ID so we have access to the Update / Validate functions */
             $this->steam->member_id = $this->member->member_id;
         }
-        \IPS\Output::i()->cssFiles = array_merge(\IPS\Output::i()->cssFiles,
-            \IPS\Theme::i()->css('profile.css', 'steam', 'front'));
-        $html = \IPS\Theme::i()->getTemplate('global', 'steam')->steamProfile($this->steam);
+        Output::i()->cssFiles = array_merge(Output::i()->cssFiles,
+            Theme::i()->css('profile.css', 'steam', 'front'));
 
-        return $html;
+        return Theme::i()->getTemplate('global', 'steam')->steamProfile($this->steam);
     }
 }

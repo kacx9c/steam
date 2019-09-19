@@ -2,16 +2,21 @@
 
 namespace IPS\steam\Profile;
 
+use IPS\Patterns\ActiveRecord;
+use IPS\Http\Url;
+use IPS\Settings;
+
+
 /* To prevent PHP errors (extending class does not exist) revealing path */
 if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
-    header((isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0') . ' 403 Forbidden');
+    header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.0') . ' 403 Forbidden');
     exit;
 }
 
 /**
  * Steam Update Class
  */
-class _Groups extends \IPS\Patterns\ActiveRecord
+class _Groups extends ActiveRecord
 {
     /**
      * @brief    [ActiveRecord] Database Prefix
@@ -21,7 +26,7 @@ class _Groups extends \IPS\Patterns\ActiveRecord
     /**
      * @brief    [ActiveRecord] ID Database Column
      */
-    public static $databaseColumnId = 'id';
+    public static $databaseColumnId;
 
     /**
      * @brief    [ActiveRecord] Database table
@@ -37,12 +42,21 @@ class _Groups extends \IPS\Patterns\ActiveRecord
     /**
      * @brief    Bitwise keys
      */
-    protected static $bitOptions = array();
+    protected static $bitOptions;
 
+    /**
+     * @var array
+     */
     public $ownedGames = array();
 
+    /**
+     * @var array
+     */
     public $recentGames = array();
 
+    /**
+     * @var array
+     */
     public $playerLevel = array();
 
     /**
@@ -50,19 +64,25 @@ class _Groups extends \IPS\Patterns\ActiveRecord
      * @note    This needs to be declared in any child classes as well, only declaring here for editor
      *          code-complete/error-check functionality
      */
-    protected static $multitons = array();
+    protected static $multitons;
 
-    public static function load($id, $idField = null, $extraWhereClause = null)
+    /**
+     * @param int|string $id
+     * @param null       $idField
+     * @param null       $extraWhereClause
+     * @return \IPS\steam\Profile\Groups
+     */
+    public static function load($id, $idField = null, $extraWhereClause = null): Groups
     {
         try {
-            if ($id === null OR $id === 0 OR $id === '') {
-                $classname = get_called_class();
+            if ($id === null || $id === 0 || $id === '') {
+                $classname = static::class;
 
                 return new $classname;
             }
             $member = parent::load($id, $idField, $extraWhereClause);
         } catch (\OutOfRangeException $e) {
-            $classname = get_called_class();
+            $classname = static::class;
 
             return new $classname;
         }
@@ -82,7 +102,10 @@ class _Groups extends \IPS\Patterns\ActiveRecord
 
     }
 
-    public function setDefaultValues()
+    /**
+     *
+     */
+    public function setDefaultValues(): void
     {
         $this->name = '';
         $this->summary = '';
@@ -98,7 +121,10 @@ class _Groups extends \IPS\Patterns\ActiveRecord
         $this->url = '';
     }
 
-    public function storeXML($data)
+    /**
+     * @param $data
+     */
+    public function storeXML($data): void
     {
         $this->id = (string)$data->groupID64;
         $this->name = (string)$data->groupDetails->groupName;
@@ -117,24 +143,34 @@ class _Groups extends \IPS\Patterns\ActiveRecord
         $this->error = '';
     }
 
-    public function set_members($values = array())
+    /**
+     * @param array $values
+     */
+    public function set_members($values = array()): void
     {
         $this->_data['members'] = json_encode($values);
     }
 
-    public function set_avatarIcon($value)
+    /**
+     * @param $value
+     */
+    public function set_avatarIcon($value): void
     {
         $this->avatarProxy('avatarIcon', $value);
     }
 
-    protected function avatarProxy($key, $val)
+    /**
+     * @param $key
+     * @param $val
+     */
+    protected function avatarProxy($key, $val): void
     {
         $proxyUrl = null;
-        if ($val && \IPS\Settings::i()->remote_image_proxy) {
-            $proxyUrl = \IPS\Http\Url::createFromString(\IPS\Settings::i()->base_url . "applications/core/interface/imageproxy/imageproxy.php");
+        if ($val && Settings::i()->remote_image_proxy) {
+            $proxyUrl = Url::createFromString(Settings::i()->base_url . 'applications/core/interface/imageproxy/imageproxy.php');
             $proxyUrl = $proxyUrl->setQueryString(array(
                 'img' => $val,
-                'key' => hash_hmac('sha256', $val, \IPS\Settings::i()->site_secret_key),
+                'key' => hash_hmac('sha256', $val, Settings::i()->site_secret_key),
             ));
 
             $this->_data[$key] = (string)$proxyUrl;
@@ -143,24 +179,36 @@ class _Groups extends \IPS\Patterns\ActiveRecord
         }
     }
 
-    public function set_avatarMedium($value)
+    /**
+     * @param $value
+     */
+    public function set_avatarMedium($value): void
     {
         $this->avatarProxy('avatarMedium', $value);
     }
 
-    public function set_avatarFull($value)
+    /**
+     * @param $value
+     */
+    public function set_avatarFull($value): void
     {
         $this->avatarProxy('avatarFull', $value);
     }
 
-    public function url()
+    /**
+     * @return string
+     */
+    public function url(): string
     {
-        return "https://steamcommunity.com/groups/" . $this->url;
+        return 'https://steamcommunity.com/groups/' . $this->url;
     }
 
-    public function chat()
+    /**
+     * @return string
+     */
+    public function chat(): string
     {
-        return "steam://friends/joinchat/" . $this->id;
+        return 'steam://friends/joinchat/' . $this->id;
     }
 
 }

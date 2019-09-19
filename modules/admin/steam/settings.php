@@ -3,25 +3,33 @@
 
 namespace IPS\steam\modules\admin\steam;
 
+use IPS\Dispatcher\Controller;
+use IPS\Helpers\Form;
+use IPS\Member;
+use IPS\steam\Update;
+use IPS\Settings;
+use IPS\Output;
+use IPS\Dispatcher;
+
 /* To prevent PHP errors (extending class does not exist) revealing path */
 if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
-    header((isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0') . ' 403 Forbidden');
+    header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.0') . ' 403 Forbidden');
     exit;
 }
 
 /**
  * forums
  */
-class _settings extends \IPS\Dispatcher\Controller
+class _settings extends Controller
 {
 
     /**
      * Execute
      * @return    void
      */
-    public function execute()
+    public function execute(): void
     {
-        \IPS\Dispatcher::i()->checkAcpPermission('steam_settings');
+        Dispatcher::i()->checkAcpPermission('steam_settings');
         parent::execute();
     }
 
@@ -29,28 +37,28 @@ class _settings extends \IPS\Dispatcher\Controller
      * Manage Settings
      * @return    void
      */
-    protected function manage()
+    protected function manage(): void
     {
 
-        $form = new \IPS\Helpers\Form;
+        $form = new Form;
         $form->addHeader('steam__gen_settings');
-        $form->add(new \IPS\Helpers\Form\Text('steam_api_key', \IPS\Settings::i()->steam_api_key, false, array(), null,
+        $form->add(new Form\Text('steam_api_key', Settings::i()->steam_api_key, false, array(), null,
             null, null, 'steam_api_key'));
-        $form->add(new \IPS\Helpers\Form\Text('steam_profile_count', \IPS\Settings::i()->steam_profile_count, false,
+        $form->add(new Form\Text('steam_profile_count', Settings::i()->steam_profile_count, false,
             array(), null, null, null, 'steam_profile_count'));
-        $form->add(new \IPS\Helpers\Form\Text('steam_batch_count', \IPS\Settings::i()->steam_batch_count, false,
+        $form->add(new Form\Text('steam_batch_count', Settings::i()->steam_batch_count, false,
             array(), null, null, null, 'steam_batch_count'));
 
-        $form->add(new \IPS\Helpers\Form\YesNo('steam_showintopic', \IPS\Settings::i()->steam_showintopic, false,
+        $form->add(new Form\YesNo('steam_showintopic', Settings::i()->steam_showintopic, false,
             array(), null, null, null, 'steam_showintopic'));
-        $form->add(new \IPS\Helpers\Form\YesNo('steam_showonhover', \IPS\Settings::i()->steam_showonhover, false,
+        $form->add(new Form\YesNo('steam_showonhover', Settings::i()->steam_showonhover, false,
             array(), null, null, null, 'steam_showonhover'));
 
-        $form->add(new \IPS\Helpers\Form\YesNo('steam_diagnostics', \IPS\Settings::i()->steam_diagnostics, false,
+        $form->add(new Form\YesNo('steam_diagnostics', Settings::i()->steam_diagnostics, false,
             array(), null, null, null, 'steam_diagnostics'));
 
         $form->addHeader('steam__mem_profiles');
-        $form->add(new \IPS\Helpers\Form\YesNo('steam_showinprofile', \IPS\Settings::i()->steam_showinprofile, false,
+        $form->add(new Form\YesNo('steam_showinprofile', Settings::i()->steam_showinprofile, false,
             array(
                 'togglesOn' => array(
                     'steam_default_tab',
@@ -61,7 +69,7 @@ class _settings extends \IPS\Dispatcher\Controller
                 ),
             ), null, null, null, 'steam_showinprofile'));
 
-        $form->add(new \IPS\Helpers\Form\YesNo('steam_default_tab', \IPS\Settings::i()->steam_default_tab, false,
+        $form->add(new Form\YesNo('steam_default_tab', Settings::i()->steam_default_tab, false,
             array(), null, null, null, 'steam_default_tab'));
 
 
@@ -74,26 +82,26 @@ class _settings extends \IPS\Dispatcher\Controller
             'multiple' => false,
         );
 
-        $form->add(new \IPS\Helpers\Form\YesNo('steam_get_owned', \IPS\Settings::i()->steam_get_owned, false,
+        $form->add(new Form\YesNo('steam_get_owned', Settings::i()->steam_get_owned, false,
             array('togglesOn' => array('steam_profile_style')), null, null, null, 'steam_get_owned'));
-        $form->add(new \IPS\Helpers\Form\Select('steam_profile_style', \IPS\Settings::i()->steam_profile_style, false,
+        $form->add(new Form\Select('steam_profile_style', Settings::i()->steam_profile_style, false,
             $defaults, null, null, null, 'steam_profile_style'));
-        $form->add(new \IPS\Helpers\Form\YesNo('steam_link_stats', \IPS\Settings::i()->steam_link_stats, false, array(),
+        $form->add(new Form\YesNo('steam_link_stats', Settings::i()->steam_link_stats, false, array(),
             null, null, null, 'steam_link_stats'));
-        $form->add(new \IPS\Helpers\Form\YesNo('steam_can_clear', \IPS\Settings::i()->steam_can_clear, false, array(),
+        $form->add(new Form\YesNo('steam_can_clear', Settings::i()->steam_can_clear, false, array(),
             null, null, null, 'steam_can_clear'));
 
-        $form->add(new \IPS\Helpers\Form\Editor('steam_instructions', \IPS\Settings::i()->steam_instructions, false,
+        $form->add(new Form\Editor('steam_instructions', Settings::i()->steam_instructions, false,
             array(
                 'app'         => 'core',
                 'key'         => 'Admin',
-                'autoSaveKey' => "steam_instructions",
+                'autoSaveKey' => 'steam_instructions',
                 'attachIds'   => array('steam_inst_'),
             ), null, null, null, 'steam_instructions'));
 
         $form->addHeader('steam__mem_groups');
 
-        $form->add(new \IPS\Helpers\Form\Stack('steam_comm_groups', json_decode(\IPS\Settings::i()->steam_comm_groups),
+        $form->add(new Form\Stack('steam_comm_groups', json_decode(Settings::i()->steam_comm_groups, true),
             false, array(), null, null, null, 'steam_comm_group'));
 
 
@@ -115,7 +123,7 @@ class _settings extends \IPS\Dispatcher\Controller
             }
             try {
                 // Add any new entries to the database.
-                \IPS\steam\Update\Groups::sync($groups);
+                Update\Groups::sync($groups);
             } catch (\Exception $e) {
                 // Catch BAD_XML if the sync fails, because not doing so will cause settings to not save
                 // Do nothing for now, error handling to come later with update rewrite.
@@ -125,8 +133,8 @@ class _settings extends \IPS\Dispatcher\Controller
             $form->saveAsSettings($values);
         }
 
-        \IPS\Output::i()->title = \IPS\Member::loggedIn()->language()->addToStack('menu__steam_steam_settings_title');
-        \IPS\Output::i()->output = $form;
+        Output::i()->title = Member::loggedIn()->language()->addToStack('menu__steam_steam_settings_title');
+        Output::i()->output = $form;
 
 //		\IPS\Output::i()->output 	= \IPS\Theme::i()->getTemplate( 'global', 'core' )->tabs( $tabs, $activeTab, $activeTabContents, \IPS\Http\Url::internal( "app=forums&module=forums&controller=settings" ) );
     }

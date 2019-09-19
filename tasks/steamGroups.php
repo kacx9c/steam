@@ -11,16 +11,21 @@
 
 namespace IPS\steam\tasks;
 
+use IPS\Application;
+use IPS\Task;
+use IPS\steam\Update;
+use IPS\Widget;
+
 /* To prevent PHP errors (extending class does not exist) revealing path */
 if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
-    header((isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0') . ' 403 Forbidden');
+    header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.0') . ' 403 Forbidden');
     exit;
 }
 
 /**
  * steamGroups Task
  */
-class _steamGroups extends \IPS\Task
+class _steamGroups extends Task
 {
     /**
      * Execute
@@ -34,22 +39,22 @@ class _steamGroups extends \IPS\Task
      */
     public function execute()
     {
-        if (!\IPS\Application::appIsEnabled('steam')) {
+        if (!Application::appIsEnabled('steam')) {
             return null;
         }
 
         if (!isset($_SERVER['REQUEST_METHOD'])) {
-            $_SERVER['REQUEST_METHOD'] = "POST";
+            $_SERVER['REQUEST_METHOD'] = 'POST';
         }
 
         try {
-            $steam = new \IPS\steam\Update\Groups;
+            $steam = new Update\Groups;
             $steam->update();
         } catch (\Exception $e) {
-            throw new \IPS\Task\Exception($this, $e);
+            throw new Task\Exception($this, $e);
         }
 
-        \IPS\Widget::deleteCaches('steamGroupWidget', 'steam');
+        Widget::deleteCaches('steamGroupWidget', 'steam');
 
         return null;
     }
@@ -61,7 +66,7 @@ class _steamGroups extends \IPS\Task
      * may not have been done
      * @return    void
      */
-    public function cleanup()
+    public function cleanup(): void
     {
 
     }

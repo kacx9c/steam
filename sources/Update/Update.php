@@ -106,6 +106,7 @@ class _Update
         }
         $this->steamLogin = Db::i()->checkForColumn('core_members', 'steamid') ? 1 : 0;
         $this->profile = new Profile;
+
         $emptyCache = array(
             'offset'         => 0,
             'count'          => 0,

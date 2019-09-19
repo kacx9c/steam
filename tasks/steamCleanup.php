@@ -12,9 +12,13 @@
 
 namespace IPS\steam\tasks;
 
+use IPS\Application;
+use IPS\Task;
+use IPS\steam\Update;
+
 /* To prevent PHP errors (extending class does not exist) revealing path */
 if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
-    header((isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0') . ' 403 Forbidden');
+    header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.0') . ' 403 Forbidden');
     exit;
 }
 
@@ -22,7 +26,7 @@ if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
 /**
  * steamcleanup Task
  */
-class _steamCleanup extends \IPS\Task
+class _steamCleanup extends Task
 {
     /**
      * Execute
@@ -36,20 +40,20 @@ class _steamCleanup extends \IPS\Task
      */
     public function execute()
     {
-        if (!\IPS\Application::appIsEnabled('steam')) {
+        if (!Application::appIsEnabled('steam')) {
             return null;
         }
 
         if (!isset($_SERVER['REQUEST_METHOD'])) {
-            $_SERVER['REQUEST_METHOD'] = "POST";
+            $_SERVER['REQUEST_METHOD'] = 'POST';
         }
 
         try {
-            $steam = new \IPS\steam\Update;
+            $steam = new Update;
             $steam->cleanup();
 
         } catch (\Exception $e) {
-            throw new \IPS\Task\Exception($this, $e);
+            throw new Task\Exception($this, $e);
         }
 
         return null;
@@ -62,7 +66,7 @@ class _steamCleanup extends \IPS\Task
      * may not have been done
      * @return    void
      */
-    public function cleanup()
+    public function cleanup(): void
     {
 
     }

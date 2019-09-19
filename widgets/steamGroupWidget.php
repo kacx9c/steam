@@ -11,16 +11,24 @@
 
 namespace IPS\steam\widgets;
 
+use IPS\Helpers\Form;
+use IPS\Widget\StaticCache;
+use IPS\Theme;
+use IPS\Db;
+use IPS\steam\Profile;
+use IPS\Output;
+use IPS\Patterns\ActiveRecordIterator;
+
 /* To prevent PHP errors (extending class does not exist) revealing path */
 if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
-    header((isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0') . ' 403 Forbidden');
+    header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.0') . ' 403 Forbidden');
     exit;
 }
 
 /**
  * steamGroupWidget Widget
  */
-class _steamGroupWidget extends \IPS\Widget\StaticCache
+class _steamGroupWidget extends StaticCache
 {
     /**
      * @brief    Widget Key
@@ -49,9 +57,9 @@ class _steamGroupWidget extends \IPS\Widget\StaticCache
      * Initialise this widget
      * @return void
      */
-    public function init()
+    public function init(): void
     {
-        $this->template(array(\IPS\Theme::i()->getTemplate('widgets', $this->app, 'front'), $this->key));
+        $this->template(array(Theme::i()->getTemplate('widgets', $this->app, 'front'), $this->key));
 
         if (!isset($this->configuration['steamDescription'])) {
             $this->configuration['steamDescription'] = true;
@@ -68,8 +76,8 @@ class _steamGroupWidget extends \IPS\Widget\StaticCache
         if (!isset($this->configuration['steamUserCount'])) {
             $this->configuration['steamUserCount'] = 10;
         }
-        \IPS\Output::i()->cssFiles = array_merge(\IPS\Output::i()->cssFiles,
-            \IPS\Theme::i()->css('widget.css', 'steam', 'front'));
+        Output::i()->cssFiles = array_merge(Output::i()->cssFiles,
+            Theme::i()->css('widget.css', 'steam', 'front'));
 
         parent::init();
     }
@@ -79,15 +87,15 @@ class _steamGroupWidget extends \IPS\Widget\StaticCache
      * @param null|\IPS\Helpers\Form $form Form object
      * @return    null|\IPS\Helpers\Form
      */
-    public function configuration(&$form = null)
+    public function configuration(&$form = null): ?Form
     {
         // steamGroup $defaults
         if ($form === null) {
-            $form = new \IPS\Helpers\Form;
+            $form = new Form;
         }
-        $select = "g.stg_url,g.stg_name";
-        $where = "";
-        $query = \IPS\Db::i()->select($select, array('steam_groups', 'g'), $where);
+        $select = 'g.stg_url,g.stg_name';
+        $where = '';
+        $query = Db::i()->select($select, array('steam_groups', 'g'), $where);
         $options = array();
         foreach ($query as $row) {
             $options[$row['stg_url']] = $row['stg_name'];
@@ -103,20 +111,15 @@ class _steamGroupWidget extends \IPS\Widget\StaticCache
             'togglesOn' => array('steamLimit', 'steamUserCount'),
         );
 
-        $form->add(new \IPS\Helpers\Form\Select('steamGroup',
-            isset($this->configuration['steamGroup']) ? $this->configuration['steamGroup'] : null, false, $defaults,
+        $form->add(new Form\Select('steamGroup', $this->configuration['steamGroup'] ?? null, false, $defaults,
             null, null, null, 'steamGroup'));
-        $form->add(new \IPS\Helpers\Form\YesNo('steamDescription',
-            isset($this->configuration['steamDescription']) ? $this->configuration['steamDescription'] : true, false,
+        $form->add(new Form\YesNo('steamDescription', $this->configuration['steamDescription'] ?? true, false,
             array(), null, null, null, 'steamDescription'));
-        $form->add(new \IPS\Helpers\Form\YesNo('steamShowMembers',
-            isset($this->configuration['steamShowMembers']) ? $this->configuration['steamShowMembers'] : null, false,
+        $form->add(new Form\YesNo('steamShowMembers', $this->configuration['steamShowMembers'] ?? null, false,
             $options, null, null, null, 'steamShowMembers'));
-        $form->add(new \IPS\Helpers\Form\Text('steamLimit',
-            isset($this->configuration['steamLimit']) ? $this->configuration['steamLimit'] : '10', false, array(), null,
+        $form->add(new Form\Text('steamLimit', $this->configuration['steamLimit'] ?? '10', false, array(), null,
             null, null, 'steamLimit'));
-        $form->add(new \IPS\Helpers\Form\Text('steamUserCount',
-            isset($this->configuration['steamUserCount']) ? $this->configuration['steamUserCount'] : '10', false,
+        $form->add(new Form\Text('steamUserCount', $this->configuration['steamUserCount'] ?? '10', false,
             array(), null, null, null, 'steamUserCount'));
 
         return $form;
@@ -127,7 +130,7 @@ class _steamGroupWidget extends \IPS\Widget\StaticCache
      * @param array $values Values from form
      * @return    array
      */
-    public function preConfig($values)
+    public function preConfig($values): array
     {
         return $values;
     }
@@ -136,17 +139,16 @@ class _steamGroupWidget extends \IPS\Widget\StaticCache
      * Render a widget
      * @return    string
      */
-    public function render()
+    public function render(): string
     {
-        $group = array();
         $profiles = array();
         if ($this->configuration['steamGroup']) {
-            $group = \IPS\steam\Profile\Groups::load($this->configuration['steamGroup'], 'stg_url');
+            $group = Profile\Groups::load($this->configuration['steamGroup'], 'stg_url');
 
             if (isset($group->id) && !empty($group->id)) {
-                $members = new \IPS\Patterns\ActiveRecordIterator(
-                    \IPS\Db::i()->select('*', 'steam_profiles',
-                        array("st_player_groups LIKE '%" . $group->id . "%'"), "RAND()",
+                $members = new ActiveRecordIterator(
+                    Db::i()->select('*', 'steam_profiles',
+                        array("st_player_groups LIKE '%" . $group->id . "%'"), 'RAND()',
                         $this->configuration['steamLimit']),
                     'IPS\steam\Profile');
 
@@ -155,7 +157,7 @@ class _steamGroupWidget extends \IPS\Widget\StaticCache
             $group->summary = strip_tags($group->summary, '<a><br /><br/><br>');
 
         } else {
-            return "";
+            return '';
         }
         if ($this->orientation === 'vertical') {
             $vert = true;

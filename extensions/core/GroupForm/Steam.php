@@ -12,6 +12,8 @@
 
 namespace IPS\steam\extensions\core\GroupForm;
 
+use IPS\Helpers\Form;
+
 /* To prevent PHP errors (extending class does not exist) revealing path */
 if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
     header($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.0' . ' 403 Forbidden');
@@ -31,8 +33,8 @@ class _Steam
      */
     public function process(&$form, $group): void
     {
-        $form->add(new \IPS\Helpers\Form\YesNo('steam_pull', $group->steam_pull ?? 1));
-        $form->add(new \IPS\Helpers\Form\YesNo('steam_index', $group->steam_index ?? 1));
+        $form->add(new Form\YesNo('steam_pull', $group->steam_pull ?? 1));
+        $form->add(new Form\YesNo('steam_index', $group->steam_index ?? 1));
     }
 
     /**
