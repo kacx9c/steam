@@ -49,7 +49,7 @@ class _steamPlayerWidget extends StaticCache
      * Initialise this widget
      * @return void
      */
-    public function init(): void
+    public function init()
     {
         $this->template(array(Theme::i()->getTemplate('widgets', $this->app, 'front'), $this->key));
 
@@ -68,7 +68,7 @@ class _steamPlayerWidget extends StaticCache
      * @param null|\IPS\Helpers\Form $form Form object
      * @return    null|\IPS\Helpers\Form
      */
-    public function configuration(&$form = null): Form
+    public function configuration(&$form = null)
     {
         if ($form === null) {
             $form = new Form;
@@ -85,7 +85,7 @@ class _steamPlayerWidget extends StaticCache
      * @param array $values Values from form
      * @return    array
      */
-    public function preConfig($values): array
+    public function preConfig($values)
     {
         return $values;
     }
@@ -94,7 +94,7 @@ class _steamPlayerWidget extends StaticCache
      * Render a widget
      * @return    string
      */
-    public function render(): string
+    public function render()
     {
         /* select steam.* from steam_profiles INNER JOIN core_members where m.member_id = steam.st_memberid AND steam.steamid<>'' AND steam.st_personastate > 0 INNER JOIN core_groups where m.member_group_id = g.id OR g.id IN( m.mgroup_others ) AND g.steam_index=1 ORDER RAND() LIMIT 0,$this->configuration['steamIndexCount']; */
         $members = array();

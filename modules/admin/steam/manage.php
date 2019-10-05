@@ -30,7 +30,7 @@ class _manage extends Controller
      * Execute
      * @return    void
      */
-    public function execute(): void
+    public function execute()
     {
         Dispatcher::i()->checkAcpPermission('steam_manage');
         parent::execute();
@@ -40,7 +40,7 @@ class _manage extends Controller
      * ...
      * @return    void
      */
-    protected function manage(): void
+    protected function manage()
     {
 
         $form = new Form('form', 'Start');
@@ -62,7 +62,7 @@ class _manage extends Controller
         Output::i()->output = $form;
     }
 
-    public function update(): void
+    public function update()
     {
         $perGo = Settings::i()->steam_batch_count;
         Output::i()->title = Member::loggedIn()->language()->addToStack('steam_title_update');
@@ -126,7 +126,7 @@ class _manage extends Controller
 
     }
 
-    public function cleanup(): void
+    public function cleanup()
     {
         $perGo = Settings::i()->steam_batch_count;
         Output::i()->title = Member::loggedIn()->language()->addToStack('steam_title_cleanup');

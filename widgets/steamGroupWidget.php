@@ -57,7 +57,7 @@ class _steamGroupWidget extends StaticCache
      * Initialise this widget
      * @return void
      */
-    public function init(): void
+    public function init()
     {
         $this->template(array(Theme::i()->getTemplate('widgets', $this->app, 'front'), $this->key));
 
@@ -87,7 +87,7 @@ class _steamGroupWidget extends StaticCache
      * @param null|\IPS\Helpers\Form $form Form object
      * @return    null|\IPS\Helpers\Form
      */
-    public function configuration(&$form = null): ?Form
+    public function configuration(&$form = null)
     {
         // steamGroup $defaults
         if ($form === null) {
@@ -130,7 +130,7 @@ class _steamGroupWidget extends StaticCache
      * @param array $values Values from form
      * @return    array
      */
-    public function preConfig($values): array
+    public function preConfig($values)
     {
         return $values;
     }
@@ -139,7 +139,7 @@ class _steamGroupWidget extends StaticCache
      * Render a widget
      * @return    string
      */
-    public function render(): string
+    public function render()
     {
         $profiles = array();
         if ($this->configuration['steamGroup']) {

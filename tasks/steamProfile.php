@@ -68,7 +68,7 @@ class _steamProfile extends Task
      * may not have been done
      * @return    void
      */
-    public function cleanup(): void
+    public function cleanup()
     {
     }
 }

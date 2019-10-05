@@ -9,7 +9,7 @@ class steam_hook_steamPostJoin extends _HOOK_CLASS_
      * @param \IPS\Content\Item $item The item
      * @return    array
      */
-    public static function joins(\IPS\Content\Item $item): array
+    public static function joins(\IPS\Content\Item $item)
     {
         try {
             $return = parent::joins($item);

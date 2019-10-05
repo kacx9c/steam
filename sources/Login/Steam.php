@@ -57,7 +57,7 @@ class _Steam extends \IPS\Login\Handler
      * Get logo to display in user cp sidebar
      * @return    Url|string
      */
-    public function logoForUcp(): string
+    public function logoForUcp()
     {
         return 'steam';
     }
@@ -69,7 +69,7 @@ class _Steam extends \IPS\Login\Handler
      * @param Member|NULL $member The member, or NULL for if it should show generally
      * @return  bool Show in UCP or not
      */
-    public function showInUcp(Member $member = null): bool
+    public function showInUcp(Member $member = null)
     {
         return true;
     }
@@ -82,7 +82,7 @@ class _Steam extends \IPS\Login\Handler
      * @license   http://opensource.org/licenses/mit-license.php The MIT License
      * @copyright Lavoaster github.com/lavoaster/
      */
-    public function authenticateButton(Login $login): Member
+    public function authenticateButton(Login $login)
     {
         /* If we haven't been redirected back, redirect the user to external site */
         if (!isset(Request::i()->success)) {
@@ -293,7 +293,7 @@ class _Steam extends \IPS\Login\Handler
      * Get title
      * @return    string
      */
-    public static function getTitle(): string
+    public static function getTitle()
     {
         return 'login_handler_Steam'; // Create a language string for this
     }
@@ -306,7 +306,7 @@ class _Steam extends \IPS\Login\Handler
      *                                    account
      * @return    array
      */
-    public function syncOptions(Member $member, $defaultOnly = false): array
+    public function syncOptions(Member $member, $defaultOnly = false)
     {
         $return = array();
 
@@ -329,7 +329,7 @@ class _Steam extends \IPS\Login\Handler
      * @throws    \DomainException        General error where it is safe to show a message to the user
      * @throws    \RuntimeException        Unexpected error from service
      */
-    public function userProfilePhoto(Member $member): Url
+    public function userProfilePhoto(Member $member)
     {
         return Url::external(Profile::load($member->member_id)->avatarfull);
     }
@@ -343,7 +343,7 @@ class _Steam extends \IPS\Login\Handler
      * @throws    \DomainException        General error where it is safe to show a message to the user
      * @throws    \RuntimeException        Unexpected error from service
      */
-    public function userProfileName(Member $member): string
+    public function userProfileName(Member $member)
     {
         return Profile::load($member->member_id)->personaname;
     }
@@ -358,7 +358,7 @@ class _Steam extends \IPS\Login\Handler
      * @throws    \DomainException        General error where it is safe to show a message to the user
      * @throws    \RuntimeException        Unexpected error from service
      */
-    public function userLink($identifier, $username): bool
+    public function userLink($identifier, $username)
     {
         return null;
 //        return Url::external( (string)\IPS\steam\Profile::load($member->member_id)->profileurl);
@@ -369,7 +369,7 @@ class _Steam extends \IPS\Login\Handler
      * @param Member $member The member or NULL for currently logged in member
      * @return    void
      */
-    public function disassociate(Member $member = null): void
+    public function disassociate(Member $member = null)
     {
         $member = $member ?: Member::loggedIn();
 
@@ -383,7 +383,7 @@ class _Steam extends \IPS\Login\Handler
      * Get the button color
      * @return    string
      */
-    public function buttonColor(): string
+    public function buttonColor()
     {
         return '#171a21';
     }
@@ -392,7 +392,7 @@ class _Steam extends \IPS\Login\Handler
      * Get the button icon
      * @return    string
      */
-    public function buttonIcon(): string
+    public function buttonIcon()
     {
         return 'steam'; // A fontawesome icon
     }
@@ -401,7 +401,7 @@ class _Steam extends \IPS\Login\Handler
      * Get button text
      * @return    string
      */
-    public function buttonText(): string
+    public function buttonText()
     {
         return 'steam_sign_in'; // Create a language string for this
     }
@@ -410,7 +410,7 @@ class _Steam extends \IPS\Login\Handler
      * Get button CSS class
      * @return    string
      */
-    public function buttonClass(): string
+    public function buttonClass()
     {
         return '';
     }
