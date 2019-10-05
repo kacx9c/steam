@@ -35,7 +35,7 @@ class _view extends \IPS\Dispatcher\Controller
      * Execute
      * @return    void
      */
-    public function execute(): void
+    public function execute()
     {
         $this->includeRows = array(
             'photo',
@@ -58,7 +58,7 @@ class _view extends \IPS\Dispatcher\Controller
      * Manage
      * @return    void
      */
-    protected function manage(): void
+    protected function manage()
     {
         /* Create the table */
         $this->table = new Table\Db('steam_profiles',
@@ -117,7 +117,7 @@ class _view extends \IPS\Dispatcher\Controller
     /**
      * @param array $data
      */
-    protected function parsedData($data = array()): void
+    protected function parsedData($data = array())
     {
         $this->table->parsers = array_merge(array(
             'photo'                       => function ($value, $row) {
@@ -164,7 +164,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function photo($value, $row): string
+    protected function photo($value, $row)
     {
         if ($row['st_avatarmedium']) {
             return "<img src={$row['st_avatarmedium']} class='ipsUserPhoto_small'/>";
@@ -182,7 +182,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function name($value, $row): string
+    protected function name($value, $row)
     {
         $member = Member::constructFromData($row);
 
@@ -195,7 +195,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function steamID($value, $row): string
+    protected function steamID($value, $row)
     {
         if ($value) {
             return "<a href={$row['st_profileurl']} target='_blank'>{$value}</a>";
@@ -210,7 +210,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function personaname($value, $row): string
+    protected function personaname($value, $row)
     {
         $member = Member::constructFromData($row);
 
@@ -222,7 +222,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function lastUpdate($value, $row): string
+    protected function lastUpdate($value, $row)
     {
         if ($value) {
             $ts = DateTime::ts($value);
@@ -238,7 +238,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function lastLogoff($value, $row): string
+    protected function lastLogoff($value, $row)
     {
         if ($value) {
             $ts = DateTime::ts($value);
@@ -257,7 +257,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function restricted($value, $row): string
+    protected function restricted($value, $row)
     {
         return $value;
 //        if ($value == 0) {
@@ -273,7 +273,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function communityVisibilityState($value, $row): string
+    protected function communityVisibilityState($value, $row)
     {
         if ($value == 3) {
             return "<span class='ipsType_success'><strong>{Member::loggedIn()->language()->addToStack('steam_public')}</strong></span>";
@@ -290,7 +290,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function vacStatus($value, $row): string
+    protected function vacStatus($value, $row)
     {
         if ($value == 0) {
             return "<span class='ipsType_success'><strong>{Member::loggedIn()->language()->addToStack('steam_no')}</strong></span>";
@@ -307,7 +307,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function personaState($value, $row): string
+    protected function personaState($value, $row)
     {
         if ($row['st_gameextrainfo'] || $row['st_gameid']) {
             return "<span class='ipsBadge ipsBadge_positive' data-ipsToolTip title='{$row['st_gameextrainfo']}'>{Member::loggedIn()->language()->addToStack('steam_ingame')}</span>";
@@ -325,7 +325,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return float
      */
-    protected function playtime($value, $row): float
+    protected function playtime($value, $row)
     {
         if ($value) {
             return \round($value / 60, 1);
@@ -339,7 +339,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function error($value, $row): string
+    protected function error($value, $row)
     {
         if ($value) {
             return "<span class='ipsType_warning' data-ipsToolTip title='{Member::loggedIn()->language()->addToStack($value)}'><strong>ERROR</strong></span>";

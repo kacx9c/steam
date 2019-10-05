@@ -31,7 +31,7 @@ class _uninstall
      * @param string $application Application directory
      * @return    void
      */
-    public function preUninstall($application): void
+    public function preUninstall($application)
     {
         /**
          * @var \IPS\Login\Handler $handler
@@ -58,7 +58,7 @@ class _uninstall
      * @param string $application Application directory
      * @return    void
      */
-    public function postUninstall($application): void
+    public function postUninstall($application)
     {
     }
 }

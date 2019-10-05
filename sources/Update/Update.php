@@ -137,7 +137,7 @@ class _Update
     /**
      * @return void
      */
-    public function getFieldID(): void
+    public function getFieldID()
     {
         try {
             $cfID = Db::i()->select('pf_id,pf_group_id', 'core_pfields_data',
@@ -156,7 +156,7 @@ class _Update
      * @return bool
      * @throws \Exception
      */
-    public function update($single = 0): bool
+    public function update($single = 0)
     {
         $members = array();
         if ($single) {
@@ -170,10 +170,11 @@ class _Update
                 if ($steamid) {
                     $this->m = Profile::load($member->member_id);
                     if (!$this->m->steamid) {
-                        $this->m->member_id = $member->member_id;
-                        $this->m->steamid = $steamid;
                         $this->m->setDefaultValues();
-                        $this->m->save();
+                        $this->m = $this->updateProfile($single);
+//                        $this->m->member_id = $member->member_id;
+//                        $this->m->steamid = $steamid;
+//                        $this->m->save();
                         $members[] = $this->m;
                     }
                 } else {
@@ -185,7 +186,7 @@ class _Update
             }
         } else {
             $select = 's.*';
-            $where = "s.st_steamid>0 AND s.st_restricted!='1'";
+            $where = "s.st_steamid <> '' AND s.st_steamid IS NOT NULL AND s.st_restricted!='1'";
             $query = Db::i()->select($select, array('steam_profiles', 's'), $where, 's.st_member_id ASC',
                 array($this->cache['offset'], Settings::i()->steam_batch_count), null, null, '011');
 
@@ -375,7 +376,7 @@ class _Update
      * @param      $m
      * @param null $lang
      */
-    public function failed($m, $lang = null): void
+    public function failed($m, $lang = null)
     {
         if (isset($m->member_id)) {
             $mem = $this->profile::load($m->member_id);
@@ -395,10 +396,180 @@ class _Update
     /**
      * @param $message
      */
-    protected function diagnostics($message): void
+    protected function diagnostics($message)
     {
         if (Settings::i()->steam_diagnostics) {
             throw new RuntimeException($message);
+        }
+    }
+
+    /**
+     * @param int $single
+     * @return bool
+     * @throws \Exception
+     */
+    public function updateProfile($single = 0)
+    {
+        $req = null;
+        $done = 0;
+        try {
+            if (!$single) {
+                $profile_count = round(Settings::i()->steam_profile_count / 100);
+            } else {
+                $profile_count = 1;
+            }
+            for ($i = 0; $i < $profile_count; $i++) {
+                $ids = array();
+                $steamids = '';
+                $select = 's.st_member_id,s.st_steamid,s.st_restricted';
+                $where = "s.st_steamid>0 AND s.st_restricted!='1'";
+                if ($single) {
+                    $where .= " AND s.st_member_id='{$single}'";
+
+                    /* Is the member already in the database ? */
+                    $s = Profile::load($single);
+                    if ($s->member_id != $single || $s->steamid < 1) {
+                        $this->m = Member::load($single);
+                        $steamid = null;
+                        if ($this->m->member_id) {
+                            $steamid = $this->getSteamID($this->m);
+                        }
+
+                        /* If they set their steamID, lets put them in the cache */
+                        if ($steamid) {
+                            if (!$s->steamid) {
+                                $s->setDefaultValues();
+                                $s->member_id = $this->m->member_id;
+                                $s->steamid = $steamid;
+                                $s->save();
+                            }
+                        } else {
+                            /**
+                             * @var Lang $message
+                             */
+                            $message = Lang::load(Lang::defaultLanguage());
+                            $this->diagnostics($message->get('steam_id_invalid'));
+
+                            return false;
+                        }
+                    }
+                }
+                $query = Db::i()->select($select, array('steam_profiles', 's'), $where, 's.st_member_id ASC',
+                    array($this->cache['profile_offset'], 100), null, null, '011');
+
+                foreach ($query as $id => $row) {
+                    $ids[$id] = $row['st_steamid'];
+                    $profiles[$id] = array(
+                        'member_id' => $row['st_member_id'],
+                        'steamid'   => $row['st_steamid'],
+                    );
+                }
+                $this->cache['profile_count'] = $query->count(true);
+
+                if (\is_array($ids) && \count($ids)) {
+                    $steamids = implode(',', $ids);
+                }
+
+                /*
+                 * GET PLAYER SUMMARIES
+                 */
+                $profiles[] = null;
+                $url = 'http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=' . $this->api . '&steamids=' . $steamids . '&format=json';
+                try {
+                    /**
+                     * @var Response $req
+                     */
+                    $req = $this->request($url);
+
+                    if ($req->httpResponseCode != 200) {
+                        if ($single) {
+                            $this->failed(Member::load($single), 'steam_err_getplayer');
+                        }
+
+                        /* Throw an Exception */
+                        $this->diagnostics($req->httpResponseCode);
+
+                        continue;
+                    }
+                    try {
+                        $players = $req->decodeJson();
+                    } catch (RuntimeException $e) {
+                        if ($single) {
+                            $this->failed(Member::load($single), 'steam_err_getplayer');
+                        }
+                        $this->diagnostics($e->getMessage());
+
+                        continue;
+                    }
+                } catch (\OutOfRangeException $e) {
+                    if ($single) {
+                        $this->failed(Member::load($single), 'steam_err_getplayer');
+                    }
+                    $this->diagnostics($e->getMessage());
+
+                    continue;
+                }
+                if (\is_array($players)) {
+                    foreach ($players['response']['players'] as $id => $p) {
+                        /* Random bug here.  Every other run of the task only one of the duplicates is updated.  Next run, both are updated */
+                        if ($profiles[$id]['steamid'] === $p['steamid']) {
+                            $s = Profile::load($profiles[$id]['member_id'], 'st_member_id');
+                        } else {
+                            $s = Profile::load($p['steamid'], 'st_steamid');
+                        }
+
+                        $this->m = Member::load($s->member_id);
+
+                        if ($this->m->member_id) {
+                            $s->member_id = $this->m->member_id;
+                            $s->steamid = $p['steamid'];
+                            $s->last_update = time();
+                            $s->timecreated = $p['timecreated'] ?? null;
+                            $s->communityvisibilitystate = $p['communityvisibilitystate'];
+                            $s->personaname = $p['personaname'];
+                            $s->profileurl = $p['profileurl'];
+                            $s->avatar = $p['avatar'];
+                            $s->avatarmedium = $p['avatarmedium'];
+                            $s->avatarfull = $p['avatarfull'];
+                            $s->personastate = $p['personastate'];
+                            $s->lastlogoff = $p['lastlogoff'];
+                            $s->gameserverip = $p['gameserverip'] ?? '';
+                            $s->gameid = $p['gameid'] ?? 0;
+
+                            if (isset($p['gameextrainfo']) || isset($p['gameid'])) {
+                                $s->gameextrainfo = $p['gameextrainfo'] ?? $p['gameid'];
+                            } else {
+                                $s->gameextrainfo = null;
+                            }
+
+                            $s->error = '';
+                            $s->save();
+                            if ($single) {
+                                return $s;
+                            }
+                        } /* Improve data handling in rewrite. Log error or remove profile */
+
+                        $done++;
+                        $this->cache['profile_offset']++;
+                        if ($this->cache['profile_offset'] >= $this->cache['profile_count']) {
+                            $this->cache['profile_offset'] = 0;
+                            break;
+                        }
+                    }
+                }
+                /* If we've run through everyone we have, no reason to continue */
+                if ($done >= $this->cache['profile_count']) {
+                    break;
+                }
+            }
+            unset($profiles);
+            Store::i()->steamData = $this->cache;
+
+            return true;
+        } catch (\OutOfRangeException $e) {
+            $this->diagnostics($e->getMessage());
+
+            return false;
         }
     }
 
@@ -665,173 +836,6 @@ class _Update
         return $p;
     }
 
-    /**
-     * @param int $single
-     * @return bool
-     * @throws \Exception
-     */
-    public function updateProfile($single = 0): bool
-    {
-        $req = null;
-        $done = 0;
-        try {
-            if (!$single) {
-                $profile_count = round(Settings::i()->steam_profile_count / 100);
-            } else {
-                $profile_count = 1;
-            }
-            for ($i = 0; $i < $profile_count; $i++) {
-                $ids = array();
-                $steamids = '';
-                $select = 's.st_member_id,s.st_steamid,s.st_restricted';
-                $where = "s.st_steamid>0 AND s.st_restricted!='1'";
-                if ($single) {
-                    $where .= " AND s.st_member_id='{$single}'";
-
-                    /* Is the member already in the database ? */
-                    $s = Profile::load($single);
-                    if ($s->member_id != $single || $s->steamid < 1) {
-                        $this->m = Member::load($single);
-                        $steamid = null;
-                        if ($this->m->member_id) {
-                            $steamid = $this->getSteamID($this->m);
-                        }
-
-                        /* If they set their steamID, lets put them in the cache */
-                        if ($steamid) {
-                            if (!$s->steamid) {
-                                $s->member_id = $this->m->member_id;
-                                $s->steamid = $steamid;
-                                $s->setDefaultValues();
-                                $s->save();
-                            }
-                        } else {
-                            /**
-                             * @var Lang $message
-                             */
-                            $message = Lang::load(Lang::defaultLanguage());
-                            $this->diagnostics($message->get('steam_id_invalid'));
-
-                            return false;
-                        }
-                    }
-                }
-                $query = Db::i()->select($select, array('steam_profiles', 's'), $where, 's.st_member_id ASC',
-                    array($this->cache['profile_offset'], 100), null, null, '011');
-
-                foreach ($query as $id => $row) {
-                    $ids[$id] = $row['st_steamid'];
-                    $profiles[$id] = array(
-                        'member_id' => $row['st_member_id'],
-                        'steamid'   => $row['st_steamid'],
-                    );
-                }
-                $this->cache['profile_count'] = $query->count(true);
-
-                if (\is_array($ids) && \count($ids)) {
-                    $steamids = implode(',', $ids);
-                }
-
-                /*
-                 * GET PLAYER SUMMARIES
-                 */
-                $profiles[] = null;
-                $url = 'http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=' . $this->api . '&steamids=' . $steamids . '&format=json';
-                try {
-                    /**
-                     * @var Response $req
-                     */
-                    $req = $this->request($url);
-
-                    if ($req->httpResponseCode != 200) {
-                        if ($single) {
-                            $this->failed(Member::load($single), 'steam_err_getplayer');
-                        }
-
-                        /* Throw an Exception */
-                        $this->diagnostics($req->httpResponseCode);
-
-                        continue;
-                    }
-                    try {
-                        $players = $req->decodeJson();
-                    } catch (RuntimeException $e) {
-                        if ($single) {
-                            $this->failed(Member::load($single), 'steam_err_getplayer');
-                        }
-                        $this->diagnostics($e->getMessage());
-
-                        continue;
-                    }
-                } catch (\OutOfRangeException $e) {
-                    if ($single) {
-                        $this->failed(Member::load($single), 'steam_err_getplayer');
-                    }
-                    $this->diagnostics($e->getMessage());
-
-                    continue;
-                }
-                if (\is_array($players)) {
-                    foreach ($players['response']['players'] as $id => $p) {
-                        /* Random bug here.  Every other run of the task only one of the duplicates is updated.  Next run, both are updated */
-                        if ($profiles[$id]['steamid'] === $p['steamid']) {
-                            $s = Profile::load($profiles[$id]['member_id'], 'st_member_id');
-                        } else {
-                            $s = Profile::load($p['steamid'], 'st_steamid');
-                        }
-
-                        $this->m = Member::load($s->member_id);
-
-                        if ($this->m->member_id) {
-                            $s->member_id = $this->m->member_id;
-                            $s->steamid = $p['steamid'];
-                            $s->last_update = time();
-                            $s->timecreated = $p['timecreated'] ?? null;
-                            $s->communityvisibilitystate = $p['communityvisibilitystate'];
-                            $s->personaname = $p['personaname'];
-                            $s->profileurl = $p['profileurl'];
-                            $s->avatar = $p['avatar'];
-                            $s->avatarmedium = $p['avatarmedium'];
-                            $s->avatarfull = $p['avatarfull'];
-                            $s->personastate = $p['personastate'];
-                            $s->lastlogoff = $p['lastlogoff'];
-                            $s->gameserverip = $p['gameserverip'] ?? '';
-                            $s->gameid = $p['gameid'] ?? 0;
-
-                            if (isset($p['gameextrainfo']) || isset($p['gameid'])) {
-                                $s->gameextrainfo = $p['gameextrainfo'] ?? $p['gameid'];
-                            } else {
-                                $s->gameextrainfo = null;
-                            }
-
-                            $s->error = '';
-                            $s->save();
-                        } /* Improve data handling in rewrite. Log error or remove profile */
-
-                        $done++;
-                        $this->cache['profile_offset']++;
-                        if ($this->cache['profile_offset'] >= $this->cache['profile_count']) {
-                            $this->cache['profile_offset'] = 0;
-                            break;
-                        }
-                    }
-                }
-                /* If we've run through everyone we have, no reason to continue */
-                if ($done >= $this->cache['profile_count']) {
-                    break;
-                }
-            }
-            unset($profiles);
-            Store::i()->steamData = $this->cache;
-
-            return true;
-        } catch (\OutOfRangeException $e) {
-            $this->diagnostics($e->getMessage());
-
-            return false;
-        }
-    }
-
     /* 	Just in case a profile isn't caught with memberSync
         this will make sure everyone with a valid steamid in their account
         gets put into the steam_profile table for update.
@@ -841,7 +845,7 @@ class _Update
      * @param int $offset
      * @throws \Exception
      */
-    public function cleanup($offset = -1): void
+    public function cleanup($offset = -1)
     {
         // AIWA-101 If cache does not initialize properly, cleanup_offset may not exist.
         if ($offset == -1) {
@@ -881,7 +885,7 @@ class _Update
      * @param int $offset
      * @return void
      */
-    public function load($offset = 0): void
+    public function load($offset = 0)
     {
         /* We are loading new members, if there is anyone still there, dump 'em. */
         $this->members = array();
@@ -948,12 +952,13 @@ class _Update
     /**
      * @param $member
      */
-    public function remove($member): void
+    public function remove($member)
     {
         try {
             $r = Profile::load($member);
-            $r->setDefaultValues();
-            $r->save();
+            $r->delete();
+//            $r->setDefaultValues();
+//            $r->save();
         } catch (Exception $e) {
 //          Need to define what to do here...
         }
@@ -963,7 +968,7 @@ class _Update
      * @param $member
      * @return bool
      */
-    public function restrict($member): bool
+    public function restrict($member)
     {
         try {
             if ($member != null) {
@@ -987,7 +992,7 @@ class _Update
      * @param $member
      * @return bool
      */
-    public function unrestrict($member): bool
+    public function unrestrict($member)
     {
         try {
             if ($member != null) {
@@ -1012,7 +1017,7 @@ class _Update
      * @param bool $raw
      * @return null|string
      */
-    public function error($raw = true): string
+    public function error($raw = true)
     {
         if ($raw) {
             return $this->stError;
@@ -1033,7 +1038,7 @@ class _Update
      * @param $element
      * @return bool
      */
-    protected function badges($element): bool
+    protected function badges($element)
     {
         return \in_array($element['badgeid'], self::$badgesToKeep, false);
     }

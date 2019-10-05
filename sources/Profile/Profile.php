@@ -65,9 +65,9 @@ class _Profile extends ActiveRecord
      * @param int|string $id
      * @param null       $idField
      * @param null       $extraWhereClause
-     * @return \IPS\steam\Profile
+     * @return \IPS\Patterns\ActiveRecord
      */
-    public static function load($id, $idField = null, $extraWhereClause = null): Profile
+    public static function load($id, $idField = null, $extraWhereClause = null)
     {
         try {
             if ($id === null || $id === 0 || $id === '') {
@@ -99,7 +99,7 @@ class _Profile extends ActiveRecord
     /**
      *
      */
-    public function setDefaultValues(): void
+    public function setDefaultValues()
     {
         $this->error = '';
         $this->personaname = '';
@@ -130,7 +130,7 @@ class _Profile extends ActiveRecord
     /**
      * @return array
      */
-    public function getLevel(): array
+    public function getLevel()
     {
         if (isset($this->player_level)) {
             if (!\is_array($this->playerLevel) || !\count($this->playerLevel)) {
@@ -147,7 +147,7 @@ class _Profile extends ActiveRecord
     /**
      * @param $value
      */
-    public function set_personaname($value): void
+    public function set_personaname($value)
     {
         // If their database isn't set up for mb4, strip 4 byte characters and replace with Diamond ?.
         if (Settings::i()->getFromConfGlobal('sql_utf8mb4') !== true) {
@@ -159,7 +159,7 @@ class _Profile extends ActiveRecord
     /**
      * @param $value
      */
-    public function set_gameextrainfo($value): void
+    public function set_gameextrainfo($value)
     {
         // If the value we're saving is NULL, save it and return.
         if (!$value) {
@@ -190,7 +190,7 @@ class _Profile extends ActiveRecord
     /**
      * @return array|mixed
      */
-    public function getOwned(): ?array
+    public function getOwned()
     {
         if (isset($this->owned)) {
             if (!\is_array($this->ownedGames) || !\count($this->ownedGames)) {
@@ -207,7 +207,7 @@ class _Profile extends ActiveRecord
      * @param int $count
      * @return array
      */
-    public function getRecent($count = 0): array
+    public function getRecent($count = 0)
     {
         if (isset($this->games)) {
             if (!\is_array($this->recentGames) || !\count($this->recentGames)) {
@@ -233,7 +233,7 @@ class _Profile extends ActiveRecord
     /**
      * @return \IPS\Member
      */
-    public function author(): Member
+    public function author()
     {
         return Member::load($this->member_id);
     }

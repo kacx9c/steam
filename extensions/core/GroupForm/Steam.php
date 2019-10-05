@@ -31,7 +31,7 @@ class _Steam
      * @param \IPS\Member\Group $group Existing Group
      * @return    void
      */
-    public function process(&$form, $group): void
+    public function process(&$form, $group)
     {
         $form->add(new Form\YesNo('steam_pull', $group->steam_pull ?? 1));
         $form->add(new Form\YesNo('steam_index', $group->steam_index ?? 1));
@@ -43,7 +43,7 @@ class _Steam
      * @param \IPS\Member\Group $group  The group
      * @return    void
      */
-    public function save($values, &$group): void
+    public function save($values, &$group)
     {
         $group->steam_pull = $values['steam_pull'];
         $group->steam_index = $values['steam_index'];

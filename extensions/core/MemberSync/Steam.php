@@ -25,7 +25,7 @@ class _Steam
      * @param $member
      * @throws \Exception
      */
-    public function onCreateAccount($member): void
+    public function onCreateAccount($member)
     {
         $this->onValidate($member);
     }
@@ -35,7 +35,7 @@ class _Steam
      * @param $member
      * @throws \Exception
      */
-    public function onValidate($member): void
+    public function onValidate($member)
     {
         /**
          * @var array $cache
@@ -79,7 +79,7 @@ class _Steam
      * @param    $changes       array        The changes
      * @return    void
      */
-    public function onProfileUpdate($member, $changes): void
+    public function onProfileUpdate($member, $changes)
     {
         /* Did they change their SteamID?  If so, store them in the profile table */
         /* If they are using the steam login, ignore profile field.  */
@@ -168,7 +168,7 @@ class _Steam
      * @param    $member    \IPS\Member    The member
      * @return    void
      */
-    public function onSetAsSpammer($member): void
+    public function onSetAsSpammer($member)
     {
         try {
             /* Set steam restriction */
@@ -185,7 +185,7 @@ class _Steam
      * @param    $member    \IPS\Member    The member
      * @return    void
      */
-    public function onUnSetAsSpammer($member): void
+    public function onUnSetAsSpammer($member)
     {
         try {
             /* Unrestrict steam account */
@@ -206,7 +206,7 @@ class _Steam
      * @param \IPS\Member $member2 Member being removed
      * @return    void
      */
-    public function onMerge($member, $member2): void
+    public function onMerge($member, $member2)
     {
         /* Purge member2 steam data */
         $this->onDelete($member2);
@@ -217,7 +217,7 @@ class _Steam
      * @param    $member    \IPS\Member    The member
      * @return    void
      */
-    public function onDelete($member): void
+    public function onDelete($member)
     {
         /* Purge member steam data */
         try {
