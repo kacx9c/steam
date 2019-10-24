@@ -166,11 +166,13 @@ class _view extends \IPS\Dispatcher\Controller
      */
     protected function photo($value, $row)
     {
+        $member = Member::constructFromData($row);
+
         if ($row['st_avatarmedium']) {
             return "<img src={$row['st_avatarmedium']} class='ipsUserPhoto_small'/>";
         }
         if ($row['st_restricted']) {
-            return "<span class='ipsType_warning'><strong>{Member::loggedIn()->language()->addToStack('steam_disabled')}</strong></span>";
+            return "<span class='ipsType_warning'><strong>{$member::loggedIn()->language()->addToStack('steam_disabled')}</strong></span>";
         }
 
         return '';
@@ -275,11 +277,12 @@ class _view extends \IPS\Dispatcher\Controller
      */
     protected function communityVisibilityState($value, $row)
     {
+        $member = Member::constructFromData($row);
         if ($value == 3) {
-            return "<span class='ipsType_success'><strong>{Member::loggedIn()->language()->addToStack('steam_public')}</strong></span>";
+            return "<span class='ipsType_success'><strong>{$member::loggedIn()->language()->addToStack('steam_public')}</strong></span>";
         }
         if ($value == 1 || $value == 2) {
-            return "<span class='ipsType_warning'><strong>{Member::loggedIn()->language()->addToStack('steam_private')}</strong></span>";
+            return "<span class='ipsType_warning'><strong>{$member::loggedIn()->language()->addToStack('steam_private')}</strong></span>";
         }
 
         return '';
@@ -292,11 +295,13 @@ class _view extends \IPS\Dispatcher\Controller
      */
     protected function vacStatus($value, $row)
     {
+        $member = Member::constructFromData($row);
+
         if ($value == 0) {
-            return "<span class='ipsType_success'><strong>{Member::loggedIn()->language()->addToStack('steam_no')}</strong></span>";
+            return "<span class='ipsType_success'><strong>{$member::loggedIn()->language()->addToStack('steam_no')}</strong></span>";
         }
         if ($value < time()) {
-            return "<span class='ipsType_warning'><strong>{Member::loggedIn()->language()->addToStack('steam_banned')}</strong></span>";
+            return "<span class='ipsType_warning'><strong>{$member::loggedIn()->language()->addToStack('steam_banned')}</strong></span>";
         }
 
         return '';
@@ -309,14 +314,16 @@ class _view extends \IPS\Dispatcher\Controller
      */
     protected function personaState($value, $row)
     {
+        $member = Member::constructFromData($row);
+
         if ($row['st_gameextrainfo'] || $row['st_gameid']) {
-            return "<span class='ipsBadge ipsBadge_positive' data-ipsToolTip title='{$row['st_gameextrainfo']}'>{Member::loggedIn()->language()->addToStack('steam_ingame')}</span>";
+            return "<span class='ipsBadge ipsBadge_positive' data-ipsToolTip title='{$row['st_gameextrainfo']}'>{$member::loggedIn()->language()->addToStack('steam_ingame')}</span>";
         }
         if (!$value) {
-            return "<span class='ipsBadge ipsBadge_neutral'>{Member::loggedIn()->language()->addToStack('steam_status_' . $value)}</span>";
+            return "<span class='ipsBadge ipsBadge_neutral'>{$member::loggedIn()->language()->addToStack('steam_status_' . $value)}</span>";
         }
 
-        return "<span class='ipsBadge' style='background: #86b5d9;'>{Member::loggedIn()->language()->addToStack('steam_status_' . $value)}</span>";
+        return "<span class='ipsBadge' style='background: #86b5d9;'>{$member::loggedIn()->language()->addToStack('steam_status_' . $value)}</span>";
 
     }
 
@@ -341,8 +348,10 @@ class _view extends \IPS\Dispatcher\Controller
      */
     protected function error($value, $row)
     {
+        $member = Member::constructFromData($row);
+
         if ($value) {
-            return "<span class='ipsType_warning' data-ipsToolTip title='{Member::loggedIn()->language()->addToStack($value)}'><strong>ERROR</strong></span>";
+            return "<span class='ipsType_warning' data-ipsToolTip title='{$member::loggedIn()->language()->addToStack($value)}'><strong>ERROR</strong></span>";
         }
 
         return '';
