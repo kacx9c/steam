@@ -1,4 +1,4 @@
-# Steam Profile Integration - v 2.1.12
+# Steam Profile Integration - v 2.1.13
 
 Includes Steam Login Handler.
 
@@ -31,8 +31,8 @@ IP.Board 3.4.x version available [here](https://aiwa.me/files/file/7-steam-profi
 
 ```
 IPS 4.0.x & 4.1.x, use version 2.0.13
-IPS 4.2 use version 2.1.7
-IPS 4.3 and above, use 2.1.8+
+IPS 4.2 use  2.1.7
+IPS 4.3 and 4.4,  2.1.13
 ```
 ```
 *** Supported natively on 64 bit server configurations.  For 32 bit server configurations, php-bcmath is required to decode this format.
