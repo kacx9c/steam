@@ -1,5 +1,5 @@
-[
-    {
+{
+    "1": {
         "method": "changeColumn",
         "params": [
             "steam_profiles",
@@ -20,4 +20,4 @@
             }
         ]
     }
-]
+}
