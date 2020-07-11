@@ -8,6 +8,7 @@ namespace IPS\steam\extensions\core\MemberSync;
 use IPS\Data\Store;
 use IPS\steam\Profile;
 use IPS\steam\Update;
+use IPS\Db;
 
 /* To prevent PHP errors (extending class does not exist) revealing path */
 if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
@@ -222,8 +223,16 @@ class _Steam
         /* Purge member steam data */
         try {
             $steam = Profile::load($member->member_id);
+            try{
+                Db::i()->delete('core_login_links',
+                    array('token_member=? AND token_identifier=?',
+                          $member->member_id,
+                          $steam->st_steamid
+                    ));
+            }catch(\Exception $e) {
+                // Do nothing, they don't have a linked account
+            }
             $steam->delete();
-
         } catch (\OutOfRangeException $e) {
             throw new \OutOfRangeException;
         }
