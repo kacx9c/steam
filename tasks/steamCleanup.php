@@ -66,7 +66,7 @@ class _steamCleanup extends Task
      * may not have been done
      * @return    void
      */
-    public function cleanup()
+    public function cleanup(): void
     {
 
     }

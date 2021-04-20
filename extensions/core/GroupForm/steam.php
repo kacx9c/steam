@@ -13,6 +13,7 @@
 namespace IPS\steam\extensions\core\GroupForm;
 
 use IPS\Helpers\Form;
+use IPS\steam;
 
 /* To prevent PHP errors (extending class does not exist) revealing path */
 if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
@@ -31,10 +32,10 @@ class _Steam
      * @param \IPS\Member\Group $group Existing Group
      * @return    void
      */
-    public function process(&$form, $group)
+    public function process(&$form, $group): void
     {
         $form->add(new Form\YesNo('steam_pull', $group->steam_pull ?? 1));
-        $form->add(new Form\YesNo('steam_index', $group->steam_index ?? 1));
+        $form->add(new Form\YesNo('steam_index', $group->steam_index ?? 1)); // TODO: rename to group_board_block
     }
 
     /**
@@ -43,8 +44,9 @@ class _Steam
      * @param \IPS\Member\Group $group  The group
      * @return    void
      */
-    public function save($values, &$group)
+    public function save($values, &$group): void
     {
+        // TODO: save values to custom table steam_core_groups: group_id, group_pull, group_board_block
         $group->steam_pull = $values['steam_pull'];
         $group->steam_index = $values['steam_index'];
     }

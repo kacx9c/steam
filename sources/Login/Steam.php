@@ -55,24 +55,14 @@ class _Steam extends \IPS\Login\Handler
 
     /**
      * Get logo to display in user cp sidebar
-     * @return    Url|string
+     * @return    string
      */
-    public function logoForUcp()
+    public function logoForUcp(): string
     {
         return 'steam';
     }
 
     use \IPS\Login\Handler\ButtonHandler;
-
-    /**
-     * Show in Account Settings?
-     * @param Member|NULL $member The member, or NULL for if it should show generally
-     * @return  bool Show in UCP or not
-     */
-    public function showInUcp(Member $member = null)
-    {
-        return true;
-    }
 
     /**
      * Authenticate
@@ -82,7 +72,7 @@ class _Steam extends \IPS\Login\Handler
      * @license   http://opensource.org/licenses/mit-license.php The MIT License
      * @copyright Lavoaster github.com/lavoaster/
      */
-    public function authenticateButton(Login $login)
+    public function authenticateButton(Login $login): ?Member
     {
         /* If we haven't been redirected back, redirect the user to external site */
         if (!isset(Request::i()->success)) {
@@ -98,7 +88,7 @@ class _Steam extends \IPS\Login\Handler
                 'openid.realm'        => (string)Url::internal('', 'none'),
                 'openid.identity'     => 'http://specs.openid.net/auth/2.0/identifier_select',
                 'openid.claimed_id'   => 'http://specs.openid.net/auth/2.0/identifier_select',
-                'openid.assoc_handle' => $login->url->getFurlQuery() === 'settings/login' ? 'ucp' : Dispatcher::i()->controllerLocation,
+                'openid.assoc_handle' => $login->url->friendlyUrlComponent === 'settings/login' ? 'ucp' : Dispatcher::i()->controllerLocation,
             ));
 
             Output::i()->redirect($redirect);
@@ -107,13 +97,20 @@ class _Steam extends \IPS\Login\Handler
         $steamID = $this->validate();
 
         if (!$steamID) {
-            throw new \IPS\Login\Exception('steam_err_validateFailed', \IPS\Login\Exception::INTERNAL_ERROR);
+            throw new Login\Exception('steam_err_validateFailed', Login\Exception::INTERNAL_ERROR);
         }
 
         /* Find their local account if they have already logged in using this method in the past */
         try {
-            $link = Db::i()->select('*', 'core_login_links',
-                array('token_login_method=? AND token_identifier=?', $this->id, $steamID))->first();
+            $link = Db::i()->select(
+                '*',
+                'core_login_links',
+                array(
+                    'token_login_method=? AND token_identifier=?',
+                    $this->id,
+                    $steamID,
+                )
+            )->first();
             $member = Member::load($link['token_member']);
 
 
@@ -126,7 +123,6 @@ class _Steam extends \IPS\Login\Handler
 
             /* ... and return the member object */
             if ($member->member_id) {
-
                 $member->steamid = $steamID;
                 $member->save();
             }
@@ -140,21 +136,18 @@ class _Steam extends \IPS\Login\Handler
         try {
             /* If the user is setting this up in the User CP, they are already logged in. Ask them to reauthenticate to link those accounts */
             if ($login->type === Login::LOGIN_UCP) {
-                $exception = new \IPS\Login\Exception('steam_err_reauth', \IPS\Login\Exception::MERGE_SOCIAL_ACCOUNT);
+                $exception = new Login\Exception('steam_err_reauth', Login\Exception::MERGE_SOCIAL_ACCOUNT);
                 $exception->handler = $this;
                 $exception->member = $login->reauthenticateAs;
                 throw $exception;
             }
 
             /* If an api key is provided, attempt to load the user from steam */
-            $response = null;
-            $userData = null;
             $key = Settings::i()->steam_api_key;
             $name = null;
             $email = null;
 
             if ($key) {
-
                 try {
                     /**
                      * @var Curl|Sockets $req
@@ -164,22 +157,22 @@ class _Steam extends \IPS\Login\Handler
 
                     if ($response) {
                         // Get the first player
-                        $userData = $response['response']['players'][0];
-                        $name = $userData['personaname'];
+                        $name = $response['response']['players'][0]['personaname'];
                     }
 
                     // Store the data
 
                 } catch (\IPS\Http\Request\Exception $e) {
-                    throw new \IPS\Login\Exception('steam_err_api_fail', \IPS\Login\Exception::INTERNAL_ERROR, $e);
+                    throw new Login\Exception('steam_err_api_fail', Login\Exception::INTERNAL_ERROR, $e);
                 }
             }
 
-            /* Try to create one. NOTE: Invision Community will automatically throw an exception which we catch below if $email matches an existing account, if registration is disabled, or if Spam Defense blocks the account creation */
+            // Try to create one. NOTE: Invision Community will automatically throw an exception which we catch below
+            //if $email matches an existing account, if registration is disabled, or if Spam Defense blocks the account creation
             $member = $this->createAccount($name, $email);
 
-
-            /* If we're still here, a new account was created. Store something in core_login_links so that the next time this user logs in, we know they've used this method before */
+            // If we're still here, a new account was created. Store something in core_login_links
+            // so that the next time this user logs in, we know they've used this method before
             Db::i()->insert('core_login_links', array(
                 'token_login_method' => $this->id,
                 'token_member'       => $member->member_id,
@@ -235,11 +228,6 @@ class _Steam extends \IPS\Login\Handler
         }
     }
 
-//    public function usernameIsInUse( $username, Member $exclude=NULL )
-//    {
-//        return NULL;
-//    }
-
     /**
      * This will validate the incoming Steam OpenID request
      * @return int|bool
@@ -289,11 +277,16 @@ class _Steam extends \IPS\Login\Handler
         return $isValid ? $steamID64 : false;
     }
 
+//    public function usernameIsInUse( $username, Member $exclude=NULL )
+//    {
+//        return NULL;
+//    }
+
     /**
      * Get title
      * @return    string
      */
-    public static function getTitle()
+    public static function getTitle(): string
     {
         return 'login_handler_Steam'; // Create a language string for this
     }
@@ -306,7 +299,7 @@ class _Steam extends \IPS\Login\Handler
      *                                    account
      * @return    array
      */
-    public function syncOptions(Member $member, $defaultOnly = false)
+    public function syncOptions(Member $member, $defaultOnly = false): array
     {
         $return = array();
 
@@ -321,6 +314,42 @@ class _Steam extends \IPS\Login\Handler
     }
 
     /**
+     * Get the button color
+     * @return    string
+     */
+    public function buttonColor(): string
+    {
+        return '#171a21';
+    }
+
+    /**
+     * Get the button icon
+     * @return    string
+     */
+    public function buttonIcon(): string
+    {
+        return 'steam'; // A fontawesome icon
+    }
+
+    /**
+     * Get button text
+     * @return    string
+     */
+    public function buttonText(): string
+    {
+        return 'steam_sign_in'; // Create a language string for this
+    }
+
+    /**
+     * Get button CSS class
+     * @return    string
+     */
+    public function buttonClass(): string
+    {
+        return '';
+    }
+
+    /**
      * Get user's profile photo
      * May return NULL if server doesn't support this
      * @param Member $member Member
@@ -329,7 +358,7 @@ class _Steam extends \IPS\Login\Handler
      * @throws    \DomainException        General error where it is safe to show a message to the user
      * @throws    \RuntimeException        Unexpected error from service
      */
-    public function userProfilePhoto(Member $member)
+    public function userProfilePhoto(Member $member): ?Url
     {
         return Url::external(Profile::load($member->member_id)->avatarfull);
     }
@@ -343,7 +372,7 @@ class _Steam extends \IPS\Login\Handler
      * @throws    \DomainException        General error where it is safe to show a message to the user
      * @throws    \RuntimeException        Unexpected error from service
      */
-    public function userProfileName(Member $member)
+    public function userProfileName(Member $member): string
     {
         return Profile::load($member->member_id)->personaname;
     }
@@ -358,7 +387,7 @@ class _Steam extends \IPS\Login\Handler
      * @throws    \DomainException        General error where it is safe to show a message to the user
      * @throws    \RuntimeException        Unexpected error from service
      */
-    public function userLink($identifier, $username)
+    public function userLink($identifier, $username): ?bool
     {
         return null;
 //        return Url::external( (string)\IPS\steam\Profile::load($member->member_id)->profileurl);
@@ -369,50 +398,24 @@ class _Steam extends \IPS\Login\Handler
      * @param Member $member The member or NULL for currently logged in member
      * @return    void
      */
-    public function disassociate(Member $member = null)
+    public function disassociate(Member $member = null): void
     {
         $member = $member ?: Member::loggedIn();
-
-        $member->steamid = null;
-        $member->save();
-
+        if ($member) {
+            $member->steamid = null;
+            $member->save();
+        }
         parent::disassociate($member);
     }
 
     /**
-     * Get the button color
-     * @return    string
+     * Show in Account Settings?
+     * @param Member|NULL $member The member, or NULL for if it should show generally
+     * @return  bool Show in UCP or not
      */
-    public function buttonColor()
+    public function showInUcp(Member $member = null): bool
     {
-        return '#171a21';
-    }
-
-    /**
-     * Get the button icon
-     * @return    string
-     */
-    public function buttonIcon()
-    {
-        return 'steam'; // A fontawesome icon
-    }
-
-    /**
-     * Get button text
-     * @return    string
-     */
-    public function buttonText()
-    {
-        return 'steam_sign_in'; // Create a language string for this
-    }
-
-    /**
-     * Get button CSS class
-     * @return    string
-     */
-    public function buttonClass()
-    {
-        return '';
+        return true;
     }
 
 }

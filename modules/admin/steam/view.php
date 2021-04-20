@@ -35,7 +35,7 @@ class _view extends \IPS\Dispatcher\Controller
      * Execute
      * @return    void
      */
-    public function execute()
+    public function execute() : void
     {
         $this->includeRows = array(
             'photo',
@@ -58,7 +58,7 @@ class _view extends \IPS\Dispatcher\Controller
      * Manage
      * @return    void
      */
-    protected function manage()
+    protected function manage() : void
     {
         /* Create the table */
         $this->table = new Table\Db('steam_profiles',
@@ -117,7 +117,7 @@ class _view extends \IPS\Dispatcher\Controller
     /**
      * @param array $data
      */
-    protected function parsedData($data = array())
+    protected function parsedData($data = array()) : void
     {
         $this->table->parsers = array_merge(array(
             'photo'                       => function ($value, $row) {
@@ -164,7 +164,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function photo($value, $row)
+    protected function photo($value, $row): string
     {
         $member = Member::constructFromData($row);
 
@@ -184,7 +184,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function name($value, $row)
+    protected function name($value, $row): string
     {
         $member = Member::constructFromData($row);
 
@@ -197,7 +197,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function steamID($value, $row)
+    protected function steamID($value, $row): string
     {
         if ($value) {
             return "<a href={$row['st_profileurl']} target='_blank'>{$value}</a>";
@@ -212,7 +212,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function personaname($value, $row)
+    protected function personaname($value, $row): string
     {
         $member = Member::constructFromData($row);
 
@@ -224,7 +224,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function lastUpdate($value, $row)
+    protected function lastUpdate($value, $row): string
     {
         if ($value) {
             $ts = DateTime::ts($value);
@@ -240,7 +240,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function lastLogoff($value, $row)
+    protected function lastLogoff($value, $row): string
     {
         if ($value) {
             $ts = DateTime::ts($value);
@@ -259,7 +259,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function restricted($value, $row)
+    protected function restricted($value, $row): string
     {
         return $value;
 //        if ($value == 0) {
@@ -275,7 +275,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function communityVisibilityState($value, $row)
+    protected function communityVisibilityState($value, $row): string
     {
         $member = Member::constructFromData($row);
         if ($value == 3) {
@@ -293,7 +293,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function vacStatus($value, $row)
+    protected function vacStatus($value, $row): string
     {
         $member = Member::constructFromData($row);
 
@@ -312,7 +312,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function personaState($value, $row)
+    protected function personaState($value, $row): string
     {
         $member = Member::constructFromData($row);
 
@@ -332,7 +332,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return float
      */
-    protected function playtime($value, $row)
+    protected function playtime($value, $row) : ?float
     {
         if ($value) {
             return \round($value / 60, 1);
@@ -346,7 +346,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function error($value, $row)
+    protected function error($value, $row): string
     {
         $member = Member::constructFromData($row);
 

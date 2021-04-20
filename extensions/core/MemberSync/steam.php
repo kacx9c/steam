@@ -26,7 +26,7 @@ class _Steam
      * @param $member
      * @throws \Exception
      */
-    public function onCreateAccount($member)
+    public function onCreateAccount($member): void
     {
         $this->onValidate($member);
     }
@@ -36,11 +36,8 @@ class _Steam
      * @param $member
      * @throws \Exception
      */
-    public function onValidate($member)
+    public function onValidate($member): void
     {
-        /**
-         * @var array $cache
-         */
         $cache = array();
         if (isset(Store::i()->steamData)) {
             $cache = Store::i()->steamData;
@@ -80,7 +77,7 @@ class _Steam
      * @param    $changes       array        The changes
      * @return    void
      */
-    public function onProfileUpdate($member, $changes)
+    public function onProfileUpdate($member, $changes): void
     {
         /* Did they change their SteamID?  If so, store them in the profile table */
         /* If they are using the steam login, ignore profile field.  */
@@ -169,7 +166,7 @@ class _Steam
      * @param    $member    \IPS\Member    The member
      * @return    void
      */
-    public function onSetAsSpammer($member)
+    public function onSetAsSpammer($member): void
     {
         try {
             /* Set steam restriction */
@@ -186,7 +183,7 @@ class _Steam
      * @param    $member    \IPS\Member    The member
      * @return    void
      */
-    public function onUnSetAsSpammer($member)
+    public function onUnSetAsSpammer($member): void
     {
         try {
             /* Unrestrict steam account */
@@ -207,7 +204,7 @@ class _Steam
      * @param \IPS\Member $member2 Member being removed
      * @return    void
      */
-    public function onMerge($member, $member2)
+    public function onMerge($member, $member2): void
     {
         /* Purge member2 steam data */
         $this->onDelete($member2);
@@ -218,7 +215,7 @@ class _Steam
      * @param    $member    \IPS\Member    The member
      * @return    void
      */
-    public function onDelete($member)
+    public function onDelete($member): void
     {
         /* Purge member steam data */
         try {

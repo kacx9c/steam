@@ -31,7 +31,7 @@ class _convert
      * @param array $data
      * @return    array
      */
-    public function preQueueData($data)
+    public function preQueueData($data): array
     {
         $duplicates = array();
         try {
@@ -63,7 +63,7 @@ class _convert
      * @return    int                            New offset
      * @throws    \IPS\Task\Queue\OutOfRangeException    Indicates offset doesn't exist and thus task is complete
      */
-    public function run($data, $offset)
+    public function run($data, $offset): int
     {
         if ($data['total'] === 0) {
             // No conversion to be done
@@ -110,7 +110,7 @@ class _convert
      *                         complete
      * @throws    \OutOfRangeException    Indicates offset doesn't exist and thus task is complete
      */
-    public function getProgress($data, $offset)
+    public function getProgress($data, $offset): array
     {
         $percent = 100;
 
@@ -129,7 +129,7 @@ class _convert
      * @param array $data
      * @return    void
      */
-    public function postComplete($data)
+    public function postComplete($data): void
     {
 
     }

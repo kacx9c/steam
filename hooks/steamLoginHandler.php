@@ -11,7 +11,7 @@ abstract class steam_hook_SteamLoginHandler extends _HOOK_CLASS_
     /**
      * @return array
      */
-    public static function handlerClasses()
+    public static function handlerClasses(): array
     {
         $return = parent::handlerClasses();
         $return[] = 'IPS\steam\Login\Steam';

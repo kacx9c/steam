@@ -83,7 +83,7 @@ class _Groups
      * @param array $data
      * @throws \Exception
      */
-    public static function sync($data = array())
+    public static function sync($data = array()) : void
     {
         $groups = array();
         $_delete = array();
@@ -200,7 +200,7 @@ class _Groups
      * @param $url
      * @return \IPS\Http\Url|null
      */
-    public static function request($url)
+    public static function request($url): ?Url
     {
         /**
          * @var Curl|Sockets $req
@@ -228,7 +228,7 @@ class _Groups
     /**
      * @throws \Exception
      */
-    public function update()
+    public function update(): void
     {
         $groups = array();
         $query = null;
@@ -297,7 +297,7 @@ class _Groups
      * @param      $g
      * @param null $lang
      */
-    protected function failed($g, $lang = null)
+    protected function failed($g, $lang = null): void
     {
 
         if (isset($g->id) || isset($g->name)) {
@@ -315,7 +315,7 @@ class _Groups
     /**
      * @param $group
      */
-    public function remove($group)
+    public function remove($group): void
     {
         try {
             $r = Profile\Groups::load($group);
@@ -331,7 +331,7 @@ class _Groups
      * @param bool $raw
      * @return string|null
      */
-    public function error($raw = true)
+    public function error($raw = true): ?string
     {
         if ($raw) {
             return $this->stError;

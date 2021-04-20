@@ -72,7 +72,7 @@ class _Groups extends ActiveRecord
      * @param null       $extraWhereClause
      * @return \IPS\steam\Profile\Groups
      */
-    public static function load($id, $idField = null, $extraWhereClause = null)
+    public static function load($id, $idField = null, $extraWhereClause = null) : ?Groups
     {
         try {
             if ($id === null || $id === 0 || $id === '') {
@@ -90,6 +90,8 @@ class _Groups extends ActiveRecord
         return $member;
     }
 
+
+    // TODO: Do I even need this since it's inherited ?
     /**
      * Construct ActiveRecord from database row
      * @param array $data                        Row from database table
@@ -99,13 +101,12 @@ class _Groups extends ActiveRecord
     public static function constructFromData($data, $updateMultitonStoreIfExists = true)
     {
         return parent::constructFromData($data, $updateMultitonStoreIfExists);
-
     }
 
     /**
      *
      */
-    public function setDefaultValues()
+    public function setDefaultValues() : void
     {
         $this->name = '';
         $this->summary = '';
@@ -124,7 +125,7 @@ class _Groups extends ActiveRecord
     /**
      * @param $data
      */
-    public function storeXML($data)
+    public function storeXML($data) : void
     {
         $this->id = (string)$data->groupID64;
         $this->name = (string)$data->groupDetails->groupName;
@@ -146,7 +147,7 @@ class _Groups extends ActiveRecord
     /**
      * @param array $values
      */
-    public function set_members($values = array())
+    public function set_members($values = array()): void
     {
         $this->_data['members'] = json_encode($values);
     }
@@ -154,7 +155,7 @@ class _Groups extends ActiveRecord
     /**
      * @param $value
      */
-    public function set_avatarIcon($value)
+    public function set_avatarIcon($value): void
     {
         $this->avatarProxy('avatarIcon', $value);
     }
@@ -163,7 +164,7 @@ class _Groups extends ActiveRecord
      * @param $key
      * @param $val
      */
-    protected function avatarProxy($key, $val)
+    protected function avatarProxy($key, $val): void
     {
         $proxyUrl = null;
         if ($val && Settings::i()->remote_image_proxy) {
@@ -182,7 +183,7 @@ class _Groups extends ActiveRecord
     /**
      * @param $value
      */
-    public function set_avatarMedium($value)
+    public function set_avatarMedium($value): void
     {
         $this->avatarProxy('avatarMedium', $value);
     }
@@ -190,7 +191,7 @@ class _Groups extends ActiveRecord
     /**
      * @param $value
      */
-    public function set_avatarFull($value)
+    public function set_avatarFull($value): void
     {
         $this->avatarProxy('avatarFull', $value);
     }
@@ -198,7 +199,7 @@ class _Groups extends ActiveRecord
     /**
      * @return string
      */
-    public function url()
+    public function url(): string
     {
         return 'https://steamcommunity.com/groups/' . $this->url;
     }
@@ -206,7 +207,7 @@ class _Groups extends ActiveRecord
     /**
      * @return string
      */
-    public function chat()
+    public function chat(): string
     {
         return 'steam://friends/joinchat/' . $this->id;
     }

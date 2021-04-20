@@ -49,7 +49,7 @@ class _steamprofile
      * Is there content to display?
      * @return    bool
      */
-    public function showTab()
+    public function showTab(): bool
     {
         if (!$this->member->group['steam_pull']) {
             return false;
@@ -70,7 +70,7 @@ class _steamprofile
      * Display
      * @return    string
      */
-    public function render()
+    public function render(): string
     {
         /* Load up a template and return it. */
         if (!$this->steam->member_id) {

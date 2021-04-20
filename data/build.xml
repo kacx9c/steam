@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<build>
+ <module key="admin/steam"><![CDATA[{"default_controller":"settings","protected":false}]]></module>
+ <module key="front/steam"><![CDATA[{"default_controller":"","protected":1}]]></module>
+ <task frequency="P0Y0M0DT0H2M0S">steamProfile</task>
+ <task frequency="P0Y0M0DT3H0M0S">steamCleanup</task>
+ <task frequency="P0Y0M0DT0H15M0S">steamGames</task>
+ <task frequency="P0Y0M1DT0H0M0S">steamGroups</task>
+ <setting key="steam_api_key"><![CDATA[{"key":"steam_api_key","default":""}]]></setting>
+ <setting key="steam_batch_count"><![CDATA[{"key":"steam_batch_count","default":"25"}]]></setting>
+ <setting key="steam_can_clear"><![CDATA[{"key":"steam_can_clear","default":"0"}]]></setting>
+ <setting key="steam_comm_groups"><![CDATA[{"key":"steam_comm_groups","default":""}]]></setting>
+ <setting key="steam_default_tab"><![CDATA[{"key":"steam_default_tab","default":"0"}]]></setting>
+ <setting key="steam_diagnostics"><![CDATA[{"key":"steam_diagnostics","default":"0"}]]></setting>
+ <setting key="steam_get_owned"><![CDATA[{"key":"steam_get_owned","default":"1"}]]></setting>
+ <setting key="steam_instructions"><![CDATA[{"key":"steam_instructions","default":"<p> We do not currently have any cached data for your Steam profile. \u00a0If this is in error, use the options menu to the right to manually update your profile cache. \u00a0 <\/p>  <p> <u>Link your Steam Account:\u00a0<\/u> <\/p>  <p> 1) Visit Profile > Account Settings > Steam. \u00a0Upon linking your profile, return to to this page. \u00a0If your profiles is still not present, use the menu to the right to manually update your profile cache. \u00a0 <\/p>  <p> 2) Click Edit Profile above. \u00a0Find the Steam ID custom profile field and populate it with your Steam ID. \u00a0 <\/p>  <p> Valid Steam Input format for Profile Field: <\/p>  <ul> <li> Steam Name:\u00a0steamcommunity.com\/id\/XXXXXXXXX\/\u00a0\u00a0Where XXXXXXXXX is your Steam Name <\/li> <li> 17 digit Steam ID: ex.\u00a076561197961234567 <\/li> <li> Old school Steam ID: ex. STEAM_0:0:1234567 <\/li> <\/ul>  <p> \u00a0 <\/p>"}]]></setting>
+ <setting key="steam_link_stats"><![CDATA[{"key":"steam_link_stats","default":"1"}]]></setting>
+ <setting key="steam_profile_count"><![CDATA[{"key":"steam_profile_count","default":"500"}]]></setting>
+ <setting key="steam_profile_style"><![CDATA[{"key":"steam_profile_style","default":"two"}]]></setting>
+ <setting key="steam_showinprofile"><![CDATA[{"key":"steam_showinprofile","default":"1"}]]></setting>
+ <setting key="steam_showintopic"><![CDATA[{"key":"steam_showintopic","default":"1"}]]></setting>
+ <setting key="steam_showonhover"><![CDATA[{"key":"steam_showonhover","default":"1"}]]></setting>
+ <widget key="steamPlayerWidget"><![CDATA[{"class":"\\IPS\\Widget\\StaticCache","restrict":["sidebar","cms"],"default_area":"","allow_reuse":true,"menu_style":"menu","embeddable":true}]]></widget>
+ <widget key="steamGroupWidget"><![CDATA[{"class":"\\IPS\\Widget\\StaticCache","restrict":["sidebar","cms"],"default_area":"","allow_reuse":true,"menu_style":"menu","embeddable":true}]]></widget>
+ <acpsearch key="app=steam&amp;module=steam&amp;controller=settings&amp;searchResult=form_steam_api_key"><![CDATA[{"lang_key":"steam_api_key","restriction":null,"keywords":["steam","api"]}]]></acpsearch>
+ <hook key="steamTopic"><![CDATA[{"type":"S","class":"\\IPS\\Theme\\class_forums_front_topics"}]]></hook>
+ <hook key="steamHover"><![CDATA[{"type":"S","class":"\\IPS\\Theme\\class_core_front_profile"}]]></hook>
+ <hook key="steamPostJoin"><![CDATA[{"type":"C","class":"\\IPS\\forums\\Topic\\Post"}]]></hook>
+ <hook key="steamDefault"><![CDATA[{"type":"C","class":"\\IPS\\core\\modules\\front\\members\\profile"}]]></hook>
+ <hook key="steamid"><![CDATA[{"type":"C","class":"\\IPS\\CustomField"}]]></hook>
+ <hook key="SteamLoginHandler"><![CDATA[{"type":"C","class":"\\IPS\\Login\\Handler"}]]></hook>
+</build>

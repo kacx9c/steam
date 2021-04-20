@@ -9,7 +9,7 @@ class steam_hook_steamPostJoin extends _HOOK_CLASS_
      * @param \IPS\Content\Item $item The item
      * @return    array
      */
-    public static function joins(\IPS\Content\Item $item)
+    public static function joins(\IPS\Content\Item $item): ?array
     {
         try {
             $return = parent::joins($item);
@@ -38,14 +38,14 @@ class steam_hook_steamPostJoin extends _HOOK_CLASS_
      * @param bool  $updateMultitonStoreIfExists Replace current object in multiton store if it already exists there?
      * @return    static
      */
-    public static function constructFromData($data, $updateMultitonStoreIfExists = true)
+    public static function constructFromData($data, $updateMultitonStoreIfExists = true): ?\steam_hook_steamPostJoin
     {
         try {
             $steam = null;
             $obj = parent::constructFromData($data, $updateMultitonStoreIfExists);
 
-            if (isset($data[static::$databaseTable]) and \is_array($data[static::$databaseTable])) {
-                if (isset($data['steam']) and \is_array($data['steam'])) {
+            if (isset($data[static::$databaseTable]) && \is_array($data[static::$databaseTable])) {
+                if (isset($data['steam']) && \is_array($data['steam'])) {
                     $steam = \IPS\steam\Profile::constructFromData($data['steam'], false);
                 }
                 $obj->steam = $steam;

@@ -27,7 +27,7 @@ class _settings extends Controller
      * Execute
      * @return    void
      */
-    public function execute()
+    public function execute() : void
     {
         Dispatcher::i()->checkAcpPermission('steam_settings');
         parent::execute();
@@ -37,7 +37,7 @@ class _settings extends Controller
      * Manage Settings
      * @return    void
      */
-    protected function manage()
+    protected function manage(): void
     {
 
         $form = new Form;

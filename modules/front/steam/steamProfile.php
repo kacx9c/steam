@@ -26,7 +26,7 @@ class _steamProfile extends Controller
      * Execute
      * @return    void
      */
-    public function execute()
+    public function execute() : void
     {
         Session::i()->csrfCheck();
         $this->member_id = (int)Request::i()->id;
@@ -44,7 +44,7 @@ class _steamProfile extends Controller
      * ...
      * @return    void
      */
-    protected function manage()
+    protected function manage(): void
     {
         /* Replace with default Online user display */
         /* Nothing to see here, send them back to the profile they came from */
@@ -56,7 +56,7 @@ class _steamProfile extends Controller
     /**
      *
      */
-    public function update()
+    public function update(): void
     {
         Session::i()->csrfCheck();
         try {
@@ -84,7 +84,7 @@ class _steamProfile extends Controller
     /**
      *
      */
-    public function disable()
+    public function disable(): void
     {
         Session::i()->csrfCheck();
 
@@ -103,7 +103,7 @@ class _steamProfile extends Controller
     /**
      *
      */
-    public function enable()
+    public function enable(): void
     {
         Session::i()->csrfCheck();
 
@@ -122,7 +122,7 @@ class _steamProfile extends Controller
     /**
      *
      */
-    public function validate()
+    public function validate(): void
     {
         Session::i()->csrfCheck();
         try {
@@ -149,7 +149,7 @@ class _steamProfile extends Controller
     /**
      *
      */
-    public function remove()
+    public function remove(): void
     {
         Session::i()->csrfCheck();
         try {

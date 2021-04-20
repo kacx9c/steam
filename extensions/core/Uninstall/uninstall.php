@@ -31,7 +31,7 @@ class _uninstall
      * @param string $application Application directory
      * @return    void
      */
-    public function preUninstall($application)
+    public function preUninstall($application): void
     {
         /**
          * @var \IPS\Login\Handler $handler
@@ -44,7 +44,10 @@ class _uninstall
 
         try {
             Db::i()->update('core_pfields_data', array('pf_type' => 'Text'), array('pf_type=?', 'Steamid'));
-            // \IPS\Db::i()->dropColumn( 'core_groups', array( 'steam_index', 'steam_pull' ));
+            // TODO: If Group data is moved, this will no longer apply.
+            if(Db::i()->checkForColumn('core_groups', array('steam_index', 'steam_pull'))){
+                Db::i()->dropColumn( 'core_groups', array( 'steam_index', 'steam_pull' ));
+            }
         } catch (Db\Exception $e) {
             /* Ignore "Cannot drop because it does not exist" */
             if ($e->getCode() <> 1091) {
@@ -58,7 +61,8 @@ class _uninstall
      * @param string $application Application directory
      * @return    void
      */
-    public function postUninstall($application)
+    public function postUninstall($application): void
     {
+
     }
 }

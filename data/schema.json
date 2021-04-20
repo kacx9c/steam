@@ -624,5 +624,59 @@
         },
         "collation": "utf8mb4_unicode_ci",
         "engine": "InnoDB"
+    },
+    "steam_core_groups": {
+        "name": "steam_core_groups",
+        "columns": {
+            "group_id": {
+                "name": "group_id",
+                "type": "INT",
+                "length": "20",
+                "decimals": null,
+                "values": null,
+                "allow_null": false,
+                "default": null,
+                "comment": "Core Group ID Number",
+                "unsigned": true,
+                "auto_increment": false
+            },
+            "group_pull": {
+                "name": "group_pull",
+                "type": "TINYINT",
+                "length": null,
+                "decimals": null,
+                "values": null,
+                "allow_null": true,
+                "default": null,
+                "comment": "Whether or not members of this group have their steam data pulled",
+                "unsigned": true,
+                "auto_increment": false
+            },
+            "group_board_block": {
+                "name": "group_board_block",
+                "type": "TINYINT",
+                "length": null,
+                "decimals": null,
+                "values": null,
+                "allow_null": true,
+                "default": null,
+                "comment": "Are members of this group shown in the forum block?",
+                "unsigned": true,
+                "auto_increment": false
+            }
+        },
+        "indexes": {
+            "PRIMARY": {
+                "type": "primary",
+                "name": "PRIMARY",
+                "columns": [
+                    "group_id"
+                ],
+                "length": [
+                    null
+                ]
+            }
+        },
+        "comment": ""
     }
 }
