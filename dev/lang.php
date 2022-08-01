@@ -172,4 +172,5 @@ $lang = array(
     'steam_err_validateFailed'         => 'Validation Failed, please try again',
     'steam_err_reauth'                 => 'Already logged in, re authenticate',
     'steam_err_api_fail'               => 'API Call failed',
+    'steam_login_name'                 => 'Use Steam Name',
 );

@@ -12,6 +12,9 @@ use IPS\Settings;
 use InvalidArgumentException;
 use Exception;
 use RuntimeException;
+use Helper\AbstractSteam;
+use Helper;
+
 use LogicException;
 
 if (!\defined('\IPS\SUITE_UNIQUE_KEY')) {
@@ -49,13 +52,7 @@ class _Update extends AbstractSteam
      */
     public function __construct()
     {
-        $this->api = Settings::i()->steam_api_key;
-        if (!$this->api) {
-            throw new InvalidArgumentException('steam_err_noapi');
-        }
-        $this->cache = parent::buildStore();
-        $this->steamLogin = Db::i()->checkForColumn('core_members', 'steamid') ? 1 : 0;
-
+        parent::initSteam();
         // TODO: Users may not want profile cache, only login handler
     }
 
@@ -423,6 +420,50 @@ class _Update extends AbstractSteam
         }
     }
 
+    /**
+     * @param int $memberId
+     * @param int $steamID
+     * @return bool|null
+     * @throws \Exception
+     */
+    public function updateLogin(int $memberId, int $steamID): void
+    {
+        try {
+            /* Is the member already in the steam profile table */
+            $steamProfile = Profile::load($memberId);
+
+            /*
+             * GET PLAYER SUMMARY
+             */
+            $url = 'http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=' . $this->api . '&steamid=' . $steamID . '&format=json';
+            try {
+                /**
+                 * @var Response $req
+                 */
+                $playerSummary = Helper\API::request($url);
+
+            } catch (\OutOfRangeException $e) {
+                $this->failed(Member::load($memberId), 'steam_err_getplayer');
+                self::diagnostics($e->getMessage());
+            }
+
+            $player = $playerSummary['response']['players']->first();
+
+            $steamProfile->member_id = $memberId;
+            $steamProfile->steamid = $steamID;
+            $steamProfile->last_update = time();
+            $steamProfile->personaname = $player['personaname'];
+            $steamProfile->profileurl = $player['profileurl'] ?? null;
+            $steamProfile->avatar = $player['avatar'];
+            $steamProfile->avatarmedium = $player['avatarmedium'];
+            $steamProfile->avatarfull = $player['avatarfull'];
+
+            $steamProfile->save();
+
+        } catch (\OutOfRangeException $e) {
+
+        }
+    }
     // TODO
 
     /**
@@ -446,18 +487,6 @@ class _Update extends AbstractSteam
     }
 
     /**
-     * Update the cache offset for the next query
-     */
-    public function updateCache(): void
-    {
-        $this->cache['offset'] += (int)Settings::i()->steam_batch_count;
-        if ($this->cache['offset'] >= $this->cache['count']) {
-            $this->cache['offset'] = 0;
-        }
-        Store::i()->steamData = $this->cache;
-    }
-
-    /**
      * @param $profile
      * @return string
      * @throws \JsonException
@@ -468,7 +497,7 @@ class _Update extends AbstractSteam
             '&steamid=' . $profile->steamid;
         $response = array();
         try {
-            $response = self::request($uri);
+            $response = Helper\API::request($uri);
         } catch (\Exception $e) {
             $this->failed($this->m, 'steam_err_getlevel');
         }
@@ -593,6 +622,8 @@ class _Update extends AbstractSteam
         }
         $profile->games = json_encode($_games);
         $profile->total_count = $response['total_count']; // Total counts of games played in last 2 weeks
+
+        return $profile;
     }
 
     /**

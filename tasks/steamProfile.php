@@ -53,7 +53,6 @@ class _steamProfile extends Task
 
         } catch (\Exception $e) {
             throw new Task\Exception($this, $e);
-
         }
 
         Widget::deleteCaches('steamPlayerWidget', 'steam');
