@@ -25,6 +25,7 @@ if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
 
 /**
  * steamGames Task
+ * Update profiles 100 profiles, include all meta data, games include.
  */
 class _steamGames extends Task
 {
@@ -50,7 +51,7 @@ class _steamGames extends Task
 
         try {
             $steam = new Update;
-            $steam->update();
+            $steam->updateFullProfile();
         } catch (\Exception $e) {
             throw new Task\Exception($this, $e);
         }

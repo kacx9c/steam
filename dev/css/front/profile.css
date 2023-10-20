@@ -2,9 +2,9 @@
 	border: 5px solid #8bc53f;
 }
 
-.steamInGame img {
-	width: 179px;
-	height: 59px;
+.steamInGame, img {
+	width: 184px;
+	height: 69px;
 }
 
 .steamInGameData {
@@ -34,4 +34,8 @@
 	line-height: 24px;
 	text-align: center;
 	cursor: default;
+}
+
+.ipsType_sectionTitle {
+	border-bottom: 0 !important;
 }

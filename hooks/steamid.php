@@ -50,7 +50,7 @@ abstract class steam_hook_steamid extends _HOOK_CLASS_
     protected function canKeepValueOnChange($newType)
     {
         try {
-            if ($newType == 'Steamid') {
+            if ($newType === 'Steamid') {
                 return \in_array($this->type, array(
                     'Email',
                     'Password',
@@ -64,7 +64,7 @@ abstract class steam_hook_steamid extends _HOOK_CLASS_
                     'Steamid',
                 ));
             }
-            if ($this->type == 'Steamid') {
+            if ($this->type === 'Steamid') {
                 return \in_array($newType, array(
                     'Email',
                     'Password',
@@ -93,7 +93,7 @@ abstract class steam_hook_steamid extends _HOOK_CLASS_
      * @param null $customValidationCode
      * @return mixed|void
      */
-    public function buildHelper($value = null, $customValidationCode = null)
+    public function buildHelper($value = null, $customValidationCode = null, \IPS\Content $content = null, $flags = 0)
     {
         try {
             if ($this->type === 'Steamid') {

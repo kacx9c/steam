@@ -44,31 +44,26 @@ class _Steam
         }
         if (!$member->steamid && !isset($cache['pf_id'])) {
 
-            /* If they don't have a steam login set, or there isn't a profile field ID return. */
+            /* If they don't have a steamUpdate login set, or there isn't a profile field ID return. */
             /* If it's just a cache issue, they'll get caught in the cleanup routine */
             return;
         }
 
-        $steam = new Update;
-        $steamid = $steam->getSteamID($member);
+        $steamUpdate = new Update;
+        $steamid = $steamUpdate->getSteamID($member);
+        $steamProfile = Profile::load($member->member_id);
 
         /* If they set their steamID, lets put them in the cache */
-        if ($steamid) {
-            $m = Profile::load($member->member_id);
-            if (!$m->steamid) {
-                $m->member_id = $member->member_id;
-                $m->steamid = $steamid;
-                $m->setDefaultValues();
-
-                $m->save();
-
-                $steam->updateProfile($m->member_id);
-                $steam->update($m->member_id);
-            }
-        } else {
-            /* We don't have a SteamID on the account, jump ship */
+        if ($steamid === '' || !$steamProfile->steamid) {
             return;
         }
+
+        $steamProfile->setDefaultValues();
+        $steamProfile->member_id = $member->member_id;
+        $steamProfile->steamid = $steamid;
+        $steamProfile->save();
+
+        $steamUpdate->updateFullProfile($steamProfile->member_id);
     }
 
     /**
@@ -79,82 +74,59 @@ class _Steam
      */
     public function onProfileUpdate($member, $changes): void
     {
-        /* Did they change their SteamID?  If so, store them in the profile table */
-        /* If they are using the steam login, ignore profile field.  */
         try {
-            /**
-             * @var array $cache
-             */
-            $cache = array();
-            if ($member->steamid && !isset($changes['steamid'])) {
-                /* Steam Login has priority, if it's set ignore profile fields. */
-                return;
-            }
-            if (isset(Store::i()->steamData)) {
-                $cache = Store::i()->steamData;
-            }
-            /**
-             * @var string $group
-             */
+            $cache = Store::i()->steamData ?? array();
             $group = '';
-            /**
-             * @var string $field
-             */
-            $field = '';
-            /**
-             * @var string $_field
-             */
+            $pField = '';
             $_field = '';
             $delete = false;
             if (isset($cache['pf_id'], $cache['pf_group_id'])) {
                 $group = 'core_pfieldgroups_';
-                $field = 'core_pfield_';
+                $pField = 'core_pfield_';
                 $_field = 'field_';
 
                 $group .= $cache['pf_group_id'];
-                $field .= $cache['pf_id'];
+                $pField .= $cache['pf_id'];
                 $_field .= $cache['pf_id'];
             }
 
             if (isset($changes[$_field])) {
-                $delete = $changes[$_field] ? false : true;
-            } elseif (isset($changes['steamid'])) {
-                $delete = $changes['steamid'] ? false : true;
+                $delete = !$changes[$_field];
             }
 
             if ($delete) {
-                $s = Profile::load($member->member_id);
-                if ($s->member_id) {
-                    $s->delete();
+                $steamProfile = Profile::load($member->member_id);
+                if ($steamProfile->member_id) {
+                    $steamProfile->delete();
+                    return;
                 }
             }
-            if (!$delete && (isset($changes['steamid']) || isset($changes[$_field]))) {
-                $steam = new Update;
 
-                $member->profileFields = $member->profileFields();
-                if (isset($changes[$_field])) {
-                    $member->profileFields[$group][$field] = $changes[$_field];
-                }
+            if (!isset($changes[$_field])) {
+                return;
+            }
 
-                $steamid = ($changes['steamid'] ?? $steam->getSteamID($member));
+            $steamUpdate = new Update;
 
-                $s = Profile::load($member->member_id);
+            $member->profileFields = $member->profileFields();
+            $member->profileFields[$group][$pField] = $changes[$_field];
+            $steamid = ($changes['steamid'] ?? $steamUpdate->getSteamID($member));
 
-                /* If the steamid is valid, go ahead and save and update the cache right now */
-                if ($steamid) {
-                    $s->setDefaultValues();
-                    $s->member_id = $member->member_id;
-                    $s->steamid = $steamid;
-                    $s->save();
-                    $steam->updateProfile($s->member_id);
-                    $steam->update($s->member_id);
-                } elseif ($s->member_id) {
-                    // If we actually loaded a profile, but there isn't a steamid, delete their cache entry entirely.
-                    $s->delete();
-                } else {
-                    // Was an empty object, just taking out the trash.
-                    unset($s);
-                }
+            $steamProfile = Profile::load($member->member_id);
+
+            /* If the steamid is valid, go ahead and save and update the cache right now */
+            if ($steamid) {
+                $steamProfile->setDefaultValues();
+                $steamProfile->member_id = $member->member_id;
+                $steamProfile->steamid = $steamid;
+                $steamProfile->save();
+                $steamUpdate->updateFullProfile($steamProfile->member_id);
+            } elseif ($steamProfile->member_id) {
+                // If we actually loaded a profile, but there isn't a steamid, delete their cache entry entirely.
+                $steamProfile->delete();
+            } else {
+                // Was an empty object, just taking out the trash.
+                unset($steamProfile);
             }
         } catch (\Exception $e) {
             //throw new \OutOfRangeException;
@@ -172,7 +144,6 @@ class _Steam
             /* Set steam restriction */
             $steam = new Update;
             $steam->restrict($member->member_id);
-
         } catch (\OutOfRangeException $e) {
             throw new \OutOfRangeException;
         }
@@ -186,13 +157,10 @@ class _Steam
     public function onUnSetAsSpammer($member): void
     {
         try {
-            /* Unrestrict steam account */
             $steam = new Update;
             $steam->unrestrict($member->member_id);
             /* Try to update the profile */
-            $steam->updateProfile($member->member_id);
-            $steam->update($member->member_id);
-
+            $steam->updateFullProfile($member->member_id);
         } catch (\Exception $e) {
             throw new \OutOfRangeException;
         }
@@ -220,15 +188,6 @@ class _Steam
         /* Purge member steam data */
         try {
             $steam = Profile::load($member->member_id);
-            try{
-                Db::i()->delete('core_login_links',
-                    array('token_member=? AND token_identifier=?',
-                          $member->member_id,
-                          $steam->st_steamid
-                    ));
-            }catch(\Exception $e) {
-                // Do nothing, they don't have a linked account
-            }
             $steam->delete();
         } catch (\OutOfRangeException $e) {
             throw new \OutOfRangeException;

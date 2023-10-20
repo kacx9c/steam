@@ -25,6 +25,7 @@ if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
 
 /**
  * steamprofile Task
+ * Update 100 profiles at a time, just the base profile.
  */
 class _steamProfile extends Task
 {
@@ -49,7 +50,7 @@ class _steamProfile extends Task
         }
         try {
             $steam = new Update;
-            $steam->updateProfile();
+            $steam->updateBatchProfilesSummaries();
 
         } catch (\Exception $e) {
             throw new Task\Exception($this, $e);

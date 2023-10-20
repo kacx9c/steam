@@ -1,4 +1,4 @@
-# Steam Profile Integration - v 2.1.13
+# Steam Profile Integration - v3.0.0
 
 Includes Steam Login Handler.
 

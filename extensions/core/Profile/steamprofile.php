@@ -57,7 +57,7 @@ class _steamprofile
         if ($this->steam->member_id && $this->steam->steamid) {
             return true;
         }
-        if (($this->member->member_id == Member::loggedIn()->member_id) || Member::loggedIn()->isAdmin()) {
+        if (($this->member->member_id === Member::loggedIn()->member_id) || Member::loggedIn()->isAdmin()) {
             return true;
         }
 
@@ -74,7 +74,7 @@ class _steamprofile
     {
         /* Load up a template and return it. */
         if (!$this->steam->member_id) {
-            /* If there isn't a Steam profile, set the member ID so we have access to the Update / Validate functions */
+            /* If there isn't a Steam profile, set the member ID, so we have access to the Update / Validate functions */
             $this->steam->member_id = $this->member->member_id;
         }
         Output::i()->cssFiles = array_merge(Output::i()->cssFiles,

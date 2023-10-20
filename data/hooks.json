@@ -7,10 +7,6 @@
         "type": "S",
         "class": "\\IPS\\Theme\\class_core_front_profile"
     },
-    "steamPostJoin": {
-        "type": "C",
-        "class": "\\IPS\\forums\\Topic\\Post"
-    },
     "steamDefault": {
         "type": "C",
         "class": "\\IPS\\core\\modules\\front\\members\\profile"
@@ -18,9 +14,5 @@
     "steamid": {
         "type": "C",
         "class": "\\IPS\\CustomField"
-    },
-    "SteamLoginHandler": {
-        "type": "C",
-        "class": "\\IPS\\Login\\Handler"
     }
 }

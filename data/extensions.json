@@ -1,0 +1,19 @@
+{
+    "core": {
+        "GroupForm": {
+            "steam": "IPS\\steam\\extensions\\core\\GroupForm\\steam"
+        },
+        "Uninstall": {
+            "uninstall": "IPS\\steam\\extensions\\core\\Uninstall\\uninstall"
+        },
+        "Profile": {
+            "steamprofile": "IPS\\steam\\extensions\\core\\Profile\\steamprofile"
+        },
+        "Queue": {
+            "convert": "IPS\\steam\\extensions\\core\\Queue\\convert"
+        },
+        "MemberSync": {
+            "steam": "IPS\\steam\\extensions\\core\\MemberSync\\steam"
+        }
+    }
+}

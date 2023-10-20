@@ -54,9 +54,6 @@ class _settings extends Controller
         $form->add(new Form\YesNo('steam_showonhover', Settings::i()->steam_showonhover, false,
             array(), null, null, null, 'steam_showonhover'));
 
-        $form->add(new Form\YesNo('steam_diagnostics', Settings::i()->steam_diagnostics, false,
-            array(), null, null, null, 'steam_diagnostics'));
-
         $form->addHeader('steam__mem_profiles');
         $form->add(new Form\YesNo('steam_showinprofile', Settings::i()->steam_showinprofile, false,
             array(
