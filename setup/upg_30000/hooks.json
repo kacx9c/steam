@@ -1,12 +1,10 @@
 {
-    "added": [
-        "steamTopic",
-        "steamHover",
-        "steamPostJoin",
-        "steamDefault",
-        "steamid",
-        "SteamLoginHandler"
-    ],
+    "added": {
+        "1": "steamHover",
+        "3": "steamDefault",
+        "4": "steamid",
+        "5": "topic"
+    },
     "edited": [],
     "removed": []
 }

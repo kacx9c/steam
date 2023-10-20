@@ -104,9 +104,7 @@ class _Profile extends ActiveRecord
         $this->error = '';
         $this->personaname = '';
         $this->profileurl = '';
-        $this->avatar = '';
-        $this->avatarmedium = '';
-        $this->avatarfull = '';
+        $this->avatarhash = '';
         $this->personastate = 0;
         $this->timecreated = null;
         $this->lastlogoff = null;

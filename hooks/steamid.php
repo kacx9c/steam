@@ -100,7 +100,6 @@ abstract class steam_hook_steamid extends _HOOK_CLASS_
                 $this->type = 'Text';
             }
 
-            //return parent::buildHelper( $value, $customValidationCode);
             return \call_user_func_array('parent::buildHelper', \func_get_args());
         } catch (\RuntimeException $e) {
             if (method_exists(get_parent_class(), __FUNCTION__)) {

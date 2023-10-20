@@ -65,7 +65,7 @@ class _Groups extends ActiveRecord
      * @note    This needs to be declared in any child classes as well, only declaring here for editor
      *          code-complete/error-check functionality
      */
-    protected static array $multitons = array();
+    protected static $multitons = array();
 
     /**
      * @param int|string $id
@@ -99,7 +99,7 @@ class _Groups extends ActiveRecord
      * @param bool $updateMultitonStoreIfExists Replace current object in multiton store if it already exists there?
      * @return    static
      */
-    public static function constructFromData($data, bool $updateMultitonStoreIfExists = true): static
+    public static function constructFromData($data, $updateMultitonStoreIfExists = true): static
     {
         return parent::constructFromData($data, $updateMultitonStoreIfExists);
     }
@@ -152,50 +152,6 @@ class _Groups extends ActiveRecord
     public function set_members($values = array()): void
     {
         $this->_data['members'] = json_encode($values, JSON_THROW_ON_ERROR);
-    }
-
-    /**
-     * @param $value
-     */
-    public function set_avatarIcon($value): void
-    {
-        $this->avatarProxy('avatarIcon', $value);
-    }
-
-    /**
-     * @param string $key
-     * @param string $val
-     */
-    protected function avatarProxy($key, $val): void
-    {
-        $proxyUrl = null;
-        if ($val && Settings::i()->remote_image_proxy) {
-            $proxyUrl = Url::createFromString(Settings::i()->base_url . 'applications/core/interface/imageproxy/imageproxy.php');
-            $proxyUrl = $proxyUrl->setQueryString(array(
-                'img' => $val,
-                'key' => hash_hmac('sha256', $val, Settings::i()->site_secret_key),
-            ));
-
-            $this->_data[$key] = (string)$proxyUrl;
-        } else {
-            $this->_data[$key] = $val;
-        }
-    }
-
-    /**
-     * @param string $value
-     */
-    public function set_avatarMedium($value): void
-    {
-        $this->avatarProxy('avatarMedium', $value);
-    }
-
-    /**
-     * @param string $value
-     */
-    public function set_avatarFull($value): void
-    {
-        $this->avatarProxy('avatarFull', $value);
     }
 
     /**

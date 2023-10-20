@@ -88,17 +88,6 @@ class _view extends \IPS\Dispatcher\Controller
             ),
         );
 
-        // $this->table->rowButtons = function($row)
-        // {
-        // 	return array(
-        // 			'delete'	=> array(
-        // 				'icon'		=> 'trash',
-        // 				'title'		=> 'delete',
-        // 				'link'		=> \IPS\Http\Url::internal( 'app=steam&module=steam&controller=view&do=delete&id=' ) . $row['st_member_id'],
-        // 			),
-        // 		);
-        // };
-
         /* Quick Filters */
         $this->table->filters = array(
             'steam_filters_active'   => "st_steamid NOT IN ('','0')",
@@ -135,12 +124,6 @@ class _view extends \IPS\Dispatcher\Controller
             'st_last_update'              => function ($value, $row) {
                 return $this->lastUpdate($value, $row);
             },
-            'st_lastlogoff'               => function ($value, $row) {
-                return $this->lastLogoff($value, $row);
-            },
-            'st_restricted'               => function ($value, $row) {
-                return $this->restricted($value, $row);
-            },
             'st_communityvisibilitystate' => function ($value, $row) {
                 return $this->communityVisibilityState($value, $row);
             },
@@ -168,8 +151,8 @@ class _view extends \IPS\Dispatcher\Controller
     {
         $member = Member::constructFromData($row);
 
-        if ($row['st_avatarmedium']) {
-            return "<img src={$row['st_avatarmedium']} class='ipsUserPhoto_small'/>";
+        if ($row['st_avatarhash']) {
+            return "<img src='https://avatars.steamstatic.com/{$row['st_avatarhash']}_medium.jpg' class='ipsUserPhoto_small'/>";
         }
         if ($row['st_restricted']) {
             return "<span class='ipsType_warning'><strong>{$member::loggedIn()->language()->addToStack('steam_disabled')}</strong></span>";
@@ -240,41 +223,6 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function lastLogoff($value, $row): string
-    {
-        if ($value) {
-            $ts = DateTime::ts($value);
-            if ($value < (time() - 86400)) {
-                return $ts->strFormat('%x');
-            }
-
-            return $ts->relative('RELATIVE_FORMAT_SHORT');
-        }
-
-        return '';
-    }
-
-    /**
-     * @param $value
-     * @param $row
-     * @return string
-     */
-    protected function restricted($value, $row): string
-    {
-        return $value;
-//        if ($value == 0) {
-//            return "<span class='ipsType_success'><strong>{Member::loggedIn()->language()->addToStack('steam_no')}</strong></span>";
-//        }
-//        if ($value < time()) {
-//            return "<span class='ipsType_warning'><strong>{Member::loggedIn()->language()->addToStack('steam_yes')}</strong></span>";
-//        }
-    }
-
-    /**
-     * @param $value
-     * @param $row
-     * @return string
-     */
     protected function communityVisibilityState($value, $row): string
     {
         $member = Member::constructFromData($row);
@@ -330,12 +278,12 @@ class _view extends \IPS\Dispatcher\Controller
     /**
      * @param $value
      * @param $row
-     * @return float
+     * @return string
      */
-    protected function playtime($value, $row) : ?float
+    protected function playtime($value, $row) : string
     {
         if ($value) {
-            return \round($value / 60, 1);
+            return \round($value / 60, 1) . ' hrs';
         }
 
         return 0;

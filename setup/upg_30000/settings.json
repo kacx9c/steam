@@ -1,20 +1,19 @@
 {
-    "added": [
-        "steam_api_key",
-        "steam_batch_count",
-        "steam_can_clear",
-        "steam_comm_groups",
-        "steam_default_tab",
-        "steam_diagnostics",
-        "steam_get_owned",
-        "steam_instructions",
-        "steam_link_stats",
-        "steam_profile_count",
-        "steam_profile_style",
-        "steam_showinprofile",
-        "steam_showintopic",
-        "steam_showonhover"
-    ],
+    "added": {
+        "0": "steam_api_key",
+        "1": "steam_batch_count",
+        "2": "steam_can_clear",
+        "3": "steam_comm_groups",
+        "4": "steam_default_tab",
+        "6": "steam_get_owned",
+        "7": "steam_instructions",
+        "8": "steam_link_stats",
+        "9": "steam_profile_count",
+        "10": "steam_profile_style",
+        "11": "steam_showinprofile",
+        "12": "steam_showintopic",
+        "13": "steam_showonhover"
+    },
     "edited": [],
     "removed": []
 }

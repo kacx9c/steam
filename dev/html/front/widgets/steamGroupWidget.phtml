@@ -60,7 +60,7 @@
 			{{endif}}
 
 			<a href="{$p->author()->url()->setQueryString(array('tab' => 'node_steam_steamprofile'))}" class="ipsUserPhoto ipsUserPhoto_mini" target="_blank">
-				<img src="{$p->avatarmedium}" title="{$p->personaname}" alt="{$p->personaname}"data-ipsToolTip />
+				<img src="https://avatars.steamstatic.com/{$p->avatarhash}_medium.jpg" title="{$p->personaname}" alt="{$p->personaname}"data-ipsToolTip />
 			</a>
 		{{endforeach}}
 

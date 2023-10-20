@@ -1,0 +1,31 @@
+{
+    "html": {
+        "added": [],
+        "edited": [
+            "front\/global\/steamHover",
+            "front\/global\/steamProfile",
+            "front\/global\/steamTopic",
+            "front\/widgets\/steamGroupWidget",
+            "front\/widgets\/steamPlayerWidget",
+            "front\/global\/steamTopic",
+            "front\/global\/steamHover",
+            "front\/global\/steamTopic",
+            "front\/global\/steamTopic",
+            "front\/global\/steamProfile"
+        ],
+        "removed": []
+    },
+    "css": {
+        "added": [],
+        "edited": [
+            "front\/profile.css",
+            "front\/profile.css"
+        ],
+        "removed": []
+    },
+    "resources": {
+        "added": [],
+        "edited": [],
+        "removed": []
+    }
+}

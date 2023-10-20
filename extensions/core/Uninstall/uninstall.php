@@ -33,21 +33,17 @@ class _uninstall
      */
     public function preUninstall($application): void
     {
-        /**
-         * @var \IPS\Login\Handler $handler
-         */
-        $handler = Handler::findMethod('IPS\steam\Login\Steam');
-        try {
-            Db::i()->update('core_login_methods', array('login_enabled=?', 0), array('login_id=?', $handler->id));
-        } catch (\IPS\Db\Exception $e) {
-        }
-
         try {
             Db::i()->update('core_pfields_data', array('pf_type' => 'Text'), array('pf_type=?', 'Steamid'));
             // TODO: If Group data is moved, this will no longer apply.
-            if(Db::i()->checkForColumn('core_groups', array('steam_index', 'steam_pull'))){
-                Db::i()->dropColumn( 'core_groups', array( 'steam_index', 'steam_pull' ));
+            if(Db::i()->checkForColumn('core_groups', 'steam_index')){
+                Db::i()->dropColumn( 'core_groups', 'steam_index');
             }
+            if(Db::i()->checkForColumn('core_groups', 'steam_pull')){
+                Db::i()->dropColumn( 'core_groups', 'steam_pull' );
+            }
+
+            Db::i()->dropTable(array('steam_profiles', 'steam_groups', 'steam_core_groups'), true);
         } catch (Db\Exception $e) {
             /* Ignore "Cannot drop because it does not exist" */
             if ($e->getCode() <> 1091) {

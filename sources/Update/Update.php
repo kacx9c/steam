@@ -2,7 +2,6 @@
 
 namespace IPS\steam;
 
-use http\Message;
 use IPS\core\ProfileFields\Field;
 use IPS\Data\Store;
 use IPS\Db;
@@ -41,6 +40,7 @@ class _Update
         'offset'         => 0,
         'count'          => 0,
         'cleanup_offset' => 0,
+        'cleanup_count'  => 0,
         'pf_id'          => 0,
         'pf_group_id'    => 0,
     );
@@ -52,6 +52,7 @@ class _Update
      * @var bool
      */
     protected bool $isRunningAsTask = true;
+    protected static $instance = NULL;
 
     /**
      * _Update constructor.
@@ -62,19 +63,32 @@ class _Update
         $this->initSteam();
     }
 
+    public static function i()
+    {
+        if( static::$instance === NULL )
+        {
+            $classname = \get_called_class();
+            static::$instance = new $classname;
+        }
+
+        return self::$instance;
+    }
+
     /**
      * @param int $memberId
      * @return void
      */
     public static function restrict(int $memberId): void
     {
+        $profile = new Profile;
         try {
             $profile = Profile::load($memberId, 'st_member_id');
+            $profile->setDefaultValues();
             $profile->restricted = 1;
-            $profile->save();
         } catch (\Exception $e) {
-//          Need to define what to do here...
+            $profile->error = $e->getMessage();
         }
+        $profile->save();
     }
 
     /**
@@ -83,13 +97,14 @@ class _Update
      */
     public static function unrestrict(int $memberId): void
     {
+        $profile = new Profile;
         try {
             $profile = Profile::load($memberId, 'st_member_id');
             $profile->restricted = 0;
-            $profile->save();
         } catch (\Exception $e) {
-            self::diagnostics($e->getMessage());
+            $profile->error = $e->getMessage();
         }
+        $profile->save();
     }
 
     /**
@@ -114,13 +129,7 @@ class _Update
                 self::getRecentlyPlayedGames($steamProfile);
                 self::getOwnedGames($steamProfile);
                 self::getUserGroupList($steamProfile);
-            } catch(JsonException $e) {
-                if($memberId !== -1)
-                {
-                    throw new RuntimeException($e->getMessage());
-                }
-                $steamProfile->error = $e->getMessage();
-            } catch (\Exception $e) {
+            } catch(JsonException|\RuntimeException $e) {
                 if($memberId !== -1)
                 {
                     throw new RuntimeException($e->getMessage());
@@ -154,7 +163,13 @@ class _Update
             $steamProfile->steamid = $steamId;
             $steamProfile->save();
         }
-        return $this->getPlayerSummaries(array($steamProfile));
+        try {
+            return $this->getPlayerSummaries(array($steamProfile));
+        } catch(\RuntimeException $e) {
+            $steamProfile->error = $e->getMessage();
+            $steamProfile->save();
+            return array();
+        }
     }
 
     /**
@@ -308,6 +323,9 @@ class _Update
         if (!isset($cache['offset'])) {
             $cache['offset'] = 0;
         }
+        if(!isset($cache['cleanup_offset'])) {
+            $cache['cleanup_offset'] = 0;
+        }
 
         return $cache;
     }
@@ -416,16 +434,14 @@ class _Update
             $steamProfile->steamid = $player['steamid'];
             $steamProfile->last_update = time();
             $steamProfile->timecreated = $player['timecreated'] ?? null;
-            $steamProfile->communityvisibilitystate = $player['communityvisibilitystate'];
-            $steamProfile->personaname = $player['personaname'];
-            $steamProfile->profileurl = $player['profileurl'];
-            $steamProfile->avatar = $player['avatar'];
-            $steamProfile->avatarmedium = $player['avatarmedium'];
-            $steamProfile->avatarfull = $player['avatarfull'];
+            $steamProfile->communityvisibilitystate = $player['communityvisibilitystate'] ?? null;
+            $steamProfile->personaname = $player['personaname'] ?? '';
+            $steamProfile->profileurl = $player['profileurl'] ?? '';
+            $steamProfile->avatarhash = $player['avatarhash'] ?? '';
             $steamProfile->personastate = $player['personastate'];
-            $steamProfile->lastlogoff = $player['lastlogoff'];
+            $steamProfile->lastlogoff = $player['lastlogoff'] ?? null;
             $steamProfile->gameserverip = $player['gameserverip'] ?? '';
-            $steamProfile->gameid = $player['gameid'] ?? 0;
+            $steamProfile->gameid = $player['gameid'] ?? null;
 
             if (isset($player['gameextrainfo']) || isset($player['gameid'])) {
                 $steamProfile->gameextrainfo = $player['gameextrainfo'] ?? $player['gameid'];
@@ -491,99 +507,83 @@ class _Update
      * @param int $offset
      * @throws \Exception
      */
-    protected function cleanup($offset = -1): void
+    public function cleanup(): void
     {
-        // AIWA-101 If cache does not initialize properly, cleanup_offset may not exist.
-        if ($offset == -1) {
-            $offset = $this->cache['cleanup_offset'] ?? 0;
-            if ($offset) {
-                $this->cache['cleanup_offset'] = 0;
-            }
-        }
-        $members = $this->load($offset);
+        $members = $this->GetBatchMembers();
+        if (\count($members)) {
+            foreach ($members as $member) {
+                $steamid = $this->getSteamID($member);
 
-        if (\is_array($this->members) && \count($this->members)) {
-            foreach ($this->members as $this->m) {
-                $steamid = ($this->m->steamid ?: $this->getSteamID($this->m));
-
-                $steamProfile = Profile::load($this->m->member_id);
+                $steamProfile = Profile::load($member->member_id, 'st_member_id');
 
                 /* If they don't have an entry, create one... If their entry doesn't match,
                    purge it and update the steamID */
-                if (!$steamProfile->steamid || ($steamProfile->steamid != $steamid)) {
-//                    $steamProfile->setDefaultValues();
+                if (!$steamProfile->steamid || ($steamProfile->steamid !== $steamid)) {
+                    $steamProfile->setDefaultValues();
                     $steamProfile->steamid = $steamid;
-                    $steamProfile->member_id = $this->m->member_id;
+                    $steamProfile->member_id = $member->member_id;
                     $steamProfile->last_update = time();
                     $steamProfile->save();
                 }
+                try{
+                    $this->updateFullProfile($member->member_id);
+                } catch(\RuntimeException $e)
+                {
+                    $steamProfile->error = $e->getMessage();
+                }
             }
-        }
-        $this->cache['cleanup_offset'] += (int)Settings::i()->steam_batch_count;
-        if ($this->cache['cleanup_offset'] >= $this->cache['count']) {
-            $this->cache['cleanup_offset'] = 0;
         }
         /* Set the Extra data Cache */
         Store::i()->steamData = $this->cache;
     }
 
-    // TODO: Function that loads 100 users from CORE_MEMBERS based on the custom profile field.
-    // USE THIS FOR CLEANUP
-    public function Test()
+    protected function getBatchMembers(): array
     {
-        $profiles = array();
-        $query = null;
-        $offset = null;
-        if ($offset > $this->cache['count']) {
-            $offset = $this->cache['count'];
-        }
+        // SELECT m.* FROM 'core_members' as 'm'
+        // INNER JOIN 'core_pfields_content' as 'p'
+        // ON m.member_id = p.member_id
+        // LEFT JOIN 'steam_profiles as 's'
+        // ON s.st_steamid IS NULL AND p.field_# IS NOT NULL
+        // ORDER BY m.member_id ASC
+        // LIMIT #,##
+        // (limit is not used when getting the count )
 
-        // SELECT m.*, p.* FROM core_members as m
-        // INNER JOIN core_pfields_content as p
-        // ON p.member_id = m.member_id
-        // INNER JOIN steam_profiles as s
-        // WHERE
+        $members = array();
+        $offset = $this->cache['cleanup_offset'];
+
         if ($this->cache['pf_id'] && $this->cache['pf_group_id']) {
-            // Build select and where clauses
-            $select_member = 'm.*';
-            //$select_pfields = "p.field_". $this->cache   ['pf_id'];
-            $select_pfields = 'p.*';
-            $where = 'p.member_id=m.member_id AND (p.field_' . $this->cache['pf_id'] . ' IS NOT NULL';
-            $select = $select_member . ',' . $select_pfields;
-            $where .= ' AND (p.field_' . $this->cache['pf_id'] . ' IS NOT NULL';
-            $where .= $this->steamLogin ? ' OR m.steamid>0)' : ')';
+            $on_core_pfields = 'p.member_id=m.member_id';
+            $on_steam_profiles = 'm.member_id = s.st_member_id';
+            $where = 's.st_member_id IS NULL AND p.field_' . $this->cache['pf_id'] . ' IS NOT NULL';
 
-            $query = Db::i()->select($select, array('core_members', 'm'), null, 'm.member_id ASC',
-                array($offset, Settings::i()->steam_batch_count), null, null, '110')
-                ->join(array('core_pfields_content', 'p'), $where, 'INNER');
+            $query =
+                Db::i()->select('m.*', array('core_members', 'm'), $where, 'm.member_id ASC',
+                array($offset, Settings::i()->steam_batch_count))
+                ->join(array('core_pfields_content', 'p'), $on_core_pfields, 'INNER')
+                ->join(array('steam_profiles', 's' ), $on_steam_profiles, 'LEFT');
 
+            $queryCount =
+                Db::i()->select('COUNT(*)', array('core_members', 'm'), $where, 'm.member_id ASC')
+                ->join(array('core_pfields_content', 'p'), $on_core_pfields, 'INNER')
+                ->join(array('steam_profiles', 's' ), $on_steam_profiles, 'LEFT');
             foreach ($query as $id => $row) {
-                $profiles[$id] = Member::constructFromData($row);
+                $members[$id] = Member::constructFromData($row);
             }
-        } else
-        {
-            return array();
+            // Must use ->first() to get the VALUE of the COUNT(*).
+            // COUNT(*) query only returns 1 row, ->count() returns 1.
+            $this->cache['cleanup_count'] = $queryCount->first();
+            $this->updateCleanupCache();
+            return $members;
         }
+        return $members;
     }
 
-    // TODO Error handling
-
-    /**
-     * @param bool $raw
-     * @return null|string
-     */
-//    public function error($raw = true): ?string
-//    {
-//        if ($raw || $this->stError) {
-//            return $this->stError;
-//        }
-//        if (\is_array($this->failed) && \count($this->failed)) {
-//            return Lang::load(Lang::defaultLanguage())->get('task_steam_profile') . ' - ' . implode(',',
-//                    $this->fail);
-//        }
-//
-//        return null;
-//    }
-
-
+    protected function updateCleanupCache(): void
+    {
+        $this->cache['cleanup_offset'] += (int)Settings::i()->steam_batch_count;
+        if ($this->cache['cleanup_offset'] >= $this->cache['cleanup_count']) {
+            $this->cache['cleanup_offset'] = 0;
+        }
+        Store::i()->steamData = $this->cache;
+    }
 }

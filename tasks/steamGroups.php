@@ -48,8 +48,7 @@ class _steamGroups extends Task
         }
 
         try {
-            $steam = new Update\Groups;
-            $steam->update();
+            Update\Groups::i()->update();
         } catch (\Exception $e) {
             throw new Task\Exception($this, $e);
         }

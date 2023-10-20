@@ -118,10 +118,12 @@ class _settings extends Controller
                     }
                 }
             }
+
             try {
                 // Add any new entries to the database.
-                Update\Groups::sync($groups);
+                Update\Groups::i()->sync($groups);
             } catch (\Exception $e) {
+                // throw new \RuntimeException($e->getMessage());
                 // Catch BAD_XML if the sync fails, because not doing so will cause settings to not save
                 // Do nothing for now, error handling to come later with update rewrite.
             }

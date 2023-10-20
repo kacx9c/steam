@@ -5,7 +5,8 @@ class steam_hook_steamHover extends _HOOK_CLASS_
 
     /* !Hook Data - DO NOT REMOVE */
 public static function hookData() {
-    if(\IPS\Settings::i()->steam_api_key && !\IPS\Settings::i()->steam_showonhover) {
+    if(\IPS\Settings::i()->steam_api_key && !\IPS\Settings::i()->steam_showonhover)
+    {
         return array();
     }
  return array_merge_recursive( array (

@@ -2,9 +2,19 @@
 	border: 5px solid #8bc53f;
 }
 
-.steamInGame, img {
+.steamInGame {
 	width: 184px;
 	height: 69px;
+}
+
+.largeImage {
+	width: 184px;
+	height: 69px;
+}
+
+.smallImage {
+	width: 64px;
+	height: 64px;
 }
 
 .steamInGameData {
@@ -36,6 +46,7 @@
 	cursor: default;
 }
 
-.ipsType_sectionTitle {
+.steam-section-title {
 	border-bottom: 0 !important;
+	padding-left: 0 !important;
 }

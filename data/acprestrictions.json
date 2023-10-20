@@ -5,9 +5,6 @@
         },
         "view": {
             "steam_view": "steam_view"
-        },
-        "manage": {
-            "steam_manage": "steam_manage"
         }
     }
 }

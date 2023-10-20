@@ -1,8 +1,4 @@
 {
-    "steamTopic": {
-        "type": "S",
-        "class": "\\IPS\\Theme\\class_forums_front_topics"
-    },
     "steamHover": {
         "type": "S",
         "class": "\\IPS\\Theme\\class_core_front_profile"
@@ -14,5 +10,9 @@
     "steamid": {
         "type": "C",
         "class": "\\IPS\\CustomField"
+    },
+    "topic": {
+        "type": "S",
+        "class": "\\IPS\\Theme\\class_forums_front_topics"
     }
 }

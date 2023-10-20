@@ -1,7 +1,6 @@
 <ips:template parameters="$member" />
 {{ $steam = \IPS\steam\Profile::load($member->member_id); }}
-{{if $steam->member_id == $member->member_id && $steam->steamid && $member->group['steam_pull']}}
-
+{{if $steam->member_id == $member->member_id && $steam->steamid}}
 	<div class='ipsFlex ipsFlex-ai:center ipsFlex-jc:between ipsMargin_top ipsFlex-as:stretch'>
 		<div class='ipsFlex ipsFlex-ai:center'>
 			<p class='ipsType_reset ipsType_semiBold'>

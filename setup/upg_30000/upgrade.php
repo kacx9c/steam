@@ -42,6 +42,20 @@ class _Upgrade
             Db::i()->dropColumn('core_groups', array('steam_index'));
         }
 
+        Db::i()->dropColumn('steam_profiles', array('avatarfull'));
+        Db::i()->dropColumn('steam_profiles', array('avatarmedium'));
+        Db::i()->dropColumn('steam_profiles', array('avatar'));
+
+        Db::i()->addColumn('steam_profiles', array(
+            'name' => 'avatarhash',
+            'type' => 'VARCHAR',
+            'length' => 255,
+            'auto_increment' => false,
+            'unique' => true,
+            'default' => null,
+            'allow_null' => true
+        ));
+
         return TRUE;
     }
 }

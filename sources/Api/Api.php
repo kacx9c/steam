@@ -34,6 +34,8 @@ if (!\defined('\IPS\SUITE_UNIQUE_KEY')) {
 class _Api
 {
     protected const baseUrl = 'https://api.steampowered.com/';
+    protected const baseGroupVanityUrl = 'https://steamcommunity.com/groups/%s/memberslistxml/?xml=1';
+    protected const baseGroupId64Url = 'https://steamcommunity.com/gid/%d/memberslistxml/?xml=1';
     protected static $instance = NULL;
 
     public static function i()
@@ -52,13 +54,12 @@ class _Api
      * @return array
      * @throws RuntimeException
      */
-    protected function request(string $uri, array $queryParams): array
+    protected function requestJson(string $uri, array $queryParams): array
     {
-//        $request = new Response();
         $urlClass = new Url;
+        $request = null;
         $queryParams["key"] = Settings::i()->steam_api_key;
         $queryString = $urlClass->convertQueryAsArrayToString($queryParams);
-//        throw new RuntimeException(self::baseUrl . $uri . "?" . $queryString);
         // Set this up to try a couple of times if the queries hit a rate limit per second
         for ($i = 0; $i < 3; $i++) {
             try {
@@ -73,15 +74,40 @@ class _Api
                 sleep(2);
             }
         }
-        if($request->httpResponseCode != 200) {
+        if($request->httpResponseCode !== '200') {
             throw new RuntimeException(self::baseUrl . $uri . "?" . $queryString);
         }
+
         // Your code must catch a RuntimeException, BAD_JSON
         $decodedJson = $request->decodeJson();
         if (isset($decodedJson['response'])) {
             return $decodedJson['response'];
         }
         return $decodedJson;
+    }
+
+    protected function requestXml($url): mixed
+    {
+        $request = null;
+        // Set this up to try a couple of times if the queries hit a rate limit per second
+        for ($i = 0; $i < 3; $i++) {
+            try {
+                $request = Url::external($url)
+                    ->request(\IPS\LONG_REQUEST_TIMEOUT)
+                    ->get();
+                break;
+            } catch (InvalidArgumentException $e) {
+                if ($i === 2) {
+                    throw $e;
+                }
+                sleep(2);
+            }
+        }
+        if($request->httpResponseCode !== '200') {
+            throw new RuntimeException($url);
+        }
+
+        return $request->decodeXml();
     }
 
     /**
@@ -95,7 +121,7 @@ class _Api
         $queryParams["steamid"] = $steamid;
 
         try {
-            return $this->request($uri, $queryParams);
+            return $this->requestJson($uri, $queryParams);
         } catch (RuntimeException $e) {
             throw new RuntimeException('steam_err_getbadges');
         }
@@ -112,7 +138,7 @@ class _Api
         $queryParams["steamids"] = $steamid;
 
         try {
-            return $this->request($uri, $queryParams);
+            return $this->requestJson($uri, $queryParams);
         } catch (RuntimeException $e) {
             throw new RuntimeException( 'steam_err_vacbans');
         }
@@ -130,7 +156,7 @@ class _Api
         $queryParams["format"] = 'json';
 
         try {
-            return $this->request($uri, $queryParams);
+            return $this->requestJson($uri, $queryParams);
         } catch (RuntimeException $e) {
             throw new RuntimeException( 'steam_err_getplayer');
         }
@@ -147,7 +173,7 @@ class _Api
         $queryParams['steamid'] = $steamid;
 
         try {
-            return $this->request($uri, $queryParams);
+            return $this->requestJson($uri, $queryParams);
         } catch (RuntimeException $e) {
             throw new RuntimeException( 'steam_err_getGroupList');
         }
@@ -165,7 +191,7 @@ class _Api
         $queryParams["format"] = "json";
 
         try {
-            return $this->request($uri, $queryParams);
+            return $this->requestJson($uri, $queryParams);
         } catch (RuntimeException $e) {
             throw new RuntimeException( 'steam_err_getrecent');
         }
@@ -184,9 +210,24 @@ class _Api
         $queryParams["format"] = "json";
 
         try {
-            return $this->request($uri, $queryParams);
+            return $this->requestJson($uri, $queryParams);
         } catch (\RuntimeException $e) {
             throw new RuntimeException( 'steam_err_getowned');
+        }
+    }
+
+    public function getGroup($groupId): mixed
+    {
+        if (preg_match('/^\d{18}$/', $groupId)) {
+            $url = sprintf(self::baseGroupId64Url, $groupId);
+        } else {
+            $url = sprintf(self::baseGroupVanityUrl, $groupId);
+        }
+
+        try {
+            return $this->requestXml($url);
+        } catch (\RuntimeException $e) {
+            throw new RuntimeException( 'steam_err_getGroup');
         }
     }
 
@@ -232,7 +273,7 @@ class _Api
         $queryParams['vanityurl'] = $steamName;
 
         try {
-            $response = $this->request($uri, $queryParams);
+            $response = $this->requestJson($uri, $queryParams);
         } catch (\RuntimeException $e) {
             throw new RuntimeException( 'steam_err_getvanity');
         }
