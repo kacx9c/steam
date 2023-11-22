@@ -1,0 +1,13 @@
+{
+    "core": {
+        "Uninstall": {
+            "uninstall": "IPS\\steam\\extensions\\core\\Uninstall\\uninstall"
+        },
+        "Profile": {
+            "profile": "IPS\\steam\\extensions\\core\\Profile\\profile"
+        },
+        "MemberSync": {
+            "memberSync": "IPS\\steam\\extensions\\core\\MemberSync\\memberSync"
+        }
+    }
+}

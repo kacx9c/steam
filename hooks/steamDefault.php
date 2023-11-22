@@ -11,7 +11,7 @@ class steam_hook_steamDefault extends _HOOK_CLASS_
     {
         try {
             if (\IPS\Settings::i()->steam_default_tab && !isset(\IPS\Request::i()->tab) && !\IPS\Request::i()->isAjax()) {
-                \IPS\Request::i()->tab = 'node_steam_steamprofile';
+                \IPS\Request::i()->tab = 'node_steam_profile';
             }
 
             return \call_user_func_array('parent::manage', \func_get_args());

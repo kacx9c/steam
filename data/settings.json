@@ -20,10 +20,6 @@
         "default": "0"
     },
     {
-        "key": "steam_diagnostics",
-        "default": "0"
-    },
-    {
         "key": "steam_get_owned",
         "default": "1"
     },

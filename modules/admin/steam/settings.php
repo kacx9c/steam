@@ -27,7 +27,7 @@ class _settings extends Controller
      * Execute
      * @return    void
      */
-    public function execute()
+    public function execute() : void
     {
         Dispatcher::i()->checkAcpPermission('steam_settings');
         parent::execute();
@@ -37,7 +37,7 @@ class _settings extends Controller
      * Manage Settings
      * @return    void
      */
-    protected function manage()
+    protected function manage(): void
     {
 
         $form = new Form;
@@ -53,9 +53,6 @@ class _settings extends Controller
             array(), null, null, null, 'steam_showintopic'));
         $form->add(new Form\YesNo('steam_showonhover', Settings::i()->steam_showonhover, false,
             array(), null, null, null, 'steam_showonhover'));
-
-        $form->add(new Form\YesNo('steam_diagnostics', Settings::i()->steam_diagnostics, false,
-            array(), null, null, null, 'steam_diagnostics'));
 
         $form->addHeader('steam__mem_profiles');
         $form->add(new Form\YesNo('steam_showinprofile', Settings::i()->steam_showinprofile, false,
@@ -121,10 +118,12 @@ class _settings extends Controller
                     }
                 }
             }
+
             try {
                 // Add any new entries to the database.
-                Update\Groups::sync($groups);
+                Update\Groups::i()->sync($groups);
             } catch (\Exception $e) {
+                // throw new \RuntimeException($e->getMessage());
                 // Catch BAD_XML if the sync fails, because not doing so will cause settings to not save
                 // Do nothing for now, error handling to come later with update rewrite.
             }

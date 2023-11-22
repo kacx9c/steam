@@ -4,5 +4,6 @@
     "app_directory": "steam",
     "app_protected": 0,
     "app_website": "https:\/\/aiwa.me",
-    "app_update_check": "https:\/\/aiwa.me\/updatecheck\/steam"
+    "app_update_check": "https:\/\/aiwa.me\/updatecheck\/steam",
+    "app_hide_tab": 0
 }

@@ -5,6 +5,7 @@ namespace IPS\steam\Profile;
 use IPS\Patterns\ActiveRecord;
 use IPS\Http\Url;
 use IPS\Settings;
+use JsonException;
 
 
 /* To prevent PHP errors (extending class does not exist) revealing path */
@@ -47,17 +48,17 @@ class _Groups extends ActiveRecord
     /**
      * @var array
      */
-    public $ownedGames = array();
+    public array $ownedGames = array();
 
     /**
      * @var array
      */
-    public $recentGames = array();
+    public array $recentGames = array();
 
     /**
      * @var array
      */
-    public $playerLevel = array();
+    public array $playerLevel = array();
 
     /**
      * @brief    [ActiveRecord] Multiton Store
@@ -70,42 +71,43 @@ class _Groups extends ActiveRecord
      * @param int|string $id
      * @param null       $idField
      * @param null       $extraWhereClause
-     * @return \IPS\steam\Profile\Groups
+     * @return Groups
      */
-    public static function load($id, $idField = null, $extraWhereClause = null)
+    public static function load($id, $idField = null, $extraWhereClause = null): ?Groups
     {
         try {
-            if ($id === null || $id === 0 || $id === '') {
-                $classname = static::class;
+            if ($id === 0 || $id === '') {
+                $className = static::class;
 
-                return new $classname;
+                return new $className;
             }
             $member = parent::load($id, $idField, $extraWhereClause);
         } catch (\OutOfRangeException $e) {
-            $classname = static::class;
+            $className = static::class;
 
-            return new $classname;
+            return new $className;
         }
 
         return $member;
     }
 
+
+    // TODO: Do I even need this since it's inherited ?
     /**
      * Construct ActiveRecord from database row
      * @param array $data                        Row from database table
-     * @param bool  $updateMultitonStoreIfExists Replace current object in multiton store if it already exists there?
+     * @param bool $updateMultitonStoreIfExists Replace current object in multiton store if it already exists there?
      * @return    static
      */
-    public static function constructFromData($data, $updateMultitonStoreIfExists = true)
+    public static function constructFromData($data, $updateMultitonStoreIfExists = true): static
     {
         return parent::constructFromData($data, $updateMultitonStoreIfExists);
-
     }
 
     /**
      *
      */
-    public function setDefaultValues()
+    public function setDefaultValues() : void
     {
         $this->name = '';
         $this->summary = '';
@@ -122,83 +124,40 @@ class _Groups extends ActiveRecord
     }
 
     /**
-     * @param $data
+     * @param $group
      */
-    public function storeXML($data)
+    public function storeXML($group) : void
     {
-        $this->id = (string)$data->groupID64;
-        $this->name = (string)$data->groupDetails->groupName;
-        $this->summary = (string)$data->groupDetails->summary;
-        $this->members = $data->members->steamID64;
-        $this->avatarIcon = (string)$data->groupDetails->avatarIcon;
-        $this->avatarMedium = (string)$data->groupDetails->avatarMedium;
-        $this->avatarFull = (string)$data->groupDetails->avatarFull;
-        $this->memberCount = (int)$data->memberCount;
-        $this->membersInGame = (int)$data->groupDetails->membersInGame;
-        $this->membersOnline = (int)$data->groupDetails->membersOnline;
-        $this->membersInChat = (int)$data->groupDetails->membersInChat;
-        $this->headline = (string)$data->groupDetails->headline;
-        $this->url = (string)$data->groupDetails->groupURL;
+        $this->id = (string)$group->groupID64;
+        $this->name = (string)$group->groupDetails->groupName;
+        $this->summary = (string)$group->groupDetails->summary;
+        $this->members = $group->members->steamID64;
+        $this->avatarIcon = (string)$group->groupDetails->avatarIcon;
+        $this->avatarMedium = (string)$group->groupDetails->avatarMedium;
+        $this->avatarFull = (string)$group->groupDetails->avatarFull;
+        $this->memberCount = (int)$group->memberCount;
+        $this->membersInGame = (int)$group->groupDetails->membersInGame;
+        $this->membersOnline = (int)$group->groupDetails->membersOnline;
+        $this->membersInChat = (int)$group->groupDetails->membersInChat;
+        $this->headline = (string)$group->groupDetails->headline;
+        $this->url = (string)$group->groupDetails->groupURL;
         $this->last_update = time();
         $this->error = '';
     }
 
     /**
      * @param array $values
+     * @throws JsonException
      */
-    public function set_members($values = array())
+    public function set_members($values = array()): void
     {
-        $this->_data['members'] = json_encode($values);
-    }
-
-    /**
-     * @param $value
-     */
-    public function set_avatarIcon($value)
-    {
-        $this->avatarProxy('avatarIcon', $value);
-    }
-
-    /**
-     * @param $key
-     * @param $val
-     */
-    protected function avatarProxy($key, $val)
-    {
-        $proxyUrl = null;
-        if ($val && Settings::i()->remote_image_proxy) {
-            $proxyUrl = Url::createFromString(Settings::i()->base_url . 'applications/core/interface/imageproxy/imageproxy.php');
-            $proxyUrl = $proxyUrl->setQueryString(array(
-                'img' => $val,
-                'key' => hash_hmac('sha256', $val, Settings::i()->site_secret_key),
-            ));
-
-            $this->_data[$key] = (string)$proxyUrl;
-        } else {
-            $this->_data[$key] = $val;
-        }
-    }
-
-    /**
-     * @param $value
-     */
-    public function set_avatarMedium($value)
-    {
-        $this->avatarProxy('avatarMedium', $value);
-    }
-
-    /**
-     * @param $value
-     */
-    public function set_avatarFull($value)
-    {
-        $this->avatarProxy('avatarFull', $value);
+        $this->_data['members'] = json_encode($values, JSON_THROW_ON_ERROR);
     }
 
     /**
      * @return string
      */
-    public function url()
+    public function url(): string
     {
         return 'https://steamcommunity.com/groups/' . $this->url;
     }
@@ -206,7 +165,7 @@ class _Groups extends ActiveRecord
     /**
      * @return string
      */
-    public function chat()
+    public function chat(): string
     {
         return 'steam://friends/joinchat/' . $this->id;
     }

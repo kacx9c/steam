@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <language>
- <app key="steam" version="21013">
+ <app key="steam" version="30000">
   <word key="__app_steam" js="0">Steam Integration</word>
   <word key="module__steam_steam" js="0">Steam</word>
   <word key="menu__steam_steam" js="0">Steam</word>
@@ -15,7 +15,7 @@
   <word key="acp_search_title_steam_Steam" js="0">Steam</word>
   <word key="group__steam_Steam" js="0">Steam Profile</word>
   <word key="pf_type_steamid" js="0">Steam ID</word>
-  <word key="profile_steam_steamprofile" js="0"><![CDATA[<i class='fa fa-steam'></i> Steam Profile]]></word>
+  <word key="profile_steam_profile" js="0"><![CDATA[<i class='fa fa-steam'></i> Steam Profile]]></word>
   <word key="block_steamPlayerWidget" js="0">Random Steam Profiles</word>
   <word key="block_steamPlayerWidget_desc" js="0">Show X Random Steam Profiles.</word>
   <word key="steamIndexCount" js="0">Show how many profiles?</word>
@@ -82,6 +82,7 @@
   <word key="steam_err_getbadges" js="0">Error: Failed response from Steam Servers, GetBadges</word>
   <word key="steam_err_noapi" js="0">Error: API Key Missing</word>
   <word key="steam_err" js="0">Error</word>
+  <word key="steam_err_bcmath" js="0">Missing extension: php-bcmath</word>
   <word key="steam_remove" js="0">Clear Cache</word>
   <word key="steam_update" js="0">Update</word>
   <word key="steam_disable" js="0">Disable</word>
@@ -93,7 +94,7 @@
   <word key="steam_enabled" js="0">Account Enabled</word>
   <word key="steam_err_enabled" js="0">Error: Failed to enable account</word>
   <word key="steam_validated" js="0">SteamID Valid</word>
-  <word key="steam_err_validated" js="0">Steam ID Invalid</word>
+  <word key="steam_err_validated" js="0">SteamID Invalid</word>
   <word key="steam_removed" js="0">Profile Cache cleared</word>
   <word key="steam_err_removed" js="0">Error: Failed to clear local cache</word>
   <word key="steam_updated" js="0">Steam Profile cache updated</word>
@@ -130,7 +131,7 @@
   <word key="st_communityvisibilitystate" js="0">Profile</word>
   <word key="st_game_count" js="0">Games Owned</word>
   <word key="st_personastate" js="0">Status</word>
-  <word key="st_playtime_2weeks" js="0">Playtime 2 weeks (hrs)</word>
+  <word key="st_playtime_2weeks" js="0">Playtime 2 weeks</word>
   <word key="st_restricted" js="0">Disabled?</word>
   <word key="st_error" js="0">Error</word>
   <word key="steam_no" js="0">No</word>
@@ -171,5 +172,6 @@
   <word key="steam_err_validateFailed" js="0">Validation Failed, please try again</word>
   <word key="steam_err_reauth" js="0">Already logged in, re authenticate</word>
   <word key="steam_err_api_fail" js="0">API Call failed</word>
+  <word key="steam_login_name" js="0">Use Steam Name</word>
  </app>
 </language>

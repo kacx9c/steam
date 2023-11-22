@@ -12,6 +12,7 @@ use IPS\Lang;
 use IPS\Http\Request;
 use IPS\Http\Request\Sockets;
 use IPS\Http\Request\Curl;
+use IPS\steam\Api;
 
 /* To prevent PHP errors (extending class does not exist) revealing path */
 if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
@@ -25,42 +26,10 @@ if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
 class _Groups
 {
     /**
-     * @brief    [IPS\Member]    Member object
-     */
-    public $groups = array();
-    /**
-     * @var string
-     */
-    public $api = '';
-    /**
-     * @var array
-     */
-    public $fail = array();
-    /**
-     * @var array|string
-     */
-    public $extras = array();
-    /**
-     * @var string
-     */
-    public $stError = '';
-    /**
-     * @var array
-     */
-    public $cacheData = array();
-    /**
-     * @var string
-     */
-    public $query = '';
-    /**
      * @var array
      */
     public $cache = array();
-    /**
-     * @var int
-     */
-    public $count = 0;
-
+    protected static $instance = NULL;
 
     /**
      * _Groups constructor.
@@ -68,284 +37,191 @@ class _Groups
     public function __construct()
     {
         /* Load the cache  data */
-        $this->extras = Store::i()->steamGroupData ?? array('offset' => 0, 'count' => 0,);
+        $this->cache = Store::i()->steamGroupData ?? array('offset' => 0, 'count' => 0,);
 
-        if (!isset($this->extras['offset'])) {
-            $this->extras['offset'] = 0;
+        if (!isset($this->cache['offset'])) {
+            $this->cache['offset'] = 0;
         }
 
-        Store::i()->steamGroupData = $this->extras;
+        Store::i()->steamGroupData = $this->cache;
     }
 
-// enhance to accept single groups to update.
+    public static function i()
+    {
+        if( static::$instance === NULL )
+        {
+            $classname = \get_called_class();
+            static::$instance = new $classname;
+        }
+
+        return self::$instance;
+    }
 
     /**
-     * @param array $data
+     * Called when saving settings
+     * @param array $groupSettings
      * @throws \Exception
      */
-    public static function sync($data = array())
+    public function sync($groupSettings = array()) : void
+    {
+        if (\count($groupSettings) === 0) {
+            $this->deleteAllGroups();
+            return;
+        }
+
+        $groupsToDelete = array();
+        $groupsToAdd = array();
+        try {
+            $groups = $this->selectGroups();
+
+            // $groupsById = ID64 of all groups in SQL
+            // $groupsByUrl = text name ( url ) of groups.
+            $groupsById = array_map([$this, 'groupIdMap'], $groups);
+            $groupsByUrl = array_map([$this, 'groupsUrlMap'], $groups);
+        } catch (\RuntimeException $e) {
+            // TODO: Error handling
+            return;
+        }
+
+        // GroupSettings could be a mix of ID64's and plain text
+        foreach ($groupSettings as $groupSetting) {
+            if (!array_key_exists($groupSetting, $groupsById) || !array_key_exists($groupSetting, $groupsByUrl)) {
+                $groupsToAdd[] = $groupSetting;
+            } else {
+                $groupsToDelete[] = $groupSetting;
+            }
+        }
+
+        $this->addGroups($groupsToAdd);
+        $this->deleteGroups($groupsToDelete);
+    }
+
+    /**
+     * Called by task execution, uses $limit when selecting groups.
+     * @throws \Exception
+     */
+    public function update(): void
+    {
+        $limit = array($this->cache['offset'], 5);
+        $query = null;
+        try {
+            $groups = $this->selectGroups($limit);
+        } catch (\Exception $e) {
+            // TODO: Error handling
+            return;
+        }
+        $this->cache['count'] = $query->count(true);
+
+        foreach ($groups as $group) {
+            try {
+                $response = Api::i()->getGroup($group->id);
+                $group->storeXML($response);
+            } catch (\RuntimeException $e) {
+                // TODO: Error handling
+                continue;
+            }
+            $group->save();
+
+            $this->cache['offset'] += 5;
+        }
+        // If offset is greater than count we've hit the end.  Reset Offset for the next query.
+        if ($this->cache['offset'] >= $this->cache['count']) {
+            $this->cache['offset'] = 0;
+        }
+        Store::i()->steamGroupData = $this->cache;
+    }
+
+    /**
+     * Go to SQL and get from the steam_groups table
+     * limit is an array required for \IPS\Db\Select clause
+     * @param $limit
+     * @return array
+     */
+    protected function selectGroups($limit = NULL): array
     {
         $groups = array();
-        $_delete = array();
-        $_data = array();
         try {
             $select = 'g.*';
             $where = '';
-            $query = Db::i()->select($select, array('steam_groups', 'g'), $where);
+            $query = Db::i()->select($select, array('steam_groups', 'g'), $where, 'g.stg_id ASC',
+                $limit, null, null, '011');
 
             foreach ($query as $row) {
                 $groups[$row['stg_id']] = Profile\Groups::constructFromData($row);
             }
         } catch (\UnderflowException $e) {
-
+            throw new \RuntimeException($e->getMessage());
         }
 
-        if (\is_array($data) && \count($data)) {
+        return $groups;
+    }
 
-            // Add groups that are missing
-            foreach ($data as $d) {
-                // If we have an ID, search for ID's.
-                if (preg_match('/^\d{18}$/', $d)) {
-                    if (!array_key_exists($d, $groups)) {
-                        $_data[] = $d;
-                        continue;
-                    }
-                } else {
-                    $found = null;
-                    if (\is_array($groups) && \count($groups)) {
-                        foreach ($groups as $g) {
-                            if (!strcasecmp($g->url, $d)) {
-                                $found = $g->name;
-                                break;
-                            }
-                        }
-                    }
-                    if (!$found) {
-                        $_data[] = $d;
-                        $found = null;
-                    }
-                }
-            }
-            // Check and see if groups were removed from the Setting
-            if (\is_array($groups) && \count($groups)) {
-                foreach ($groups as $g) {
-                    $found = false;
-                    if (\in_array($g->id, $data, false)) {
-                        $found = true;
-                    } else {
-                        foreach ($data as $d) {
-                            if (!strcasecmp($g->url, $d)) {
-                                $found = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (!$found) {
-                        $_delete[] = $g;
-                    }
-                }
-            }
-            // If we don't have anything in the setting, empty the table
-        } else {
-            foreach ($groups as $g) {
-                $_delete[] = $g;
-            }
-        }
+    /**
+     * Returns an array of the ID's for each group
+     * @param $group
+     * @return string
+     */
+    protected function groupIdMap($group): string {
+        return $group->id;
+    }
 
+    /**
+     * Returns an array of the plain text ( url ) for each group
+     * @param $group
+     * @return string
+     */
+    protected function groupsUrlMap($group): string {
+        return $group->url;
+    }
+
+    /**
+     * Delete the provided groups
+     * @param $groups
+     * @return void
+     */
+    protected function deleteGroups($groups): void
+    {
         // Delete removed entries
-        if (\is_array($_delete) && \count($_delete)) {
-            foreach ($_delete as $d) {
-                $d->delete();
+        if (\count($groups)) {
+            foreach ($groups as $group) {
+                $deleteGroup = Profile\Groups::load($group);
+                $deleteGroup->delete();
             }
         }
+    }
 
+    /**
+     * Add the provided groups
+     * @param $groups
+     * @return void
+     */
+    protected function addGroups($groups): void {
         // Create new entries
-        if (\is_array($_data) && \count($_data)) {
-            foreach ($_data as $g) {
-                $new = new Profile\Groups;
-
-                if (preg_match('/^\d{18}$/', $g)) {
-                    $url = 'https://steamcommunity.com/gid/' . $g . '/memberslistxml/?xml=1';
-                } else {
-                    $url = 'https://steamcommunity.com/groups/' . $g . '/memberslistxml/?xml=1';
-                }
-
-                /**
-                 * @var Response $req
-                 */
-                $req = static::request($url);
-
-                if ($req->httpResponseCode != 200 || Settings::i()->steam_diagnostics) {
-                    throw new \Exception($req->httpResponseCode . ': getGroup');
-                }
-
+        if (\count($groups)) {
+            foreach ($groups as $group) {
+                $addedGroups = new Profile\Groups;
                 try {
-                    $values = $req->decodeXml();
-                    $new->storeXML($values);
+                    $response = Api::i()->getGroup($group);
+                    $addedGroups->storeXML($response);
                 } catch (\RuntimeException $e) {
-                    if (Settings::i()->steam_diagnostics) {
-                        throw new \Exception($e->getMessage());
-                    }
+                    // TODO: Error handling
+                    // throw new \Exception($e->getMessage());
                     continue;
                 }
-                if (!array_key_exists($new->id, $groups)) {
-                    $new->save();
-                }
+                $addedGroups->save();
             }
         }
     }
 
-
     /**
-     * @param $url
-     * @return \IPS\Http\Url|null
+     * Go to SQL, get all groups, delete them all.
+     * @return void
      */
-    public static function request($url)
-    {
-        /**
-         * @var Curl|Sockets $req
-         */
-        $req = null;
-        $return = null;
-        try {
-            $req = Url::external($url)->request(\IPS\LONG_REQUEST_TIMEOUT);
-            $return = $req->get();
-        } catch (Request\CurlException $e) {
-            //Try one more time in case we're hitting to many requests...
-            // Wait 3 seconds
-            sleep(2);
-            try {
-                $req = Url::external($url)->request(\IPS\LONG_REQUEST_TIMEOUT);
-                $return = $req->get();
-            } catch (Request\CurlException $e) {
-                throw new \OutOfRangeException($e);
-            }
+    protected function deleteAllGroups(): void {
+        $groups = $this->selectGroups();
+        foreach($groups as $group)
+        {
+            $group->delete();
         }
-
-        return $return;
-    }
-
-    /**
-     * @throws \Exception
-     */
-    public function update()
-    {
-        $groups = array();
-        $query = null;
-        try {
-            $select = 'g.*';
-            $where = '';
-            $query = Db::i()->select($select, array('steam_groups', 'g'), $where, 'g.stg_id ASC',
-                array($this->extras['offset'], 5), null, null, '011');
-
-            foreach ($query as $row) {
-                $groups[] = Profile\Groups::constructFromData($row);
-            }
-        } catch (\UnderflowException $e) {
-
-        }
-        $this->extras['count'] = $query->count(true);
-
-        foreach ($groups as $g) {
-
-            if (preg_match('/^\d{18}$/', $g->id)) {
-                $url = 'https://steamcommunity.com/gid/' . $g->id . '/memberslistxml/?xml=1';
-            } else {
-                $url = 'https://steamcommunity.com/groups/' . $g->url . '/memberslistxml/?xml=1';
-            }
-            /**
-             * @var Response $req
-             */
-            $req = static::request($url);
-
-            if ($req->httpResponseCode != 200) {
-                $this->failed($g, 'group_err_request');
-                if (Settings::i()->steam_diagnostics) {
-                    throw new \Exception($req->httpResponseCode . ': getGroup');
-                }
-                continue;
-            }
-            try {
-                $values = $req->decodeXml();
-                $g->storeXML($values);
-            } catch (\RuntimeException $e) {
-                $this->failed($g, 'steam_err_getGroup');
-                if (Settings::i()->steam_diagnostics) {
-                    throw new \Exception($e->getMessage());
-                }
-                continue;
-            }
-
-            // If we got this far, there was no error.
-            $g->error = '';
-            $g->last_update = time();
-
-            // Store the data
-            $g->save();
-        }
-
-        $this->extras['offset'] += 5;
-
-        // If offset is greater than count we've hit the end.  Reset Offset for the next query.
-        if ($this->extras['offset'] >= $this->extras['count']) {
-            $this->extras['offset'] = 0;
-        }
-        Store::i()->steamGroupData = $this->extras;
-    }
-
-    /**
-     * @param      $g
-     * @param null $lang
-     */
-    protected function failed($g, $lang = null)
-    {
-
-        if (isset($g->id) || isset($g->name)) {
-            $groupToLoad = $g->id ?? $g->name;
-            $group = Profile\Groups::load($groupToLoad);
-        } else {
-            return;
-        }
-
-        $group->error = ($lang ?? '');
-        $group->last_update = time();
-        $group->save();
-    }
-
-    /**
-     * @param $group
-     */
-    public function remove($group)
-    {
-        try {
-            $r = Profile\Groups::load($group);
-            $r->setDefaultValues();
-            $r->save();
-
-        } catch (\Exception $e) {
-
-        }
-    }
-
-    /**
-     * @param bool $raw
-     * @return string|null
-     */
-    public function error($raw = true)
-    {
-        if ($raw) {
-            return $this->stError;
-        }
-
-        if ($this->stError) {
-            $return = $this->stError;
-        } elseif (\is_array($this->failed) && \count($this->failed)) {
-            $return = Lang::load(Lang::defaultLanguage())->get('task_steam_profile') . ' - ' . implode(',',
-                    $this->fail);
-        } else {
-            $return = null;
-        }
-
-        return $return;
     }
 }

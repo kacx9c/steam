@@ -22,18 +22,27 @@ if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
  */
 class _steamProfile extends Controller
 {
+    protected int $memberId;
+    protected Member $member;
+    protected Profile $profile;
     /**
      * Execute
      * @return    void
      */
-    public function execute()
+    public function execute() : void
     {
         Session::i()->csrfCheck();
-        $this->member_id = (int)Request::i()->id;
+        $this->memberId = (int)Request::i()->id;
 
-        if ($this->member_id > 0 && (($this->member_id == Member::loggedIn()->member_id) || Member::loggedIn()->isAdmin())) {
-            $this->member = Member::load($this->member_id);
-            $this->steam = Profile::load($this->member_id);
+        if ($this->memberId > 0 && (($this->memberId === Member::loggedIn()->member_id) || Member::loggedIn()->isAdmin())) {
+            $this->member = Member::load($this->memberId);
+            $this->profile = Profile::load($this->memberId);
+            if(!$this->profile->steamid)
+            {
+                $this->profile->setDefaultValues();
+                $this->profile->member_id = $this->member->member_id;
+                $this->profile->save();
+            }
         } else {
             Output::i()->error('node_error', '2ST100/1', 404, '');
         }
@@ -44,7 +53,7 @@ class _steamProfile extends Controller
      * ...
      * @return    void
      */
-    protected function manage()
+    protected function manage(): void
     {
         /* Replace with default Online user display */
         /* Nothing to see here, send them back to the profile they came from */
@@ -56,21 +65,15 @@ class _steamProfile extends Controller
     /**
      *
      */
-    public function update()
+    public function update(): void
     {
         Session::i()->csrfCheck();
         try {
-            $profile = Profile::load($this->member_id);
-            if ($profile->last_update > (time() - 30) && !Member::loggedIn()->isAdmin()) {
+            if ($this->profile->last_update > (time() - 30) && !Member::loggedIn()->isAdmin()) {
                 $message = Member::loggedIn()->language()->addToStack('steam_wait');
             } else {
                 $stUpdate = new Update;
-                $stUpdate->updateProfile($this->member_id);
-                if ($stUpdate->update($this->member_id)) {
-                    $message = Member::loggedIn()->language()->addToStack('steam_updated');
-                } else {
-                    $message = Member::loggedIn()->language()->addToStack('steam_err_updated');
-                }
+                $message = $stUpdate->updateFullProfile($this->memberId);
             }
 
         } catch (\Exception $e) {
@@ -84,14 +87,14 @@ class _steamProfile extends Controller
     /**
      *
      */
-    public function disable()
+    public function disable(): void
     {
         Session::i()->csrfCheck();
 
         try {
-            $this->steam->setDefaultValues();
-            $this->steam->restricted = 1;
-            $this->steam->save();
+            $this->profile->setDefaultValues();
+            $this->profile->restricted = 1;
+            $this->profile->save();
             $message = Member::loggedIn()->language()->addToStack('steam_disabled');
         } catch (\Exception $e) {
             $message = Member::loggedIn()->language()->addToStack('steam_err_disabled');
@@ -103,14 +106,14 @@ class _steamProfile extends Controller
     /**
      *
      */
-    public function enable()
+    public function enable(): void
     {
         Session::i()->csrfCheck();
 
         try {
-            $this->steam->setDefaultValues();
-            $this->steam->restricted = 0;
-            $this->steam->save();
+            $this->profile->setDefaultValues();
+            $this->profile->restricted = 0;
+            $this->profile->save();
             $message = Member::loggedIn()->language()->addToStack('steam_enabled');
         } catch (\Exception $e) {
             $message = Member::loggedIn()->language()->addToStack('steam_err_enabled');
@@ -122,34 +125,28 @@ class _steamProfile extends Controller
     /**
      *
      */
-    public function validate()
+    public function validate(): void
     {
         Session::i()->csrfCheck();
         try {
-            if ($this->member->steamid) {
-                /* If LAVO has set a steamid for the member, let's assume it's valid */
+            $steamUpdate = new Update;
+            /* Let's check the profile field */
+            if ($steamUpdate->getSteamID($this->member) || preg_match('/^\d{17}$/', $this->profile->steamid)) {
                 $message = Member::loggedIn()->language()->addToStack('steam_validated');
             } else {
-                $stUpdate = new Update;
-                /* Lets check the profile field */
-                if ($stUpdate->getSteamID($this->member)) {
-                    $message = Member::loggedIn()->language()->addToStack('steam_validated');
-                } else {
-                    $message = Member::loggedIn()->language()->addToStack('steam_err_validated');
-                }
+                $message = Member::loggedIn()->language()->addToStack('steam_err_validated');
             }
         } catch (\Exception $e) {
             $message = $e->getMessage();
         }
 
         Output::i()->redirect($this->member->url()->setQueryString('tab', 'node_steam_steamprofile'), $message);
-
     }
 
     /**
      *
      */
-    public function remove()
+    public function remove(): void
     {
         Session::i()->csrfCheck();
         try {

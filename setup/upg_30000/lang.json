@@ -1,0 +1,21 @@
+{
+    "normal": {
+        "added": [
+            "steam_err_bcmath",
+            "steam_login_name",
+            "profile_steam_profile"
+        ],
+        "edited": [
+            "steam_err_validated",
+            "st_playtime_2weeks"
+        ],
+        "removed": [
+            "profile_steam_steamprofile"
+        ]
+    },
+    "js": {
+        "added": [],
+        "edited": [],
+        "removed": []
+    }
+}

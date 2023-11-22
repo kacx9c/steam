@@ -74,7 +74,7 @@
 
 	<div class='ipsColumns ipsSpacer_bottom'>
 		<div class='ipsColumn ipsColumn_narrow ipsPos_center'>
-    		<a href='{$steam->profileurl}' class='ipsPos_center' target='_blank'><img src='{$steam->avatarfull}' class='ipsUserPhoto ipsUserPhoto_xlarge' /></a><br />
+    		<a href='{$steam->profileurl}' class='ipsPos_center' target='_blank'><img src='https://avatars.steamstatic.com/{$steam->avatarhash}_full.jpg' class='ipsUserPhoto ipsUserPhoto_xlarge' /></a><br />
 		</div>
 		<div class='ipsColumn ipsColumn_fluid'>
 			<div class='ipsPad'>
@@ -127,7 +127,7 @@
 				 		{{else}}
 				 			<a href="https://store.steampowered.com/app/{$g['appid']}" data-ipsTooltip title="{$g['name']}" target='_blank'>
 				 		{{endif}}
-							<img src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/{$g['appid']}/{$g['img_logo_url']}.jpg" title="{$g['name']}: {expression=" \round(($g['playtime_2weeks'] / 60), 1)"} {lang='steam_2weeks'}" data-ipsTooltip /></a>
+							<img src="https://steamcdn-a.akamaihd.net/steam/apps/{$g['appid']}/capsule_184x69.jpg" title="{$g['name']}: {expression=" \round(($g['playtime_2weeks'] / 60), 1)"} {lang='steam_2weeks'}" data-ipsTooltip /></a>
 					</div>
 					<div class='{{if $steam->gameextrainfo === $g['name'] }}steamInGameData{{else}}steamGameData{{endif}}'>
 						<span>{expression="\round($g['playtime_2weeks'] / 60,  1)"} {lang="steam_2weeks"}</span><br />
@@ -144,23 +144,23 @@
 {{if  settings.steam_get_owned && \is_array($steam->getOwned()) && \count($steam->getOwned()) && $steam->game_count }}
 	{{if settings.steam_profile_style == 'one'}}
 		<div class='general_box'>
-			<h4 class='ipsType_sectionTitle'>{lang="steam_owned_games"}</h4>
+			<h4 class='ipsType_sectionTitle steam-section-title'>{lang="steam_owned_games"}</h4>
 			<ol class='ipsGrid'>
 				{{foreach $steam->getOwned() as $_id => $g }}
-					<li class='ipsGrid_span1 ipsPad'>
+					<li class='ipsGrid_span2'>
 					{{if isset($g['has_community_visible_stats']) && settings.steam_link_stats }}
 						<a href="https://steamcommunity.com/profiles/{$steam->steamid}/stats/{$g['appid']}" data-ipsTooltip title="{$g['name']}" target='_blank'>
 				 	{{else}}
 				 		<a href="https://store.steampowered.com/app/{$g['appid']}" data-ipsTooltip title="{$g['name']}" target='_blank'>
 				 	{{endif}}
-						<img src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/{$g['appid']}/{$g['img_icon_url']}.jpg"  class=''/></a>
+						<img src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/{$g['appid']}/{$g['img_icon_url']}.jpg"  class='smallImage'/></a>
 					</li>
 				{{endforeach}}
 			</ol>
 		</div>
 	{{else}}
 		<div class='general_box'>
-			<h4 class='ipsType_sectionTitle'>{lang="steam_owned_games"}</h4>
+			<h4 class='ipsType_sectionTitle steam-section-title'>{lang="steam_owned_games"}</h4>
 			<div class='ipsGrid' data-ipsGrid data-ipsGrid-minItemSize='180'>
 				{{foreach $steam->getOwned() as $_id => $g }}
 					<div class='ipsGrid_span3 ipsSpacer_bottom'>
@@ -169,7 +169,7 @@
 					 	{{else}}
 					 		<a href="https://store.steampowered.com/app/{$g['appid']}" target='_blank'>
 					 	{{endif}}
-							<img src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/{$g['appid']}/{$g['img_logo_url']}.jpg" data-ipsTooltip title="{$g['name']}: {expression=" \round($g['playtime_forever'] / 60, 1)"} {lang="steam_forever"}"/></a>
+							<img src="https://steamcdn-a.akamaihd.net/steam/apps/{$g['appid']}/capsule_184x69.jpg" alt="" class="largeImage" data-ipsTooltip title="{$g['name']}: {expression=" \round($g['playtime_forever'] / 60, 1)"} {lang="steam_forever"}" /></a>
 					</div>
 				{{endforeach}}
 			</div>

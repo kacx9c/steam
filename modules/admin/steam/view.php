@@ -35,7 +35,7 @@ class _view extends \IPS\Dispatcher\Controller
      * Execute
      * @return    void
      */
-    public function execute()
+    public function execute() : void
     {
         $this->includeRows = array(
             'photo',
@@ -58,7 +58,7 @@ class _view extends \IPS\Dispatcher\Controller
      * Manage
      * @return    void
      */
-    protected function manage()
+    protected function manage() : void
     {
         /* Create the table */
         $this->table = new Table\Db('steam_profiles',
@@ -88,17 +88,6 @@ class _view extends \IPS\Dispatcher\Controller
             ),
         );
 
-        // $this->table->rowButtons = function($row)
-        // {
-        // 	return array(
-        // 			'delete'	=> array(
-        // 				'icon'		=> 'trash',
-        // 				'title'		=> 'delete',
-        // 				'link'		=> \IPS\Http\Url::internal( 'app=steam&module=steam&controller=view&do=delete&id=' ) . $row['st_member_id'],
-        // 			),
-        // 		);
-        // };
-
         /* Quick Filters */
         $this->table->filters = array(
             'steam_filters_active'   => "st_steamid NOT IN ('','0')",
@@ -117,7 +106,7 @@ class _view extends \IPS\Dispatcher\Controller
     /**
      * @param array $data
      */
-    protected function parsedData($data = array())
+    protected function parsedData($data = array()) : void
     {
         $this->table->parsers = array_merge(array(
             'photo'                       => function ($value, $row) {
@@ -134,12 +123,6 @@ class _view extends \IPS\Dispatcher\Controller
             },
             'st_last_update'              => function ($value, $row) {
                 return $this->lastUpdate($value, $row);
-            },
-            'st_lastlogoff'               => function ($value, $row) {
-                return $this->lastLogoff($value, $row);
-            },
-            'st_restricted'               => function ($value, $row) {
-                return $this->restricted($value, $row);
             },
             'st_communityvisibilitystate' => function ($value, $row) {
                 return $this->communityVisibilityState($value, $row);
@@ -164,12 +147,12 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function photo($value, $row)
+    protected function photo($value, $row): string
     {
         $member = Member::constructFromData($row);
 
-        if ($row['st_avatarmedium']) {
-            return "<img src={$row['st_avatarmedium']} class='ipsUserPhoto_small'/>";
+        if ($row['st_avatarhash']) {
+            return "<img src='https://avatars.steamstatic.com/{$row['st_avatarhash']}_medium.jpg' class='ipsUserPhoto_small'/>";
         }
         if ($row['st_restricted']) {
             return "<span class='ipsType_warning'><strong>{$member::loggedIn()->language()->addToStack('steam_disabled')}</strong></span>";
@@ -184,7 +167,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function name($value, $row)
+    protected function name($value, $row): string
     {
         $member = Member::constructFromData($row);
 
@@ -197,7 +180,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function steamID($value, $row)
+    protected function steamID($value, $row): string
     {
         if ($value) {
             return "<a href={$row['st_profileurl']} target='_blank'>{$value}</a>";
@@ -212,7 +195,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function personaname($value, $row)
+    protected function personaname($value, $row): string
     {
         $member = Member::constructFromData($row);
 
@@ -224,7 +207,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function lastUpdate($value, $row)
+    protected function lastUpdate($value, $row): string
     {
         if ($value) {
             $ts = DateTime::ts($value);
@@ -240,42 +223,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function lastLogoff($value, $row)
-    {
-        if ($value) {
-            $ts = DateTime::ts($value);
-            if ($value < (time() - 86400)) {
-                return $ts->strFormat('%x');
-            }
-
-            return $ts->relative('RELATIVE_FORMAT_SHORT');
-        }
-
-        return '';
-    }
-
-    /**
-     * @param $value
-     * @param $row
-     * @return string
-     */
-    protected function restricted($value, $row)
-    {
-        return $value;
-//        if ($value == 0) {
-//            return "<span class='ipsType_success'><strong>{Member::loggedIn()->language()->addToStack('steam_no')}</strong></span>";
-//        }
-//        if ($value < time()) {
-//            return "<span class='ipsType_warning'><strong>{Member::loggedIn()->language()->addToStack('steam_yes')}</strong></span>";
-//        }
-    }
-
-    /**
-     * @param $value
-     * @param $row
-     * @return string
-     */
-    protected function communityVisibilityState($value, $row)
+    protected function communityVisibilityState($value, $row): string
     {
         $member = Member::constructFromData($row);
         if ($value == 3) {
@@ -293,7 +241,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function vacStatus($value, $row)
+    protected function vacStatus($value, $row): string
     {
         $member = Member::constructFromData($row);
 
@@ -312,7 +260,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function personaState($value, $row)
+    protected function personaState($value, $row): string
     {
         $member = Member::constructFromData($row);
 
@@ -330,12 +278,12 @@ class _view extends \IPS\Dispatcher\Controller
     /**
      * @param $value
      * @param $row
-     * @return float
+     * @return string
      */
-    protected function playtime($value, $row)
+    protected function playtime($value, $row) : string
     {
         if ($value) {
-            return \round($value / 60, 1);
+            return \round($value / 60, 1) . ' hrs';
         }
 
         return 0;
@@ -346,7 +294,7 @@ class _view extends \IPS\Dispatcher\Controller
      * @param $row
      * @return string
      */
-    protected function error($value, $row)
+    protected function error($value, $row): string
     {
         $member = Member::constructFromData($row);
 

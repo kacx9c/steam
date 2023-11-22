@@ -25,6 +25,7 @@ if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
 
 /**
  * steamcleanup Task
+ * Lookup all users that have their steam profile in a custom field. Create them and update them.
  */
 class _steamCleanup extends Task
 {
@@ -51,7 +52,6 @@ class _steamCleanup extends Task
         try {
             $steam = new Update;
             $steam->cleanup();
-
         } catch (\Exception $e) {
             throw new Task\Exception($this, $e);
         }
@@ -66,7 +66,7 @@ class _steamCleanup extends Task
      * may not have been done
      * @return    void
      */
-    public function cleanup()
+    public function cleanup(): void
     {
 
     }

@@ -1,0 +1,19 @@
+{
+    "added": {
+        "0": "steam_api_key",
+        "1": "steam_batch_count",
+        "2": "steam_can_clear",
+        "3": "steam_comm_groups",
+        "4": "steam_default_tab",
+        "6": "steam_get_owned",
+        "7": "steam_instructions",
+        "8": "steam_link_stats",
+        "9": "steam_profile_count",
+        "10": "steam_profile_style",
+        "11": "steam_showinprofile",
+        "12": "steam_showintopic",
+        "13": "steam_showonhover"
+    },
+    "edited": [],
+    "removed": []
+}

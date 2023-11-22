@@ -5,6 +5,7 @@ namespace IPS\steam;
 use IPS\Member;
 use IPS\Settings;
 use IPS\Patterns\ActiveRecord;
+use JsonException;
 
 /* To prevent PHP errors (extending class does not exist) revealing path */
 if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
@@ -51,35 +52,34 @@ class _Profile extends ActiveRecord
     /**
      * @var array
      */
-    public $ownedGames = array();
+    public array $ownedGames = array();
     /**
      * @var array
      */
-    public $recentGames = array();
+    public array $recentGames = array();
     /**
      * @var array
      */
-    public $playerLevel = array();
+    public array $playerLevel = array();
 
     /**
-     * @param int|string $id
+     * @param null $id
      * @param null       $idField
      * @param null       $extraWhereClause
      * @return \IPS\Patterns\ActiveRecord
      */
-    public static function load($id, $idField = null, $extraWhereClause = null)
+    public static function load($id, $idField = null, $extraWhereClause = null) : ActiveRecord
     {
         try {
-            if ($id === null || $id === 0 || $id === '') {
-                $classname = static::class;
+            if ($id === 0 || $id === '') {
+                $className = static::class;
 
-                return new $classname;
+                return new $className;
             }
             $member = parent::load($id, $idField, $extraWhereClause);
         } catch (\OutOfRangeException $e) {
-            $classname = static::class;
-
-            return new $classname;
+            $className = static::class;
+            return new $className;
         }
 
         return $member;
@@ -88,10 +88,10 @@ class _Profile extends ActiveRecord
     /**
      * Construct ActiveRecord from database row
      * @param array $data                        Row from database table
-     * @param bool  $updateMultitonStoreIfExists Replace current object in multiton store if it already exists there?
+     * @param bool $updateMultitonStoreIfExists Replace current object in multiton store if it already exists there?
      * @return    static
      */
-    public static function constructFromData($data, $updateMultitonStoreIfExists = true)
+    public static function constructFromData($data, $updateMultitonStoreIfExists = true): static
     {
         return parent::constructFromData($data, $updateMultitonStoreIfExists);
     }
@@ -99,14 +99,12 @@ class _Profile extends ActiveRecord
     /**
      *
      */
-    public function setDefaultValues()
+    public function setDefaultValues() : void
     {
         $this->error = '';
         $this->personaname = '';
         $this->profileurl = '';
-        $this->avatar = '';
-        $this->avatarmedium = '';
-        $this->avatarfull = '';
+        $this->avatarhash = '';
         $this->personastate = 0;
         $this->timecreated = null;
         $this->lastlogoff = null;
@@ -129,25 +127,23 @@ class _Profile extends ActiveRecord
 
     /**
      * @return array
+     * @throws JsonException
      */
-    public function getLevel()
+    public function getLevel(): array
     {
+        $playerLevel = array();
         if (isset($this->player_level)) {
-            if (!\is_array($this->playerLevel) || !\count($this->playerLevel)) {
-                $this->playerLevel = json_decode($this->player_level, true);
+            if(!\is_array($this->player_level) || !\count($this->player_level)) {
+                $playerLevel = json_decode($this->player_level, true, 512, JSON_THROW_ON_ERROR);
             }
-
-            return $this->playerLevel;
         }
-
-        return array();
-
+        return $playerLevel;
     }
 
     /**
      * @param $value
      */
-    public function set_personaname($value)
+    public function set_personaname($value): void
     {
         // If their database isn't set up for mb4, strip 4 byte characters and replace with Diamond ?.
         if (Settings::i()->getFromConfGlobal('sql_utf8mb4') !== true) {
@@ -157,9 +153,10 @@ class _Profile extends ActiveRecord
     }
 
     /**
-     * @param $value
+     * @param string $value
+     * @throws JsonException
      */
-    public function set_gameextrainfo($value)
+    public function set_gameextrainfo($value): void
     {
         // If the value we're saving is NULL, save it and return.
         if (!$value) {
@@ -189,14 +186,14 @@ class _Profile extends ActiveRecord
 
     /**
      * @return array|mixed
+     * @throws JsonException
      */
-    public function getOwned()
+    public function getOwned() : ?array
     {
         if (isset($this->owned)) {
             if (!\is_array($this->ownedGames) || !\count($this->ownedGames)) {
-                $this->ownedGames = json_decode($this->owned, true);
+                $this->ownedGames = json_decode($this->owned, true, 512, JSON_THROW_ON_ERROR);
             }
-
             return $this->ownedGames;
         }
 
@@ -207,7 +204,7 @@ class _Profile extends ActiveRecord
      * @param int $count
      * @return array
      */
-    public function getRecent($count = 0)
+    public function getRecent($count = 0): array
     {
         if (isset($this->games)) {
             if (!\is_array($this->recentGames) || !\count($this->recentGames)) {
@@ -233,9 +230,8 @@ class _Profile extends ActiveRecord
     /**
      * @return \IPS\Member
      */
-    public function author()
+    public function author(): Member
     {
         return Member::load($this->member_id);
     }
-
 }
