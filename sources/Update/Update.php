@@ -225,7 +225,7 @@ class _Update
      */
     protected static function getRecentlyPlayedGames(Profile $steamProfile): void
     {
-        $playedGames = API::i()->getRecentlyPlayedGames($steamProfile->steamid);
+        $playedGames = Api::i()->getRecentlyPlayedGames($steamProfile->steamid);
         // Store recently played game data and free up memory
         if (isset($playedGames['total_count'], $playedGames['games'])) {
             $steamProfile->playtime_2weeks = 0;
@@ -254,7 +254,7 @@ class _Update
      * @throws JsonException
      */
     protected static function getOwnedGames(Profile $steamProfile): void {
-        $ownedGames = API::i()->getOwnedGames($steamProfile->steamid);
+        $ownedGames = Api::i()->getOwnedGames($steamProfile->steamid);
 
         if (isset($ownedGames['game_count'], $ownedGames['games']) && Settings::i()->steam_get_owned) {
             $_owned = array();
@@ -283,7 +283,7 @@ class _Update
      */
     protected static function getUserGroupList(Profile $steamProfile): void
     {
-        $groupList = API::i()->getUserGroupList($steamProfile->steamid);
+        $groupList = Api::i()->getUserGroupList($steamProfile->steamid);
 
         if (isset($groupList) && $groupList['success']) {
             $_groups = array();
@@ -383,7 +383,7 @@ class _Update
         // Don't just check if the var exists / isset.  Check if it has something in it.
         $steamId = '';
         if (!empty($member->profileFields[$group][$field])) {
-            $steamId = API::i()->getSteamId($member->profileFields[$group][$field]);
+            $steamId = Api::i()->getSteamId($member->profileFields[$group][$field]);
         }
         return $steamId;
     }
@@ -408,7 +408,6 @@ class _Update
         } else {
             return array();
         }
-
         $players = Api::i()->getPlayerSummaries($implodedSteamIds);
         return $this->savePlayerSummaries($players, $profiles);
     }
@@ -467,7 +466,7 @@ class _Update
      */
     protected function getBadges(Profile $steamProfile): void
     {
-        $badges = API::i()->getBadges($steamProfile->steamid);
+        $badges = Api::i()->getBadges($steamProfile->steamid);
         $badges['badges'] = array_filter($badges['badges'], array($this, 'badges'));
         $steamProfile->player_level = json_encode(
             $badges,
@@ -480,6 +479,7 @@ class _Update
      */
     protected function initSteam(): void
     {
+
         if (!Settings::i()->steam_api_key) {
             throw new InvalidArgumentException('steam_err_noapi');
         }

@@ -50,8 +50,7 @@ class _steamCleanup extends Task
         }
 
         try {
-            $steam = new Update;
-            $steam->cleanup();
+            Update::i()->cleanup();
         } catch (\Exception $e) {
             throw new Task\Exception($this, $e);
         }
