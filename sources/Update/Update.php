@@ -9,6 +9,7 @@ use IPS\Http\Response;
 use IPS\Lang;
 use IPS\Member;
 use IPS\Settings;
+use IPS\Login;
 use InvalidArgumentException;
 use Exception;
 use JsonException;
@@ -43,6 +44,8 @@ class _Update
         'cleanup_count'  => 0,
         'pf_id'          => 0,
         'pf_group_id'    => 0,
+        'login_count'    => 0,
+        'login_offset'   => 0,
     );
     /**
      * @var array
@@ -198,27 +201,6 @@ class _Update
     }
 
     /**
-     * @param null $memberId
-     * @param null $lang
-     */
-    public function failed($memberId = null, $lang = null): void
-    {
-        if ($memberId !== null) {
-            $profile = Profile::load($memberId, 'st_member_id');
-        } else {
-            return;
-        }
-        // TODO: What am I doing here?
-        $this->error = 1;
-
-        // Either we loaded an existing record, or are working with a new record... Either way, update and save it.
-        $profile->member_id = $memberId;
-        $profile->error = ($lang ?? '');
-        $profile->last_update = time();
-        $profile->save();
-    }
-
-    /**
      * @param Profile $steamProfile
      * @return void
      * @throws JsonException
@@ -331,10 +313,10 @@ class _Update
     }
 
     /**
-     * @param $cache
+     * @param array $cache
      * @return array
      */
-    protected static function getFieldId($cache): array
+    protected static function getFieldId(array $cache): array
     {
         try {
             $customFieldId = Db::i()->select(
@@ -354,10 +336,10 @@ class _Update
     }
 
     /**
-     * @param $element
+     * @param array $element
      * @return bool
      */
-    protected static function badges($element): bool
+    protected static function badges(array $element): bool
     {
         return \in_array($element['badgeid'], static::badgesToKeep, false);
     }
@@ -487,32 +469,19 @@ class _Update
     }
 
     /**
-     * Update the cache offset for the next query
+     * @param array $members
      */
-    protected function updateCache(): void
+    public function cleanup(array $members): void
     {
-        $this->cache['offset'] += (int)Settings::i()->steam_batch_count;
-        if ($this->cache['offset'] >= $this->cache['count']) {
-            $this->cache['offset'] = 0;
-        }
-        Store::i()->steamData = $this->cache;
-    }
-
-
-
-
-    // TODO Cleanup
-
-    /**
-     * @param int $offset
-     * @throws \Exception
-     */
-    public function cleanup(): void
-    {
-        $members = $this->GetBatchMembers();
         if (\count($members)) {
-            foreach ($members as $member) {
-                $steamid = $this->getSteamID($member);
+            foreach ($members as $index => $member) {
+                // If the members array was built with Steam64 as the index
+                // we don't need to go get it again
+                if(preg_match('/^\d{17}$/', $index)) {
+                    $steamid = $index;
+                } else {
+                    $steamid = $this->getSteamID($member);
+                }
 
                 $steamProfile = Profile::load($member->member_id, 'st_member_id');
 
@@ -533,20 +502,18 @@ class _Update
                 }
             }
         }
-        /* Set the Extra data Cache */
-        Store::i()->steamData = $this->cache;
     }
 
-    protected function getBatchMembers(): array
+    public function getBatchMembers(): array
     {
-        // SELECT m.* FROM 'core_members' as 'm'
-        // INNER JOIN 'core_pfields_content' as 'p'
-        // ON m.member_id = p.member_id
-        // LEFT JOIN 'steam_profiles as 's'
-        // ON s.st_steamid IS NULL AND p.field_# IS NOT NULL
-        // ORDER BY m.member_id ASC
-        // LIMIT #,##
-        // (limit is not used when getting the count )
+//         SELECT m.* FROM 'core_members' as 'm'
+//         INNER JOIN 'core_pfields_content' as 'p'
+//         ON m.member_id = p.member_id
+//         LEFT JOIN 'steam_profiles as 's'
+//         ON s.st_steamid IS NULL AND p.field_# IS NOT NULL
+//         ORDER BY m.member_id ASC
+//         LIMIT #,##
+//         (limit is not used when getting the count )
 
         $members = array();
         $offset = $this->cache['cleanup_offset'];
@@ -578,11 +545,89 @@ class _Update
         return $members;
     }
 
+    /**
+     * Update profile based on steamid used for login
+     * @return array
+     */
+    public function getLoginMembers(): array
+    {
+        $members = array();
+        if (Login\Handler::findMethod('IPS\steamlogin\sources\Login\Steam') === null) {
+            return $members;
+        }
+
+//        SELECT m.member_id, cll.token_identifier FROM core_members as m
+//        INNER JOIN core_login_links as cll
+//        ON m.member_id = cll.token_member
+//        LEFT JOIN core_login_methods as clm
+//        ON cll.token_login_method = clm.login_id AND clm.login_classname LIKE '%Steam%'
+//        LEFT JOIN steam_profiles as s
+//        ON m.member_id = s.st_member_id
+//        WHERE s.st_member_id IS NULL;
+//        ORDER BY m.member_id ASC
+//        LIMIT #,##
+//        (limit is not used when getting the count )
+
+        $offset = $this->cache['login_offset'];
+        $on_login_method = "cll.token_login_method = clm.login_id AND clm.login_classname LIKE '%Steam%'";
+        $on_core_members = 'm.member_id = cll.token_member';
+        $on_steam_profiles = 's.st_member_id = m.member_id';
+        $where = "s.st_member_id IS NULL";
+        $query =
+            Db::i()->select('m.*, cll.token_identifier', array('core_members', 'm'), $where, 'm.member_id ASC',
+                array($offset, Settings::i()->steam_batch_count))
+                ->join(array('core_login_links', 'cll'), $on_core_members, 'INNER')
+                ->join(array('core_login_methods', 'clm'), $on_login_method, 'LEFT')
+                ->join(array('steam_profiles', 's' ), $on_steam_profiles, 'LEFT');
+
+        $queryCount =
+            Db::i()->select('COUNT(*)', array('core_members', 'm'), $where, 'm.member_id ASC')
+                ->join(array('core_login_links', 'cll'), $on_core_members, 'INNER')
+                ->join(array('core_login_methods', 'clm'), $on_login_method, 'LEFT')
+                ->join(array('steam_profiles', 's' ), $on_steam_profiles, 'LEFT');
+        foreach ($query as $id => $row) {
+            $members[$row['token_identifier']] = Member::constructFromData($row);
+        }
+
+        // Must use ->first() to get the VALUE of the COUNT(*).
+        // COUNT(*) query only returns 1 row, ->count() returns 1.
+        $this->cache['login_count'] = $queryCount->first();
+        $this->updateLoginCache();
+        return $members;
+    }
+
+    /**
+     * Update the cache offset for the next query
+     */
     protected function updateCleanupCache(): void
     {
         $this->cache['cleanup_offset'] += (int)Settings::i()->steam_batch_count;
         if ($this->cache['cleanup_offset'] >= $this->cache['cleanup_count']) {
             $this->cache['cleanup_offset'] = 0;
+        }
+        Store::i()->steamData = $this->cache;
+    }
+
+    /**
+     * Update the cache offset for the next query
+     */
+    protected function updateLoginCache(): void
+    {
+        $this->cache['login_offset'] += (int)Settings::i()->steam_batch_count;
+        if ($this->cache['login_offset'] >= $this->cache['login_count']) {
+            $this->cache['login_offset'] = 0;
+        }
+        Store::i()->steamData = $this->cache;
+    }
+
+    /**
+     * Update the cache offset for the next query
+     */
+    protected function updateCache(): void
+    {
+        $this->cache['offset'] += (int)Settings::i()->steam_batch_count;
+        if ($this->cache['offset'] >= $this->cache['count']) {
+            $this->cache['offset'] = 0;
         }
         Store::i()->steamData = $this->cache;
     }

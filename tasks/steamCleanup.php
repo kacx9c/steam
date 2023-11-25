@@ -50,7 +50,8 @@ class _steamCleanup extends Task
         }
 
         try {
-            Update::i()->cleanup();
+            $members = Update::i()->getBatchMembers();
+            Update::i()->cleanup($members);
         } catch (\Exception $e) {
             throw new Task\Exception($this, $e);
         }
