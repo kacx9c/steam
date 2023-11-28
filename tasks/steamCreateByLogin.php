@@ -26,7 +26,7 @@ if ( !\defined( '\IPS\SUITE_UNIQUE_KEY' ) )
 /**
  * steamLogin Task
  */
-class _steamLogin extends \IPS\Task
+class _steamCreateByLogin extends \IPS\Task
 {
 	/**
 	 * Execute
