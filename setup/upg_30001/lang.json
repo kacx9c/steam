@@ -1,0 +1,18 @@
+{
+    "normal": {
+        "added": [
+            "task__steamCreateByProfileField",
+            "task__steamCreateByLogin",
+            "task__steamGroups"
+        ],
+        "edited": [],
+        "removed": [
+            "task__steamCleanup"
+        ]
+    },
+    "js": {
+        "added": [],
+        "edited": [],
+        "removed": []
+    }
+}

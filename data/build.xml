@@ -3,9 +3,10 @@
  <module key="admin/steam"><![CDATA[{"default_controller":"settings","protected":false}]]></module>
  <module key="front/steam"><![CDATA[{"default_controller":"","protected":1}]]></module>
  <task frequency="P0Y0M0DT0H2M0S">steamProfile</task>
- <task frequency="P0Y0M0DT3H0M0S">steamCleanup</task>
  <task frequency="P0Y0M0DT0H15M0S">steamGames</task>
  <task frequency="P0Y0M1DT0H0M0S">steamGroups</task>
+ <task frequency="P0Y0M0DT3H0M0S">steamCreateByProfileField</task>
+ <task frequency="P0Y0M0DT3H0M0S">steamCreateByLogin</task>
  <setting key="steam_api_key"><![CDATA[{"key":"steam_api_key","default":""}]]></setting>
  <setting key="steam_batch_count"><![CDATA[{"key":"steam_batch_count","default":"25"}]]></setting>
  <setting key="steam_can_clear"><![CDATA[{"key":"steam_can_clear","default":"0"}]]></setting>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <language>
- <app key="steam" version="30000">
+ <app key="steam" version="30001">
   <word key="__app_steam" js="0">Steam Integration</word>
   <word key="module__steam_steam" js="0">Steam</word>
   <word key="menu__steam_steam" js="0">Steam</word>
@@ -10,8 +10,10 @@
   <word key="menu__steam_steam_view" js="0">View Profiles</word>
   <word key="menu__steam_steam_view_title" js="0">View Profiles</word>
   <word key="task__steamProfile" js="0">Update Profile information / online status</word>
-  <word key="task__steamCleanup" js="0">Check for missing profiles, remove profiles where Steam ID has been removed.</word>
+  <word key="task__steamCreateByProfileField" js="0">Check for missing profiles when using Custom Profile Field</word>
+  <word key="task__steamCreateByLogin" js="0">Check for missing profiles when using Login Handler</word>
   <word key="task__steamGames" js="0"><![CDATA[Update local cache of recently played & owned games]]></word>
+  <word key="task__steamGroups" js="0">Update cache for configured Steam Groups</word>
   <word key="acp_search_title_steam_Steam" js="0">Steam</word>
   <word key="group__steam_Steam" js="0">Steam Profile</word>
   <word key="pf_type_steamid" js="0">Steam ID</word>
