@@ -93,7 +93,7 @@ abstract class steam_hook_steamid extends _HOOK_CLASS_
      * @param null $customValidationCode
      * @return mixed|void
      */
-    public function buildHelper($value = null, $customValidationCode = null, \IPS\Content $content = null, $flags = 0)
+    public function buildHelper($value = null, $customValidationCode = null, \IPS\Content $content = null)
     {
         try {
             if ($this->type === 'Steamid') {

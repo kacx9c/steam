@@ -1,0 +1,23 @@
+{
+    "id": 30001,
+    "name": "3.0.1",
+    "steps": {
+        "queries": true,
+        "lang": true,
+        "theme": false,
+        "themeSettings": false,
+        "javascript": false,
+        "emailTemplates": false,
+        "hooks": false,
+        "acpSearchKeywords": false,
+        "settings": false,
+        "tasks": true,
+        "modules": false,
+        "widgets": false,
+        "customOptions": false,
+        "customRoutines": false
+    },
+    "forceMainUpgrader": false,
+    "forceManualDownloadNoCiC": false,
+    "forceManualDownloadCiC": false
+}

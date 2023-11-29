@@ -1,0 +1,13 @@
+{
+    "1": {
+        "method": "delete",
+        "params": [
+            "core_tasks",
+            [
+                "`key`=? AND app=?",
+                "steamCleanup",
+                "steam"
+            ]
+        ]
+    }
+}

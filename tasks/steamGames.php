@@ -50,8 +50,7 @@ class _steamGames extends Task
         }
 
         try {
-            $steam = new Update;
-            $steam->updateFullProfile();
+            Update::i()->updateFullProfile();
         } catch (\Exception $e) {
             throw new Task\Exception($this, $e);
         }

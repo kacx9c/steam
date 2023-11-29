@@ -48,10 +48,9 @@ class _steamProfile extends Task
         if (!isset($_SERVER['REQUEST_METHOD'])) {
             $_SERVER['REQUEST_METHOD'] = 'POST';
         }
-        try {
-            $steam = new Update;
-            $steam->updateBatchProfilesSummaries();
 
+        try {
+            Update::i()->updateBatchProfilesSummaries();
         } catch (\Exception $e) {
             throw new Task\Exception($this, $e);
         }

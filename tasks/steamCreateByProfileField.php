@@ -27,7 +27,7 @@ if (!defined('\IPS\SUITE_UNIQUE_KEY')) {
  * steamcleanup Task
  * Lookup all users that have their steam profile in a custom field. Create them and update them.
  */
-class _steamCleanup extends Task
+class _steamCreateByProfileField extends Task
 {
     /**
      * Execute
@@ -50,8 +50,8 @@ class _steamCleanup extends Task
         }
 
         try {
-            $steam = new Update;
-            $steam->cleanup();
+            $members = Update::i()->getBatchMembers();
+            Update::i()->cleanup($members);
         } catch (\Exception $e) {
             throw new Task\Exception($this, $e);
         }
