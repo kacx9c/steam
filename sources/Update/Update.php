@@ -66,6 +66,10 @@ class _Update
         $this->initSteam();
     }
 
+    /**
+     * Get Instance
+     * @return mixed|null
+     */
     public static function i()
     {
         if( static::$instance === NULL )
@@ -78,6 +82,7 @@ class _Update
     }
 
     /**
+     * Empty profile and do not allow a profile to be re-created
      * @param int $memberId
      * @return void
      */
@@ -95,6 +100,7 @@ class _Update
     }
 
     /**
+     * Re-enable a profile. It will be cached via a task.
      * @param int $memberId
      * @return void
      */
@@ -111,6 +117,7 @@ class _Update
     }
 
     /**
+     * Query all API endpoints to update a members profile
      * @param int $memberId
      * @return string
      */
@@ -146,6 +153,7 @@ class _Update
     }
 
     /**
+     * If a member id is provided, only update the individual members profile.
      * @param int $memberId
      * @return array
      */
@@ -313,6 +321,7 @@ class _Update
     }
 
     /**
+     * Findd the custom profile field, if it exists.
      * @param array $cache
      * @return array
      */
@@ -336,6 +345,7 @@ class _Update
     }
 
     /**
+     * Not storing all badges, only a select few.
      * @param array $element
      * @return bool
      */
@@ -457,6 +467,7 @@ class _Update
     }
 
     /**
+     * Check for API key and initialize the store.
      * @return void
      */
     protected function initSteam(): void
@@ -469,6 +480,8 @@ class _Update
     }
 
     /**
+     * Used for custom profile field and login handler tasks
+     * Create any new profiles and update them.
      * @param array $members
      */
     public function cleanup(array $members): void
@@ -504,6 +517,10 @@ class _Update
         }
     }
 
+    /**
+     * Get members based on Custom Profile field, that aren't in steam_profiles
+     * @return array
+     */
     public function getBatchMembers(): array
     {
 //         SELECT m.* FROM 'core_members' as 'm'
@@ -546,7 +563,7 @@ class _Update
     }
 
     /**
-     * Update profile based on steamid used for login
+     * Update profile based on steamid used for login, that aren't in steam_profiles
      * @return array
      */
     public function getLoginMembers(): array
