@@ -46,7 +46,9 @@ class _memberSync
         if (isset(\IPS\Data\Store::i()->steamData)) {
             $cache = \IPS\Data\Store::i()->steamData;
         }
-        if (!isset($cache['pf_id']) && !isset($cache['pf_group_id']))
+        $hasProfileField = isset($cache['pf_id'], $cache['pf_group_id']);
+        $hasLoginHandler = \IPS\Login\Handler::findMethod('IPS\steamlogin\sources\Login\Steam') !== null;
+        if (!$hasProfileField && !$hasLoginHandler)
         {
             return;
         }
@@ -62,6 +64,10 @@ class _memberSync
         $steamProfile->setDefaultValues();
         $steamProfile->member_id = $member->member_id;
         $steamProfile->steamid = $steamid;
+        if(PHP_INT_SIZE === 8)
+        {
+            $steamProfile->steamid_hex = dechex((int) $steamid);
+        }
         $steamProfile->save();
 
         \IPS\steam\Update::i()->updateFullProfile($steamProfile->member_id);
@@ -138,6 +144,7 @@ class _memberSync
                 $steamProfile->setDefaultValues();
                 $steamProfile->member_id = $member->member_id;
                 $steamProfile->steamid = $steamid;
+                $steamProfile->steamid_hex = bin2hex($steamid);
                 $steamProfile->save();
                 \IPS\steam\Update::i()->updateFullProfile($steamProfile->member_id);
             } elseif ($steamProfile->member_id) {
