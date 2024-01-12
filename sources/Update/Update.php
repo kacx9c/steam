@@ -164,14 +164,18 @@ class _Update
             return array();
         }
         $member = Member::load($memberId);
-        $steamId = $this->getSteamId($member);
+        $steamid = $this->getSteamId($member);
         $steamProfile = Profile::load($member->member_id, 'st_member_id');
 
         /* If they set their steamId, but they aren't in the DB, lets put them in the DB */
         if (!isset($steamProfile->steam_id)) {
             $steamProfile->setDefaultValues();
             $steamProfile->member_id = $member->member_id;
-            $steamProfile->steamid = $steamId;
+            $steamProfile->steamid = $steamid;
+            if(PHP_INT_SIZE === 8)
+            {
+                $steamProfile->steamid_hex = dechex((int) $steamid);
+            }
             $steamProfile->save();
         }
         try {
@@ -488,6 +492,7 @@ class _Update
     {
         if (\count($members)) {
             foreach ($members as $index => $member) {
+                $steamid = '';
                 // If the members array was built with Steam64 as the index
                 // we don't need to go get it again
                 if(preg_match('/^\d{17}$/', $index)) {
@@ -500,9 +505,13 @@ class _Update
 
                 /* If they don't have an entry, create one... If their entry doesn't match,
                    purge it and update the steamID */
-                if (!$steamProfile->steamid || ($steamProfile->steamid !== $steamid)) {
+                if ($steamid !== '' && (!$steamProfile->steamid || ($steamProfile->steamid !== $steamid))) {
                     $steamProfile->setDefaultValues();
                     $steamProfile->steamid = $steamid;
+                    if(PHP_INT_SIZE === 8)
+                    {
+                        $steamProfile->steamid_hex = dechex((int) $steamid);
+                    }
                     $steamProfile->member_id = $member->member_id;
                     $steamProfile->last_update = time();
                     $steamProfile->save();

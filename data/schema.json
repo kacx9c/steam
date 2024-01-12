@@ -301,6 +301,18 @@
                 "type": "TEXT",
                 "unsigned": false,
                 "values": []
+            },
+            "st_steamid_hex": {
+                "name": "st_steamid_hex",
+                "type": "VARCHAR",
+                "length": 17,
+                "decimals": null,
+                "values": null,
+                "allow_null": true,
+                "default": null,
+                "comment": "",
+                "unsigned": false,
+                "auto_increment": false
             }
         },
         "indexes": {

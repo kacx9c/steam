@@ -123,6 +123,7 @@ class _Profile extends ActiveRecord
         $this->player_level = json_encode(array());
         $this->player_groups = json_encode(array());
         $this->steamid = null;
+        $this->steamid_hex = null;
     }
 
     /**
