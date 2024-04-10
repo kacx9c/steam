@@ -110,7 +110,6 @@ class _Groups
             // TODO: Error handling
             return;
         }
-        $this->cache['count'] = $query->count(true);
 
         foreach ($groups as $group) {
             try {
