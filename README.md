@@ -1,4 +1,4 @@
-# Steam Profile Integration - v3.0.0
+# Steam Profile Integration - v3.0.2
 
 This app will obtain data from Steam for your users, and groups, and place it in your IPS Community database for use anywhere on your site. Your board will re-load your members Steam Online information, in configurable batches, every 2 minutes, so you always have up to date information without impacting load times of your community pages.
 
@@ -27,7 +27,7 @@ Scales seamlessly to work with larger boards without impacting site / server per
 IPS 4.0.x & 4.1.x, use version 2.0.13
 IPS 4.2 use  2.1.7
 IPS 4.3 and 4.4,  2.1.13
-IPS 4.7+ 3.0.0
+IPS 4.7+ 3.0.x
 ```
 ```
 Supported natively on 64 bit server configurations. 
@@ -59,13 +59,7 @@ Note: If you have an existing custom profile field with this data, edit the exis
 
 * Go to ACP > Community > Steam > Settings.  Here is where you'll need to put in your Steam API Key.
 
-#### Step 5: Build Steam Profile Cache
-
-* Go to ACP > Community > Steam > Manage.
-* Select 'Update' from the drop down and Start.
-Note: If starting with existing data in a Profile Field this process could take a while.
-
-#### Step 6: Add the Widget to a page
+#### Step 5: Add the Widget to a page
 
 * Navigate to your community homepage, forum index page.
 * Open the 'Block Manager'
